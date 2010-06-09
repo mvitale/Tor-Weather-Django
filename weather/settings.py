@@ -1,4 +1,5 @@
 # Django settings for weather project.
+# YO DAWG I'M JEFFFFFFFFFFFFFFFFFFFFFFFF
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
