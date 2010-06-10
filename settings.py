@@ -1,4 +1,5 @@
 # Django settings for TorWeatherDjango project.
+# Test.
 import os
 PROJECT_PATH = os.path.realpath(os.path.dirname(__file__))
 DEBUG = True
