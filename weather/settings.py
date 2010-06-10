@@ -1,6 +1,6 @@
-# Django settings for TorWeatherDjango project.
-import os
-PROJECT_PATH = os.path.realpath(os.path.dirname(__file__))
+# Django settings for weather project.
+# YO DAWG I'M JEFFFFFFFFFFFFFFFFFFFFFFFF
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -12,8 +12,8 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'WeatherDB'),                      # Or path to database file if using sqlite3.
+        'ENGINE': 'django.db.backends.', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': '',                      # Or path to database file if using sqlite3.
         'USER': '',                      # Not used with sqlite3.
         'PASSWORD': '',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
@@ -59,7 +59,7 @@ MEDIA_URL = ''
 ADMIN_MEDIA_PREFIX = '/media/'
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = 'f3d-wd6=2ajeik(ane)ynxp(ho-h4=_=g=l$rg8d=5$kff-w6l'
+SECRET_KEY = '9lo&^0&f(tsv6lki5a5)t1!omha^84!5if7jp)^5r6vo^)kys('
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
@@ -76,7 +76,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-ROOT_URLCONF = 'TorWeatherDjango.urls'
+ROOT_URLCONF = 'weather.urls'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
