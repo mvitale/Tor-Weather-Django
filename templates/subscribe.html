@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h3> Sign Up! </h3>
+
+<br>
+<form method="post" action="/subscribe">
+You can use this form to request status updates to tell you when a particular
+Tor node has become unreachable for a sustained period of time.
+<br><br>
+
+<p>
+Email:<br>
+<input type="text" name="email" size="50" maxlength="255" value="Enter one email address" onclick="if (this.value == 'Enter one email address') {this.value = ''}" />
+</p><p>
+Node fingerprint:<br>
+<input type="text" name="node" size="50" maxlength="255" value="Enter one Tor node ID" onclick="if (this.value == 'Enter one Tor node ID') {this.value = ''}" />
+</p>
+<p>
+<p>
+How many hours of downtime until we send a notification:<br>
+<input type="text" name="downtime" size="50" maxlength="255" value="Default is 1 hour, enter up to 8760 (1 year)" onclick="if (this.value == 'Default is 1 hour, enter up to 8760 (1 year)') {this.value = 'Default is 1 hour, enter up to 8760 (1 year)'}" />
+</p>
+<p>
+<input type="submit" class="submit" value="Subscribe to Tor Weather" name="sa"/>
+</p>
+<hr>
+<h3>FAQ</h3>
+<br>
+<p>Q: <b>Where can I find the fingerprint for my server?</b></p>
+<p>A: <i>Often your node fingerprint can be found on unix-like machines in the file: <tt>/var/lib/tor/fingerprint</tt></i></p>
+<p>Q: <b>Will I be overloaded with alerts that I cannot suppress?</b></p>
+<p>A: <i>No.</i>
+<p>Q: <b>Can I unsubscribe easily?</b></p>
+<p>A: <i>Yes.</i>
+<p>Q: <b>I'm having a problem, can you help me?</b></p>
+<p>A: <i>Yes. Send an email to <tt>tor-weather @ torproject dot org</tt></i>
+<br>
+<hr>
+<br>
+<p><i>Please note that while we won't ever intentionally publish them, the address/node pairs sent to this server are not protected against SMTP eavesdropping, hacking, or lawyers.</i>
+</form>
+{% endblock content %}
