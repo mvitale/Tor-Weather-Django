@@ -7,11 +7,8 @@ class Subscriber(models.Model)
     router_id = models.ForeignKey(Router)
 
     #change this when more is known
-    subs_auth = models.CharField(max_length=300) 
-    unsubs_auth = models.CharField(max_length=300)
-    pref_auth = models.CharField(max_length=300)
+    subs_auth = models.CharField(max_length=250) 
+    unsubs_auth = models.CharField(max_length=250)
+    pref_auth = models.CharField(max_length=250)
 
     sub_date = models.DateField()
-
-class Router(models.Model)
-    finger = models
