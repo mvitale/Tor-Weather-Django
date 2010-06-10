@@ -7,7 +7,7 @@ class Router(models.Model):
     last_seen = models.DateTimeField('date last seen')
     
     def __unicode__(self):
-        return self.fringerprint
+        return self.fingerprint
 
 class Subscriber(models.Model):
     email = models.EmailField(max_length=75)
