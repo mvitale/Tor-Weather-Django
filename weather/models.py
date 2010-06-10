@@ -1,6 +1,9 @@
 from django.db import models
 from django.core.mail import send_mail
 import datetime
+import TorCtl.TorCtl
+import socket
+import weather.config
 
 class Router(models.Model):
     fingerprint = models.CharField(max_length=200)
@@ -15,7 +18,7 @@ class Subscriber(models.Model):
     router_id = models.ForeignKey(Router)
     confirmed = models.BooleanField()
 
-    #change this when more is known
+    #change this when more is known?
     subs_auth = models.CharField(max_length=250) 
     unsubs_auth = models.CharField(max_length=250)
     pref_auth = models.CharField(max_length=250)
