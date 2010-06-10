@@ -92,9 +92,10 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
-    #'Tor-Weather-Django.weather',
-    os.curdir + '.weather',
-    #os.path.join(PROJECT_PATH, 'weather'),
+    
+    os.path.basename(os.path.dirname(os.path.realpath(__file__))) \
+            + '.weather',
+
     # Uncomment the next line to enable the admin:
     # 'django.contrib.admin',
 )
