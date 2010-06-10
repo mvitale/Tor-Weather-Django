@@ -1,7 +1,15 @@
 from django.db import models
-import datetime.date
+import datetime
 
-class Subscriber(models.Model)
+class Router(models.Model):
+    fingerprint = models.CharField(max_length=200)
+    welcomed = models.BooleanField()
+    last_seen = models.DateTimeField('date last seen')
+    
+    def __unicode__(self):
+        return self.fringerprint
+
+class Subscriber(models.Model):
     email = models.EmailField(max_length=75)
     router_id = models.ForeignKey(Router)
     confirmed = models.BooleanField()
@@ -27,13 +35,5 @@ class Subscription(models.Model):
 
     def __unicode__(self):
         return self.name
-
-class Router(models.Model):
-    fingerprint = models.CharField(max_length=200)
-    welcomed = models.BooleanField()
-    last_seen = models.DateTimeField('date last seen')
-    
-    def __unicode__(self):
-        return self.fringerprint
 
 
