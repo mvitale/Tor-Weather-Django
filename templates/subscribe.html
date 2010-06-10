@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h3> Sign Up! </h3>
+
+<br>
+<form method="post" action="/subscribe">
+You can use this form to request status updates to tell you when a particular
+Tor node has become unreachable for a sustained period of time.
+<br><br>
+
+<p>
+Email:<br>
+<input type="text" name="email" size="50" maxlength="255" value="Enter one email address" onclick="if (this.value == 'Enter one email address') {this.value = ''}" />
+</p><p>
+Node fingerprint:<br>
+<input type="text" name="node" size="50" maxlength="255" value="Enter one Tor node ID" onclick="if (this.value == 'Enter one Tor node ID') {this.value = ''}" />
+</p>
+<p>
+
