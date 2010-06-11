@@ -2,6 +2,8 @@ from TorCtl import TorCtl
 import socket
 import weather.config
 import urllib2
+"""A module for listening to TorCtl for new consensus events. When one occurs,
+initializes poller"""
 
 class MyEventHandler(TorCtl.EventHandler):
     def new_consensus_event(self, event):
