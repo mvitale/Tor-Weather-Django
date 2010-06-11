@@ -7,6 +7,7 @@ import socket
 
 class Router(models.Model):
     fingerprint = models.CharField(max_length=200)
+    name = models.CharField(max_length=100)
     welcomed = models.BooleanField()
     last_seen = models.DateTimeField('date last seen')
     
@@ -19,7 +20,7 @@ class Subscriber(models.Model):
     confirmed = models.BooleanField()
 
     #change this when more is known?
-    subs_auth = models.CharField(max_length=250) 
+    confirm_auth = models.CharField(max_length=250) 
     unsubs_auth = models.CharField(max_length=250)
     pref_auth = models.CharField(max_length=250)
 

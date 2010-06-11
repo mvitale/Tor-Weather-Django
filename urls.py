@@ -6,7 +6,7 @@ from django.conf.urls.defaults import *
 
 urlpatterns = patterns('weather.weatherapp.views',
     (r'^$', 'subscribe'),
-    (r'^pending/$', 'pending'),
+    (r'^pending/(?P<subscriber_id>\d+)/$', 'pending'),
     (r'^confirm/(?P<confirm_auth_id>[a-zA-Z0-9]+)/$', 'confirm'),
     (r'^unsubscribe/(?P<unsubscribe_auth_id>[a-zA-Z0-9]+)/$','unsubscribe'),
     (r'^preferences/(?P<preferences_auth_id>[a-zA-Z0-9]+)/$','preferences'),
