@@ -1,9 +1,9 @@
 from django.db import models
 from django.core.mail import send_mail
 import datetime
-import TorCtl.TorCtl
+#import TorCtl.TorCtl
 import socket
-import weather.config
+#import weather.config
 
 class Router(models.Model):
     fingerprint = models.CharField(max_length=200)
@@ -40,21 +40,21 @@ class Subscription(models.Model):
     def __unicode__(self):
         return self.name
 
-class Emailer(models.Model):
-    """A class for sending email messages"""
-    def sendEmail(sender, recipient, messageText, subject):
-        """
-        Send an email with message messageText and subject subject to
-        recipient from sender
-        
-        @type sender: string
-        @param sender: The sender of this email.
-        @type recipient: string
-        @param recipient: The recipient of this email.
-        @type messageText: string
-        @param messageText: The contents of this email.
-        @type subject: string
-        @param subject: The subject of this email.
-        """
-        to = [recipient] #send_mail takes a list of recipients
-        send_mail(subject, messageText, sender, recipient, fail_silently=True)
+#class Emailer(models.Model):
+#    """A class for sending email messages"""
+#    def sendEmail(sender, recipient, messageText, subject):
+#        """
+#        Send an email with message messageText and subject subject to
+#        recipient from sender
+#        
+#        @type sender: string
+#        @param sender: The sender of this email.
+#        @type recipient: string
+#        @param recipient: The recipient of this email.
+#        @type messageText: string
+#        @param messageText: The contents of this email.
+#        @type subject: string
+#        @param subject: The subject of this email.
+#        """
+#        to = [recipient] #send_mail takes a list of recipients
+#        send_mail(subject, messageText, sender, recipient, fail_silently=True)
