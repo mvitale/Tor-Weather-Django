@@ -8,22 +8,13 @@
 You can use this form to request status updates to tell you when a particular
 Tor node has become unreachable for a sustained period of time.
 <br><br>
-
-<p>
-Email:<br>
-<input type="text" name="email" size="50" maxlength="255" value="Enter one email address" onclick="if (this.value == 'Enter one email address') {this.value = ''}" />
-</p><p>
-Node fingerprint:<br>
-<input type="text" name="node" size="50" maxlength="255" value="Enter one Tor node ID" onclick="if (this.value == 'Enter one Tor node ID') {this.value = ''}" />
-</p>
-<p>
-<p>
-How many hours of downtime until we send a notification:<br>
-<input type="text" name="downtime" size="50" maxlength="255" value="Default is 1 hour, enter up to 8760 (1 year)" onclick="if (this.value == 'Default is 1 hour, enter up to 8760 (1 year)') {this.value = 'Default is 1 hour, enter up to 8760 (1 year)'}" />
-</p>
-<p>
+<label for="email">Your e-mail address:</label>
+{{ form.email }}
+<label for="router_id">Node fingerprint:</label>
+{{ form.router_id }}
+<label for="grace_pd">How many hours of downtime before we send a notification:</label>
+{{ form.grace_pd }}
 <input type="submit" class="submit" value="Subscribe to Tor Weather" name="sa"/>
-</p>
 <hr>
 <h3>FAQ</h3>
 <br>
