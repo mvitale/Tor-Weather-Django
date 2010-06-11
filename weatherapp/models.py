@@ -29,6 +29,11 @@ class Subscriber(models.Model):
     def __unicode__(self):
         return self.email
 
+class SubscribeForm(forms.Form):
+    email = forms.EmailField(max_length=75)
+    router_id = forms.CharField(max_length=200)
+    grace_pd = forms.IntegerField(default=1)
+
 class Subscription(models.Model):
     subscriber = models.ForeignKey(Subscriber)
     name = models.CharField(max_length=200)
