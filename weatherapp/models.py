@@ -60,12 +60,57 @@ class Subscription(models.Model):
 #        to = [recipient] #send_mail takes a list of recipients
 #        send_mail(subject, messageText, sender, recipient, fail_silently=True)
 
-class Poller:
-    def __init__(self):
-        ctrl_host = '127.0.0.1'        
-        ctrl_port = 9051
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect((ctrl_host, ctrl_port))
-        self.ctrl = TorCtl.Connection(sock)
-        self.ctrl.authenticate(config.authenticator)
-        
+class TorPing:
+    "Check to see if various tor nodes respond to SSL hanshakes"
+    def __init__(self, control_host = "127.0.0.1", control_port = 9051):
+        self.debugfile = open("debug", "w")
+
+        "Keep the connection to the control port lying around"
+        self.control_host = control_host
+        self.control_port = control_port
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            self.sock.connect((control_host,control_port))
+        except:
+            errormsg = "Could not connect to Tor control port" + \
+                       "Is Tor running on %s with its control port opened on %s?" \
+                        % (control_host, control_port)
+            logging.error(errormsg)
+            print >> sys.stderr, errormsg
+            raise
+        self.control = TorCtl.Connection(self.sock)
+        self.control.authenticate(weather.config.authenticator)
+        self.control.debug(self.debugfile)
+
+    def __del__(self):
+        self.sock.close()
+        del self.sock
+        self.sock = None                # prevents double deletion exceptions
+
+        # it would be better to fix TorCtl!
+        try:
+            self.control.close()
+        except:
+            logging.error("Exception while closing TorCtl")
+            pass
+
+        del self.control
+        self.control = None
+
+    def ping(self, nodeId):
+        "Let's see if this tor node is up by only asking Tor."
+        try:
+            info = self.control.get_info(str("ns/id/" + nodeId))
+        except TorCtl.ErrorReply, e:
+            # If we're getting here, we're likely seeing:
+            # ErrorReply: 552 Unrecognized key "ns/id/46D9..."
+            # This means that the node isn't recognized by 
+            logging.error("ErrorReply: %s" % str(e))
+            return False
+
+        except:
+            logging.error("Unknown exception in ping()")
+            return False
+
+        # If we're here, we were able to fetch information about the router
+        return True
