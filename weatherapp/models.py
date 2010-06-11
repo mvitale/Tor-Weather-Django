@@ -75,9 +75,25 @@ class Subscription(models.Model):
     def __unicode__(self):
         return self.name
 
+    def should_email()
+        time_since_changed = datetime.datetime.now() - last_changed
+        hours_since_changed = time_since_changed.hours / 3600
+        if triggered and not emailed and \
+                (hours_since_changed > grace_pd):
+            return true
+        else:
+            return false
+
+    def add_new_subscription(subscriber_id):
+# ------------------------------------------------------------------------
+# DO STUFF HERE!
+# ------------------------------------------------------------------------
+
 class Emailer(models.Model):
     """A class for sending email messages"""
     
+    def send_generic_mail(recipient, messageType, 
+
     def send_generic_mail(recipient, subject, messageText, 
                           sender = 'tor-ops@torproject.org'):
         """
@@ -98,6 +114,10 @@ class Emailer(models.Model):
 
         to = [recipient] #send_mail takes a list of recipients
         send_mail(subject, messageText, sender, to, fail_silently=True)
+
+    def send_email(recipient, messageType):
+        if messageType == "confirm":
+            send_generic_mail
 
     def send_confirmation(recipient, 
             subject = '[Tor Weather] Confirmation Needed', 
