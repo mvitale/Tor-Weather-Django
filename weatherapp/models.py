@@ -71,7 +71,8 @@ class Subscription(models.Model):
     emailed = models.BooleanField()
     triggered = models.BooleanField()
     last_changed = models.DateTimeField('date of last change')
-
+    
+    
     def __unicode__(self):
         return self.name
 
@@ -174,10 +175,31 @@ class StringGenerator:
             r = r.replace("-", "x")
         return r
 
+class CheckSubscriptions:
+    def __init__(self)
+        self.pinger = TorPing()
+
+    def check_node_down():
+        subscriptions = Subscription.objects.filter(name = "node_down")
+        for subscription in subscriptions:
+            is_up = pinger.ping(subscription.node_id) 
+            if is_up:
+                if subscription.triggered:
+                   subscription.triggered = False
+                   subscription.last_changed = datetime.datetime
+            else:
+                if subscription.triggered:
+                    if subscription.should_email():
+                        recipient = subscription.subscriber.email
+                        Emailer.send_node_down_email(recipient)
+                        subscription.emailed = True 
+                else:
+                    subscription.triggered = True
+                    subscription.last_changed = datetime.datetime
+
 class TorPing:
     "Check to see if various tor nodes respond to SSL hanshakes"
     def __init__(self, control_host = "127.0.0.1", control_port = 9051):
-        self.debugfile = open("debug", "w")
 
         "Keep the connection to the control port lying around"
         self.control_host = control_host
@@ -194,8 +216,6 @@ class TorPing:
             raise
         self.control = TorCtl.Connection(self.sock)
         self.control.authenticate(weather.config.authenticator)
-        self.control.debug(self.debugfile)
-
     def __del__(self):
         self.sock.close()
         del self.sock
@@ -205,7 +225,6 @@ class TorPing:
         try:
             self.control.close()
         except:
-            logging.error("Exception while closing TorCtl")
             pass
 
         del self.control
@@ -219,11 +238,9 @@ class TorPing:
             # If we're getting here, we're likely seeing:
             # ErrorReply: 552 Unrecognized key "ns/id/46D9..."
             # This means that the node isn't recognized by 
-            logging.error("ErrorReply: %s" % str(e))
             return False
 
         except:
-            logging.error("Unknown exception in ping()")
             return False
 
         # If we're here, we were able to fetch information about the router
