@@ -4,9 +4,13 @@ from django.conf.urls.defaults import *
 # from django.contrib import admin
 # admin.autodiscover()
 
-urlpatterns = patterns('',
-    # Example:
-    # (r'^TorWeatherDjango/', include('TorWeatherDjango.foo.urls')),
+urlpatterns = patterns('weather.weatherapp.views',
+    (r'^$', 'subscribe'),
+    (r'^pending/(?P<subscriber_id>\d+)/$', 'pending'),
+    (r'^confirm/(?P<confirm_auth_id>[a-zA-Z0-9]+)/$', 'confirm'),
+    (r'^unsubscribe/(?P<unsubscribe_auth_id>[a-zA-Z0-9]+)/$','unsubscribe'),
+    (r'^preferences/(?P<preferences_auth_id>[a-zA-Z0-9]+)/$','preferences'),
+    (r'^runpoller$', 'runpoller'),
 
     # Uncomment the admin/doc line below and add 'django.contrib.admindocs' 
     # to INSTALLED_APPS to enable admin documentation:

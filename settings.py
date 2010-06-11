@@ -77,7 +77,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-ROOT_URLCONF = os.path.join(PROJECT_PATH, 'urls')
+ROOT_URLCONF = 'weather.urls'
+# os.path.join(PROJECT_PATH, 'urls')
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -92,9 +93,10 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
-    
-    os.path.basename(os.path.dirname(os.path.realpath(__file__))) \
-            + '.weather',
+
+    'weather.weatherapp',
+    #os.path.basename(os.path.dirname(os.path.realpath(__file__))) \
+    #        + '.weather',
 
     # Uncomment the next line to enable the admin:
     # 'django.contrib.admin',
