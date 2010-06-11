@@ -71,7 +71,8 @@ class Subscription(models.Model):
     emailed = models.BooleanField()
     triggered = models.BooleanField()
     last_changed = models.DateTimeField('date of last change')
-
+    
+    
     def __unicode__(self):
         return self.name
 
@@ -153,6 +154,28 @@ class StringGenerator:
         if r.endswith("-"):
             r = r.replace("-", "x")
         return r
+
+class CheckSubscriptions:
+    def __init__(self)
+        self.pinger = TorPing()
+
+    def check_node_down():
+        subscriptions = Subscription.objects.filter(name = "node_down")
+        for subscription in subscriptions:
+            is_up = pinger.ping(subscription.node_id) 
+            if is_up:
+                if subscription.triggered:
+                   subscription.triggered = False
+                   subscription.last_changed = datetime.datetime
+            else:
+                if subscription.triggered:
+                    if subscription.should_email():
+                        recipient = subscription.subscriber.email
+                        Emailer.send_node_down_email(recipient)
+                        subscription.emailed = True 
+                else:
+                    subscription.triggered = True
+                    subscription.last_changed = datetime.datetime
 
 class TorPing:
     "Check to see if various tor nodes respond to SSL hanshakes"
