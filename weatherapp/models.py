@@ -68,7 +68,6 @@ class Subscription(models.Model):
 class TorPing:
     "Check to see if various tor nodes respond to SSL hanshakes"
     def __init__(self, control_host = "127.0.0.1", control_port = 9051):
-        self.debugfile = open("debug", "w")
 
         "Keep the connection to the control port lying around"
         self.control_host = control_host
@@ -85,8 +84,6 @@ class TorPing:
             raise
         self.control = TorCtl.Connection(self.sock)
         self.control.authenticate(weather.config.authenticator)
-        self.control.debug(self.debugfile)
-
     def __del__(self):
         self.sock.close()
         del self.sock
@@ -96,7 +93,6 @@ class TorPing:
         try:
             self.control.close()
         except:
-            logging.error("Exception while closing TorCtl")
             pass
 
         del self.control
@@ -110,11 +106,9 @@ class TorPing:
             # If we're getting here, we're likely seeing:
             # ErrorReply: 552 Unrecognized key "ns/id/46D9..."
             # This means that the node isn't recognized by 
-            logging.error("ErrorReply: %s" % str(e))
             return False
 
         except:
-            logging.error("Unknown exception in ping()")
             return False
 
         # If we're here, we were able to fetch information about the router
