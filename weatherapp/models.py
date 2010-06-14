@@ -162,9 +162,9 @@ class Subscription(models.Model):
 class Emailer(models.Model):
     """A class for sending email messages"""
     
-    def send_generic_mail(recipient, messageType, 
+    def send_generic_mail(recipient, message_type, 
 
-    def send_generic_mail(recipient, subject, messageText, 
+    def send_generic_mail(recipient, subject, message_text, 
                           sender = 'tor-ops@torproject.org'):
         """
         Send an email to single recipient recipient with subject subject and
@@ -175,21 +175,28 @@ class Emailer(models.Model):
         @param recipient: The recipient of this email.
         @type subject: string
         @param subject: The subject of this email.
-        @type messageText: string
-        @param messageText: The content of this email.
+        @type message_text: string
+        @param message_text: The content of this email.
         @type sender: string
         @param sender: The sender of this email. Default value of 
                        'tor-ops@torporject.org'.
         """
 
         to = [recipient] #send_mail takes a list of recipients
-        send_mail('[Tor Weather]' + subject, messageText, sender, to,
+        send_mail('[Tor Weather]' + subject, message_text, sender, to,
                   fail_silently=True)
 
     def send_email(recipient, messageType):
         """
         Send an email to a single recipient recipient of form specified
-        by messageType (which determines the subject and message text).
+        by message_type (which determines the subject and message text).
+
+        @type recipient: string
+        @param recipient: The recipient of this email.
+        @type message_type: string
+        @param message_type: The type of message to send. Possible values are 
+                             'confirmation', 'confirmed', 'node_down',
+                             'out_of_date', 't_shirt', and 'welcome'.
         """
 
         messageTextDict = {'confirmation' : emails.CONFIRMATION_MAIL,
