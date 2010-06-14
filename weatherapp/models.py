@@ -14,6 +14,22 @@ class Callable:
         self.__call__ = anycallable
 
 class Router(models.Model):
+    """A model that stores information about every router on the Tor network.
+    If a router hasn't been seen on the network for at least one year, it is
+    removed from the database.
+    
+    @type fingerprint: String
+    @ivar fingerprint: The router's fingerprint.
+    @type name: String
+    @ivar name: The name associated with the router.
+    @type welcomed: boolean
+    @ivar welcomed: true if the router operater has received a welcome email,
+        false if they haven't.
+    @type last_seen: datetime
+    @ivar last_seen: The most recent time the router was listed on a consensus 
+        document.
+    """
+
     fingerprint = models.CharField(max_length=200)
     name = models.CharField(max_length=100)
     welcomed = models.BooleanField()
@@ -33,6 +49,29 @@ class Router(models.Model):
     add_new_router = Callable(add_new_router)
 
 class Subscriber(models.Model):
+    """
+    A model to store information about Tor Weather subscribers, including their
+    authorization keys.
+
+    @type email: EmailField
+    @ivar email: The subscriber's email.
+    @type router: ########################
+    @ivar router: A foreign key link to the router model corresponding to the
+        node this subscriber is watching.
+    @type confirmed: boolean
+    @ivar confirmed: true if the subscriber has confirmed the subscription by
+        following the link in their confirmation email and false otherwise.
+    @type confirm_auth: String
+    @ivar confirm_auth: This user's confirmation key, which is incorporated into
+        the confirmation url.
+    @type unsubs_auth: String
+    @ivar unsubs_auth: This user's unsubscribe key, which is incorporated into 
+        the unsubscribe url.
+    @type pref_auth: String
+    @ivar pref_auth: The key for this user's Tor Weather preferences page.
+    @type sub_date: datetime
+    @ivar date_time: The date this user subscribed to Tor Weather.
+    """
     email = models.EmailField(max_length=75)
     router = models.ForeignKey(Router)
     confirmed = models.BooleanField()
@@ -70,11 +109,23 @@ class Subscriber(models.Model):
     add_new_subscriber = Callable(add_new_subscriber)
         
 class SubscribeForm(forms.Form):
+    """The form for subscribing"""
     email = forms.EmailField(max_length=75)
     router_id = forms.CharField(max_length=200)
     grace_pd = forms.IntegerField(default=1)
 
 class Subscription(models.Model):
+    """The model storing information about a specific subscription. Each type
+    of email notification that a user selects generates a new subscription. 
+    For instance, each subscriber who elects to be notified about low bandwidth
+    will have a low_bandwidth subscription.
+    
+    @type subscriber: ######### (foreign key)
+    @ivar subscriber: A link to the subscriber model representing the owner
+        of this subscription.
+    @type name: String
+    @ivar name: The type of subscription.
+    """
     subscriber = models.ForeignKey(Subscriber)
     name = models.CharField(max_length=200)
     threshold = models.CharField(max_length=200)
@@ -171,10 +222,13 @@ class StringGenerator:
         return r
 
 class CheckSubscriptions:
+    """A class for checking and updating the various subscription types"""
     def __init__(self)
         self.pinger = TorPing()
 
-    def check_node_down():
+    def check_all_down(self):
+        """Check if all nodes with node_down subscriptions are up or down, and
+        send emails and update subscription data as necessary."""
         subscriptions = Subscription.objects.filter(name = "node_down")
         for subscription in subscriptions:
             is_up = pinger.ping(subscription.node_id) 
@@ -191,21 +245,25 @@ class CheckSubscriptions:
                 else:
                     subscription.triggered = True
                     subscription.last_changed = datetime.datetime
+        return
 
     def check_out_of_date():
 # -------------------------------------------------------------------------
 # Put code here.
 # -------------------------------------------------------------------------
+        pass
 
     def check_below_bandwidth():
 # -------------------------------------------------------------------------
 # Put code here.
 # -------------------------------------------------------------------------
+        pass
 
     def check_earn_tshirt():
 # -------------------------------------------------------------------------
 # Put code here.
 # -------------------------------------------------------------------------
+        pass
 
 class TorPing:
     "Check to see if various tor nodes respond to SSL hanshakes"
@@ -226,6 +284,7 @@ class TorPing:
             raise
         self.control = TorCtl.Connection(self.sock)
         self.control.authenticate(weather.config.authenticator)
+
     def __del__(self):
         self.sock.close()
         del self.sock

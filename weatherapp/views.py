@@ -1,8 +1,8 @@
 from django.shortcuts import render_to_response, get_object_or_404
 from weather.weatherapp.models import Subscriber, Subscription
 from django.core.mail import send_mail 
-from weather.weatherapp.emails
-from weather.weatherapp.models import Emailer
+import weather.weatherapp.emails
+from weather.weatherapp.models import Emailer, CheckSubscriptions
 
 # -----------------------------------------------------------------------
 # FILL IN ONCE WE KNOW THE SITE! ----------------------------------------
@@ -66,3 +66,12 @@ def runpoller(request):
     # here is where we need to have code that calls the necessary stuff in
     # models to run stuff throughout the life of the application
     # ---------------------------------------------------------------------
+    client_ip = request.META['HTTP_X_FORWARDED_FOR'] 
+
+    #only allow requests from localhost
+    if client_ip == '127.0.0.1':
+       checker = CheckSubscriptions() 
+       checker.check_all()
+    else:
+        raise Http404
+    return
