@@ -128,3 +128,7 @@ you any further emails unless you subscribe.
 Disclaimer: If you have no idea why you're receiving this email, we 
 sincerely apologize and promise never to email you again!
 """
+
+LEGAL_MAIL = """
+Legal mumbo jumbo
+"""

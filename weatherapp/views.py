@@ -21,10 +21,16 @@ def subscribe(request):
             fingerprint = form.cleaned_data['router_id']
             grace_pd = form.cleaned_data['grace_pd']
             
-            Emailer.send_confirmation_mail(addr)
+            e = Emailer()
+            e.send_email(addr, "confirmation")
 
             # Add subscriber to the database
-            subscriber = Subscriber.add_new_subscriber() 
+# ---------------------------------------------------------------------- 
+# NEEDS TO CHECK IF THERE IS A ROUTER IN DB WITH SPECIFIED FINGERPRINT
+# AND IF THERE ISN'T SEND THEM TO AN ERROR PAGE, BUT IF THERE IS GET THE
+# ROUTER ID AND THEN USE THAT AS A PARAMETER FOR ADD_NEW_SUBSCRIBER
+# ----------------------------------------------------------------------
+            # subscriber = Subscriber.add_new_subscriber() 
             
             return HttpResponseRedirect('/pending/'+subscriber.id+'/')
     else:
