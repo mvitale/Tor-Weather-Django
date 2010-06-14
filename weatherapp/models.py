@@ -6,6 +6,7 @@ import socket
 #import weather.config
 from weather.weatherapps import emails
 import base64
+import re
 
 # Supposedly required to make class methods
 class Callable:
@@ -17,22 +18,26 @@ class Router(models.Model):
     If a router hasn't been seen on the network for at least one year, it is
     removed from the database.
     
-    @type fingerprint: String
+    @type fingerprint: str
     @ivar fingerprint: The router's fingerprint.
-    @type name: String
+    @type name: str
     @ivar name: The name associated with the router.
-    @type welcomed: boolean
+    @type welcomed: bool
     @ivar welcomed: true if the router operater has received a welcome email,
         false if they haven't.
     @type last_seen: datetime
     @ivar last_seen: The most recent time the router was listed on a consensus 
         document.
+    @type up: bool
+    @ivar up: True if this router was up last time a new network consensus
+    was published, false otherwise.
     """
 
     fingerprint = models.CharField(max_length=200)
     name = models.CharField(max_length=100)
     welcomed = models.BooleanField()
     last_seen = models.DateTimeField('date last seen')
+    up = models.BooleanField()
     
     def __unicode__(self):
         return self.fingerprint
@@ -236,7 +241,7 @@ class CheckSubscriptions:
         send emails and update subscription data as necessary."""
         subscriptions = Subscription.objects.filter(name = "node_down")
         for subscription in subscriptions:
-            is_up = pinger.ping(subscription.node_id) 
+            is_up = self.pinger.ping(subscription.subscriber.router.fingerprint) 
             if is_up:
                 if subscription.triggered:
                    subscription.triggered = False
@@ -263,11 +268,11 @@ class TorPing:
         try:
             self.sock.connect((control_host,control_port))
         except:
-            errormsg = "Could not connect to Tor control port" + \
+            #errormsg = "Could not connect to Tor control port" + \
                        "Is Tor running on %s with its control port opened on %s?" \
                         % (control_host, control_port)
-            logging.error(errormsg)
-            print >> sys.stderr, errormsg
+            #logging.error(errormsg)
+            #print >> sys.stderr, errormsg
             raise
         self.control = TorCtl.Connection(self.sock)
         self.control.authenticate(weather.config.authenticator)
@@ -301,3 +306,33 @@ class TorPing:
 
         # If we're here, we were able to fetch information about the router
         return True
+
+class RouterUpdater:
+    """A class for updating the Router table"""
+    def __init__(self, control_host = "127.0.0.1", control_port = 9051):
+        self.control_host = control_host
+        self.control_port = control_port
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.connect((control_host, control_port)) #add error rasing/handling
+        self.control = TorCtl.Connection(self.sock)
+        self.control.authenticate(config.authenticator)
+
+    #We probably need this...see TorPing
+    def __del__(self):
+        self.sock.close()
+        del self.sock
+        self.sock = None
+
+        try:
+            self.control.close()
+        except:
+            pass
+        
+        del self.control
+        self.control = None
+
+    def update_all(self):
+        #Gets a dictionary with one entry. The value is what we want.
+        descriptor = str(descriptor_dict.values()[0]split("\nrouter ")
+        for router in consensus:
+
