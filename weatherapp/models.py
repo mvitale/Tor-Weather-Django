@@ -1,10 +1,8 @@
 from django.db import models
-from django.core.mail import send_mail
 import datetime
 import TorCtl.TorCtl
 import socket
 #import weather.config
-from weather.weatherapps import emails
 import base64
 
 # Supposedly required to make class methods.
