@@ -1,8 +1,6 @@
 from django.shortcuts import render_to_response, get_object_or_404
-from weather.weatherapp.models import Subscriber, Subscription
-from django.core.mail import send_mail 
-from weather.weatherapp.emails
-from weather.weatherapp.models import Emailer
+from weather.weatherapp.models import Subscriber, Subscription, Router
+from weather.weatherapp.helpers import Emailer
 
 # -----------------------------------------------------------------------
 # FILL IN ONCE WE KNOW THE SITE! ----------------------------------------
@@ -24,11 +22,16 @@ def subscribe(request):
             fingerprint = form.cleaned_data['router_id']
             grace_pd = form.cleaned_data['grace_pd']
             
-            Emailer.send_confirmation_mail(addr)
+            e = Emailer()
+            e.send_email(addr, "confirmation")
 
             # Add subscriber to the database
-            subscriber = Subscriber.add_new_subscriber() 
-
+# ---------------------------------------------------------------------- 
+# NEEDS TO CHECK IF THERE IS A ROUTER IN DB WITH SPECIFIED FINGERPRINT
+# AND IF THERE ISN'T SEND THEM TO AN ERROR PAGE, BUT IF THERE IS GET THE
+# ROUTER ID AND THEN USE THAT AS A PARAMETER FOR ADD_NEW_SUBSCRIBER
+# ----------------------------------------------------------------------
+            # subscriber = Subscriber.add_new_subscriber() 
             
             return HttpResponseRedirect('/pending/'+subscriber.id+'/')
     else:

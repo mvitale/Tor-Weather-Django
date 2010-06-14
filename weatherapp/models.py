@@ -1,11 +1,10 @@
 from django.db import models
-from django.core.mail import send_mail
 import datetime
 import TorCtl.TorCtl
 import socket
 #import weather.config
-from weather.weatherapps import emails
 import base64
+import re
 
 # Supposedly required to make class methods.
 # This is called on methods after their definitions.
@@ -18,22 +17,26 @@ class Router(models.Model):
     If a router hasn't been seen on the network for at least one year, it is
     removed from the database.
     
-    @type fingerprint: String
+    @type fingerprint: str
     @ivar fingerprint: The router's fingerprint.
-    @type name: String
+    @type name: str
     @ivar name: The name associated with the router.
-    @type welcomed: boolean
+    @type welcomed: bool
     @ivar welcomed: true if the router operater has received a welcome email,
         false if they haven't.
     @type last_seen: datetime
     @ivar last_seen: The most recent time the router was listed on a consensus 
         document.
+    @type up: bool
+    @ivar up: True if this router was up last time a new network consensus
+    was published, false otherwise.
     """
 
     fingerprint = models.CharField(max_length=200)
     name = models.CharField(max_length=100)
     welcomed = models.BooleanField()
     last_seen = models.DateTimeField('date last seen')
+    up = models.BooleanField()
     
     def __unicode__(self):
         return self.fingerprint
@@ -168,75 +171,6 @@ class PreferencesForm(forms.Form):
     """The form for changing preferences"""
     grace_pd = forms.IntegerField()
 
-class Emailer(models.Model):
-    """A class for sending email messages"""
-    
-    def send_generic_mail(recipient, message_type, 
-
-    def send_generic_mail(recipient, subject, message_text, 
-                          sender = 'tor-ops@torproject.org'):
-        """
-        Send an email to single recipient recipient with subject subject and
-        message messageText, from sender with default value 
-        tor-ops@torproject.org.
-        
-        @type recipient: string
-        @param recipient: The recipient of this email.
-        @type subject: string
-        @param subject: The subject of this email.
-        @type message_text: string
-        @param message_text: The content of this email.
-        @type sender: string
-        @param sender: The sender of this email. Default value of 
-                       'tor-ops@torporject.org'.
-        """
-
-        to = [recipient] #send_mail takes a list of recipients
-        send_mail('[Tor Weather]' + subject, message_text, sender, to,
-                  fail_silently=True)
-
-    def send_email(recipient, messageType):
-        """
-        Send an email to a single recipient recipient of form specified
-        by message_type (which determines the subject and message text).
-
-        @type recipient: string
-        @param recipient: The recipient of this email.
-        @type message_type: string
-        @param message_type: The type of message to send. Possible values are 
-                             'confirmation', 'confirmed', 'node_down',
-                             'out_of_date', 't_shirt', and 'welcome'.
-        """
-
-        messageTextDict = {'confirmation' : emails.CONFIRMATION_MAIL,
-                           'confirmed'    : emails.CONFIRMED_MAIL,
-                           'node_down'    : emails.NODE_DOWN_MAIL,
-                           'out_of_date'  : emails.OUT_OF_DATE_MAIL,
-                           't_shirt'      : emails.T_SHIRT_MAIL,
-                           'welcome'      : emails.WELCOME_MAIL,}
-        subjectDict = {'confirmation' : 'Confirmation Needed',
-                       'confirmed'    : 'Confirmation Successful',
-                       'node_down'    : 'Node Down!',
-                       'out_of_date'  : 'Node Out of Date!',
-                       't_shirt'      : 'Congratulations! Have a t-shirt!',
-                       'welcome'      : 'Welcome to Tor!'.}
-
-        messageText = emailDict[messageType]
-        subjectText = subjectDict[messageType]
-
-        send_generic_mail(recipient, subjectText, messageText)
-
-class StringGenerator:
-    def get_rand_string():
-        # Code pulled from original Weather, not sure why it cuts off
-        # the last character
-        r = base64.urlsafe_b64encode(os.urandom(18))[:-1]
-
-        # some email clients don't like URLs ending in -
-        if r.endswith("-"):
-            r = r.replace("-", "x")
-        return r
-
 class CheckSubscriptions:
     """A class for checking and updating the various subscription types"""
     def __init__(self)
@@ -247,7 +181,7 @@ class CheckSubscriptions:
         send emails and update subscription data as necessary."""
         subscriptions = Subscription.objects.filter(name = "node_down")
         for subscription in subscriptions:
-            is_up = pinger.ping(subscription.node_id) 
+            is_up = self.pinger.ping(subscription.subscriber.router.fingerprint) 
             if is_up:
                 if subscription.triggered:
                    subscription.triggered = False
@@ -292,6 +226,11 @@ class TorPing:
         try:
             self.sock.connect((control_host,control_port))
         except:
+            #errormsg = "Could not connect to Tor control port" + \
+                       "Is Tor running on %s with its control port opened on %s?" \
+                        % (control_host, control_port)
+            #logging.error(errormsg)
+            #print >> sys.stderr, errormsg
             errormsg = "Could not connect to Tor control port" + \
                        "Is Tor running on %s with its control port opened on" +
                         " %s?" % (control_host, control_port)
@@ -330,3 +269,33 @@ class TorPing:
 
         # If we're here, we were able to fetch information about the router
         return True
+
+class RouterUpdater:
+    """A class for updating the Router table"""
+    def __init__(self, control_host = "127.0.0.1", control_port = 9051):
+        self.control_host = control_host
+        self.control_port = control_port
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.connect((control_host, control_port)) #add error rasing/handling
+        self.control = TorCtl.Connection(self.sock)
+        self.control.authenticate(config.authenticator)
+
+    #We probably need this...see TorPing
+    def __del__(self):
+        self.sock.close()
+        del self.sock
+        self.sock = None
+
+        try:
+            self.control.close()
+        except:
+            pass
+        
+        del self.control
+        self.control = None
+
+    def update_all(self):
+        #Gets a dictionary with one entry. The value is what we want.
+        descriptor = str(descriptor_dict.values()[0]split("\nrouter ")
+        for router in consensus:
+
