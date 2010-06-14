@@ -70,7 +70,7 @@ class Subscriber(models.Model):
     @type pref_auth: String
     @ivar pref_auth: The key for this user's Tor Weather preferences page.
     @type sub_date: datetime
-    @ivar date_time: The date this user subscribed to Tor Weather.
+    @ivar sub_date: The date this user subscribed to Tor Weather.
     """
     email = models.EmailField(max_length=75)
     router = models.ForeignKey(Router)

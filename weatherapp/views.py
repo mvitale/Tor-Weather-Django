@@ -10,6 +10,9 @@ from weather.weatherapp.models import Emailer
 baseURL = "localhost:8000"
 
 def subscribe(request):
+    """Displays the main Tor Weather page (the subscription form) if the
+        form hasn't been submitted. After the user hits the submit button,
+        redirects to the pending page if all of the fields were acceptable"""
     if request.method == 'POST'
         form = SubscribeForm(request.POST)
 
@@ -33,13 +36,18 @@ def subscribe(request):
     return render_to_response('subscribe.html', {'form': form,})
 
 def pending(request, subscriber_id):
+    """The user views the pending page after submitting a registration form.
+        The page tells the user that a confirmation email has been sent to 
+        the address the user provided."""
     user = get_object_or_404(Subscriber, pk=subscriber_id)
     if user.confirmed == false:
         return render_to_response('pending.html', {'email': sub.email})
-    #
+    #returns the user to the home page if the subscriber has already confirmed
     return HttpResponseRedirect('/$')
 
 def confirm(request, confirm_auth_id):
+    """The confirmation page, which is displayed when the user follows the
+        link sent to them in the confirmation email"""
     sub = get_object_or_404(Subscriber, confirm_auth=confirm_auth_id)
     rout = Router.objects.get(pk=sub.router_id)
     unsubURL = baseURL + "/unsubscribe/" + suber.unsubs_auth + "/"
@@ -49,7 +57,7 @@ def confirm(request, confirm_auth_id):
             'unsubURL' : unsubURL, 'prefURL' : prefURL})
         
 def unsubscribe(request, unsubscribe_auth_id):
-    """The unsubscribe page"""
+    """The unsubscribe page, which tells the """
     
     #get the user and router
     user = get_object_or_404(Subscriber, unsubs_auth = unsubscribe_auth_id)
@@ -68,13 +76,18 @@ def unsubscribe(request, unsubscribe_auth_id):
             name, 'fingerprint' : fingerprint})
 
 def preferences(request, preferences_auth_id):
-    """The preferences page"""
+    """The preferences page, which contains the preferences form initially
+        populated by user-specific data"""
     if request.method == "POST":
+        #the user submitted the preferences form and is redirected to the
+        #confirmation page.
         form = PreferencesForm(request.POST)
         if form.is_valid():
             return HttpResponseRedirect('confirm_pref/'+preferences_auth_id+'/',
                     preferences_auth_id) 
     else:
+        #the user hasn't submitted the form yet, so the page with the 
+        #preferences form is displayed.
         user = get_object_or_404(Subscriber, pref_auth = preferences_auth_id)
         node_down_sub = get_object_or_404(Subscription, subscriber = user, 
                     name = node_down)
