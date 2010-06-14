@@ -8,7 +8,8 @@ from weather.weatherapps import emails
 import base64
 import re
 
-# Supposedly required to make class methods
+# Supposedly required to make class methods.
+# This is called on methods after their definitions.
 class Callable:
     def __init__(self, anycallable):
         self.__call__ = anycallable
@@ -41,6 +42,16 @@ class Router(models.Model):
     
     def __unicode__(self):
         return self.fingerprint
+
+    def add_new_router(fingerprint, name, welcomed=False, 
+                       last_seen=datetime.datetime.now()):
+        routr = Router(fingerprint = fingerprint, name = name, 
+                       welcomed = welcomed)
+        routr.save()
+        return routr
+
+    # Supposedly makes add_new_router a class method.
+    add_new_router = Callable(add_new_router)
 
 class Subscriber(models.Model):
     """
@@ -92,12 +103,12 @@ class Subscriber(models.Model):
         if pref_auth == "":
             pref_auth = g.get_rand_string()
         
-        subscriber = Subscriber(email = email, router = router_id,
+        subr = Subscriber(email = email, router = router_id,
                 confirmed = confirmed, confirm_auth = confirm_auth,
                 unsubs_auth = unsubs_auth, pref_auth = pref_auth, 
                 sub_date = sub_date)
-        subscriber.save()
-        return subscriber
+        subr.save()
+        return subr
     
     # supposedly makes add_new_subscriber() a class method
     add_new_subscriber = Callable(add_new_subscriber)
@@ -128,7 +139,6 @@ class Subscription(models.Model):
     triggered = models.BooleanField()
     last_changed = models.DateTimeField('date of last change')
     
-    
     def __unicode__(self):
         return self.name
 
@@ -141,17 +151,34 @@ class Subscription(models.Model):
         else:
             return false
 
-    def add_new_subscription(subscriber_id):
+
 # ------------------------------------------------------------------------
 # DO STUFF HERE!
 # ------------------------------------------------------------------------
 
+    def add_new_subscription(subscriber_id, name, threshold, grace_pd = 5,
+                             emailed = False, triggered = False,
+                             last_changed = datetime.datetime.now()):
+        subn = Subscription(subscriber = subscriber_id, name = name,
+                            threshold = threshold, grace_pd = grace_pd,
+                            emailed = emailed, triggered = triggered,
+                            last_changed = last_changed)
+        subn.save()
+        return subn
+
+    # Supposedly makes add_new_subscription a class method.
+    add_new_subscription = Callable(add_new_subscription)
+
+class PreferencesForm(forms.Form):
+    """The form for changing preferences"""
+    grace_pd = forms.IntegerField()
+
 class Emailer(models.Model):
     """A class for sending email messages"""
     
-    def send_generic_mail(recipient, messageType, 
+    def send_generic_mail(recipient, message_type, 
 
-    def send_generic_mail(recipient, subject, messageText, 
+    def send_generic_mail(recipient, subject, message_text, 
                           sender = 'tor-ops@torproject.org'):
         """
         Send an email to single recipient recipient with subject subject and
@@ -162,63 +189,47 @@ class Emailer(models.Model):
         @param recipient: The recipient of this email.
         @type subject: string
         @param subject: The subject of this email.
-        @type messageText: string
-        @param messageText: The content of this email.
+        @type message_text: string
+        @param message_text: The content of this email.
         @type sender: string
         @param sender: The sender of this email. Default value of 
                        'tor-ops@torporject.org'.
         """
 
         to = [recipient] #send_mail takes a list of recipients
-        send_mail(subject, messageText, sender, to, fail_silently=True)
+        send_mail('[Tor Weather]' + subject, message_text, sender, to,
+                  fail_silently=True)
 
     def send_email(recipient, messageType):
-        if messageType == "confirm":
-            send_generic_mail
-
-    def send_confirmation(recipient, 
-            subject = '[Tor Weather] Confirmation Needed', 
-            messageText = emails.CONFIRMATION_MAIL):
         """
-        Send a confirmation email to recipient recipient, with default
-        subject '[Tor Weather] Confirmation Needed' and default content
-        defined in emails.py.
+        Send an email to a single recipient recipient of form specified
+        by message_type (which determines the subject and message text).
 
         @type recipient: string
         @param recipient: The recipient of this email.
-        @type subject: string
-        @param subject: The subject of this email. Default value of '[Tor 
-                        Weather] Confirmation Needed'.
-        @type messageText: string
-        @param messageText: The content of this email. Default value of 
-                            emails.CONFIRMATION_MAIL.
+        @type message_type: string
+        @param message_type: The type of message to send. Possible values are 
+                             'confirmation', 'confirmed', 'node_down',
+                             'out_of_date', 't_shirt', and 'welcome'.
         """
 
-        send_generic_mail(recipient, subject, messageText)
+        messageTextDict = {'confirmation' : emails.CONFIRMATION_MAIL,
+                           'confirmed'    : emails.CONFIRMED_MAIL,
+                           'node_down'    : emails.NODE_DOWN_MAIL,
+                           'out_of_date'  : emails.OUT_OF_DATE_MAIL,
+                           't_shirt'      : emails.T_SHIRT_MAIL,
+                           'welcome'      : emails.WELCOME_MAIL,}
+        subjectDict = {'confirmation' : 'Confirmation Needed',
+                       'confirmed'    : 'Confirmation Successful',
+                       'node_down'    : 'Node Down!',
+                       'out_of_date'  : 'Node Out of Date!',
+                       't_shirt'      : 'Congratulations! Have a t-shirt!',
+                       'welcome'      : 'Welcome to Tor!'.}
 
-    def send_confirmed_email(recipient,
-            subject = '[Tor Weather] Confirmation Successful',
-            messageText = emails.SUBS_CONFIRMED_MAIL):
+        messageText = emailDict[messageType]
+        subjectText = subjectDict[messageType]
 
-        send_generic_mail(recipient, subject, messageText)
-
-    def send_node_down_email(recipient,
-            subject = '[Tor Weather] Node Down!',
-            messageText = emails.NODE_DOWN_MAIL):
-
-        send_generic_mail(recipient, subject, messageText)
-
-    def send_out_of_date_email(recipient,
-            subject = '[Tor Weather] Node Out of Date!',
-            messageText = emails.OUT_OF_DATE_MAIL):
-
-        send_generic_mail(recipient, subject, messageText)
-
-    def send_t_shirt_email(recipient,
-            subject = '[Tor Weather] Congratulations! Have a shirt!',
-            messageText = emails.T_SHIRT_MAIL):
-        
-        send_generic_mail(recipient, subject, messageText)
+        send_generic_mail(recipient, subjectText, messageText)
 
 class StringGenerator:
     def get_rand_string():
@@ -256,7 +267,25 @@ class CheckSubscriptions:
                     subscription.triggered = True
                     subscription.last_changed = datetime.datetime
         return
-        
+
+    def check_out_of_date():
+# -------------------------------------------------------------------------
+# Put code here.
+# -------------------------------------------------------------------------
+        pass
+
+    def check_below_bandwidth():
+# -------------------------------------------------------------------------
+# Put code here.
+# -------------------------------------------------------------------------
+        pass
+
+    def check_earn_tshirt():
+# -------------------------------------------------------------------------
+# Put code here.
+# -------------------------------------------------------------------------
+        pass
+
 class TorPing:
     "Check to see if various tor nodes respond to SSL hanshakes"
     def __init__(self, control_host = "127.0.0.1", control_port = 9051):
@@ -273,6 +302,11 @@ class TorPing:
                         % (control_host, control_port)
             #logging.error(errormsg)
             #print >> sys.stderr, errormsg
+            errormsg = "Could not connect to Tor control port" + \
+                       "Is Tor running on %s with its control port opened on" +
+                        " %s?" % (control_host, control_port)
+            logging.error(errormsg)
+            print >> sys.stderr, errormsg
             raise
         self.control = TorCtl.Connection(self.sock)
         self.control.authenticate(weather.config.authenticator)
