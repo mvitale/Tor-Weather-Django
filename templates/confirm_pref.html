@@ -2,7 +2,13 @@
 
 {% block content %}
 <p>
-Confirmation successful! You are now able to receive Tor Weather reports at {{ email }}.
+Your preferences have been changed.
+</p>
+<p>
+You can resubmit your preferences here: <br/>
+<a href = "{{ prefURL }}"> 
+{{ prefURL }}
+</a>
 </p>
 <p>
 You can unsubscribe anytime with the following link: <br/>
@@ -10,14 +16,7 @@ You can unsubscribe anytime with the following link: <br/>
 {{ unsubURL }}
 </a>
 </p>
-<p>
-You can change your preferences here: <br/>
-<a href = "{{ prefURL }}"> 
-{{ prefURL }}
-</a>
-</p>
 <hr>
 <p><i>Please note that while we won't ever intentionally publish them, the address/node pairs sent to this server are not protected against SMTP eavesdropping, hacking, or lawyers.</i></p>
 
 {% endblock content %}
-

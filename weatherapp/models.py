@@ -137,6 +137,11 @@ class Subscription(models.Model):
             return false
 
     def add_new_subscription(subscriber_id):
+
+class PreferencesForm(forms.Form):
+    """The form for changing preferences"""
+    grace_pd = forms.IntegerField()
+
 # ------------------------------------------------------------------------
 # DO STUFF HERE!
 # ------------------------------------------------------------------------
