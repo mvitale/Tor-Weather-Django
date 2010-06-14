@@ -1,7 +1,5 @@
 from django.shortcuts import render_to_response, get_object_or_404
-from weather.weatherapp.models import Subscriber, Subscription
-from django.core.mail import send_mail 
-from weather.weatherapp.emails
+from weather.weatherapp.models import Subscriber, Subscription, Router
 from weather.weatherapp.helpers import Emailer
 
 # -----------------------------------------------------------------------
