@@ -156,10 +156,13 @@ class StringGenerator:
         return r
 
 class CheckSubscriptions:
+    """A class for checking and updating the various subscription types"""
     def __init__(self)
         self.pinger = TorPing()
 
-    def check_node_down():
+    def check_all_down(self):
+        """Check if all nodes with node_down subscriptions are up or down, and
+        send emails and update subscription data as necessary."""
         subscriptions = Subscription.objects.filter(name = "node_down")
         for subscription in subscriptions:
             is_up = pinger.ping(subscription.node_id) 
@@ -176,7 +179,8 @@ class CheckSubscriptions:
                 else:
                     subscription.triggered = True
                     subscription.last_changed = datetime.datetime
-
+        return
+        
 class TorPing:
     "Check to see if various tor nodes respond to SSL hanshakes"
     def __init__(self, control_host = "127.0.0.1", control_port = 9051):
@@ -196,6 +200,7 @@ class TorPing:
             raise
         self.control = TorCtl.Connection(self.sock)
         self.control.authenticate(weather.config.authenticator)
+
     def __del__(self):
         self.sock.close()
         del self.sock
