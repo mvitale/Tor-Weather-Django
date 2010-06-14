@@ -25,7 +25,6 @@ def subscribe(request):
 
             # Add subscriber to the database
             subscriber = Subscriber.add_new_subscriber() 
-
             
             return HttpResponseRedirect('/pending/'+subscriber.id+'/')
     else:
@@ -33,16 +32,15 @@ def subscribe(request):
     return render_to_response('subscribe.html', {'form': form,})
 
 def pending(request, subscriber_id):
-    suber = get_object_or_404(Subscriber, pk=subscriber_id)
-    return render_to_response('pending.html', {'email': sub.email})
+    subr = get_object_or_404(Subscriber, pk=subscriber_id)
+    return render_to_response('pending.html', {'email': subr.email})
 
 def confirm(request, confirm_auth_id):
-    subscriber = get_object
-    sub = get_object_or_404(Subscriber, confirm_auth=confirm_auth_id)
-    rout = Router.objects.get(pk=sub.router_id)
-    unsubURL = baseURL + "/unsubscribe/" + suber.unsubs_auth + "/"
-    prefURL = baseURL + "/preferences/" + suber.pref_auth + "/"
-    return render_to_response('confirm.html', {'email': sub.email, \
+    subr = get_object_or_404(Subscriber, confirm_auth=confirm_auth_id)
+    rout = Router.objects.get(subr.router)
+    unsubURL = baseURL + "/unsubscribe/" + subr.unsubs_auth + "/"
+    prefURL = baseURL + "/preferences/" + subr.pref_auth + "/"
+    return render_to_response('confirm.html', {'email': subr.email, \
             'fingerprint' : rout.fingerprint, 'nodeName' : rout.name, \
             'unsubURL' : unsubURL, 'prefURL' : prefURL})
         
