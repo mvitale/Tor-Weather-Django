@@ -122,13 +122,30 @@ class Subscription(models.Model):
     emailed = models.BooleanField()
     triggered = models.BooleanField()
     last_changed = models.DateTimeField('date of last change')
-
+    
+    
     def __unicode__(self):
         return self.name
+
+    def should_email()
+        time_since_changed = datetime.datetime.now() - last_changed
+        hours_since_changed = time_since_changed.hours / 3600
+        if triggered and not emailed and \
+                (hours_since_changed > grace_pd):
+            return true
+        else:
+            return false
+
+    def add_new_subscription(subscriber_id):
+# ------------------------------------------------------------------------
+# DO STUFF HERE!
+# ------------------------------------------------------------------------
 
 class Emailer(models.Model):
     """A class for sending email messages"""
     
+    def send_generic_mail(recipient, messageType, 
+
     def send_generic_mail(recipient, subject, messageText, 
                           sender = 'tor-ops@torproject.org'):
         """
@@ -149,6 +166,10 @@ class Emailer(models.Model):
 
         to = [recipient] #send_mail takes a list of recipients
         send_mail(subject, messageText, sender, to, fail_silently=True)
+
+    def send_email(recipient, messageType):
+        if messageType == "confirm":
+            send_generic_mail
 
     def send_confirmation(recipient, 
             subject = '[Tor Weather] Confirmation Needed', 
@@ -204,6 +225,28 @@ class StringGenerator:
         if r.endswith("-"):
             r = r.replace("-", "x")
         return r
+
+class CheckSubscriptions:
+    def __init__(self)
+        self.pinger = TorPing()
+
+    def check_node_down():
+        subscriptions = Subscription.objects.filter(name = "node_down")
+        for subscription in subscriptions:
+            is_up = pinger.ping(subscription.node_id) 
+            if is_up:
+                if subscription.triggered:
+                   subscription.triggered = False
+                   subscription.last_changed = datetime.datetime
+            else:
+                if subscription.triggered:
+                    if subscription.should_email():
+                        recipient = subscription.subscriber.email
+                        Emailer.send_node_down_email(recipient)
+                        subscription.emailed = True 
+                else:
+                    subscription.triggered = True
+                    subscription.last_changed = datetime.datetime
 
 class TorPing:
     "Check to see if various tor nodes respond to SSL hanshakes"
