@@ -146,6 +146,11 @@ class Subscription(models.Model):
         else:
             return false
 
+
+# ------------------------------------------------------------------------
+# DO STUFF HERE!
+# ------------------------------------------------------------------------
+
     def add_new_subscription(subscriber_id, name, threshold, grace_pd = 5,
                              emailed = False, triggered = False,
                              last_changed = datetime.datetime.now()):
@@ -158,6 +163,10 @@ class Subscription(models.Model):
 
     # Supposedly makes add_new_subscription a class method.
     add_new_subscription = Callable(add_new_subscription)
+
+class PreferencesForm(forms.Form):
+    """The form for changing preferences"""
+    grace_pd = forms.IntegerField()
 
 class Emailer(models.Model):
     """A class for sending email messages"""
@@ -284,8 +293,8 @@ class TorPing:
             self.sock.connect((control_host,control_port))
         except:
             errormsg = "Could not connect to Tor control port" + \
-                       "Is Tor running on %s with its control port opened on %s?" \
-                        % (control_host, control_port)
+                       "Is Tor running on %s with its control port opened on" +
+                        " %s?" % (control_host, control_port)
             logging.error(errormsg)
             print >> sys.stderr, errormsg
             raise

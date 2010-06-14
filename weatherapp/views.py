@@ -1,8 +1,8 @@
 from django.shortcuts import render_to_response, get_object_or_404
 from weather.weatherapp.models import Subscriber, Subscription
 from django.core.mail import send_mail 
-import weather.weatherapp.emails
-from weather.weatherapp.models import Emailer, CheckSubscriptions
+from weather.weatherapp.emails
+from weather.weatherapp.helpers import Emailer
 
 # -----------------------------------------------------------------------
 # FILL IN ONCE WE KNOW THE SITE! ----------------------------------------
@@ -38,46 +38,75 @@ def subscribe(request):
     return render_to_response('subscribe.html', {'form': form,})
 
 def pending(request, subscriber_id):
-    subr = get_object_or_404(Subscriber, pk=subscriber_id)
-    return render_to_response('pending.html', {'email': subr.email})
+    user = get_object_or_404(Subscriber, pk=subscriber_id)
+    if user.confirmed == false:
+        return render_to_response('pending.html', {'email': sub.email})
+    #
+    return HttpResponseRedirect('/$')
 
 def confirm(request, confirm_auth_id):
-    subr = get_object_or_404(Subscriber, confirm_auth=confirm_auth_id)
-    rout = Router.objects.get(subr.router)
-    unsubURL = baseURL + "/unsubscribe/" + subr.unsubs_auth + "/"
-    prefURL = baseURL + "/preferences/" + subr.pref_auth + "/"
-    return render_to_response('confirm.html', {'email': subr.email, \
-            'fingerprint' : rout.fingerprint, 'nodeName' : rout.name, \
+    sub = get_object_or_404(Subscriber, confirm_auth=confirm_auth_id)
+    rout = Router.objects.get(pk=sub.router_id)
+    unsubURL = baseURL + "/unsubscribe/" + suber.unsubs_auth + "/"
+    prefURL = baseURL + "/preferences/" + suber.pref_auth + "/"
+    return render_to_response('confirm.html', {'email': sub.email, 
+            'fingerprint' : rout.fingerprint, 'nodeName' : rout.name, 
             'unsubURL' : unsubURL, 'prefURL' : prefURL})
         
 def unsubscribe(request, unsubscribe_auth_id):
-    return render_to_response('unsubscribe.html')
+    """The unsubscribe page"""
+    
+    #get the user and router
+    user = get_object_or_404(Subscriber, unsubs_auth = unsubscribe_auth_id)
+    router = get_object_or_404(Router, pk = user.router)
+    
+    email = user.email
+    router_name = router.name
+    fingerprint = router.fingerprint 
+    
+    #we know the router has a fingerprint, but it might not have a name.
+    name = ""
+    if !router_name.equals("Unnamed"):
+        name += " " + router_name + ","
 
-# -------------------------------------------------------------------------
-# Changing preferences isn't in the base functionality, will worry later.
-# Needs to check each subscription belonging to a subscriber, and then
-# pass through the name and threshold for each of the subscriptions, along
-# with a boolean representing that that type of notification is on.
-# Then will need to pass through the name and threshold for each type
-# of notification not subscribed to, along with a boolean representing that
-# the notification is off.
-# THIS IS PLACEHOLDER CODE, YO!
+    return render_to_response('unsubscribe.html'{'email' : email, 'name' :
+            name, 'fingerprint' : fingerprint})
+
 def preferences(request, preferences_auth_id):
-   return HttpResponse("dude your preferences code is %s." \
-           % preferences_auth_id)
-# -------------------------------------------------------------------------
+    """The preferences page"""
+    if request.method == "POST":
+        form = PreferencesForm(request.POST)
+        if form.is_valid():
+            return HttpResponseRedirect('confirm_pref/'+preferences_auth_id+'/',
+                    preferences_auth_id) 
+    else:
+        user = get_object_or_404(Subscriber, pref_auth = preferences_auth_id)
+        node_down_sub = get_object_or_404(Subscription, subscriber = user, 
+                    name = node_down)
+
+        # the data is used to fill in the form on the preferences page 
+        # with the user's existing preferences.    
+        # this should be updated as the preferences are expanded
+        data = {'grace_pd' : node_down_sub.grace_pd}
+        form = PreferencesForm(data)
+    return render_to_response('preferences.html', {'form' : form})
+
+def confirm_pref(request, preferences_auth_id)
+    """The page confirming that preferences have been changed."""
+    prefURL = baseURL + '/preferences/' + preferences_auth_id + '/'
+    user = get_object_or_404(Subscriber, pref_auth = preferences_auth_id)
+    unsubURL = baseURL + '/unsubscribe/' + user.unsub_auth + '/'
+    return render_to_response('confirm_pref.html', {'prefURL' : prefURL,
+            'unsubURL' : unsubURL})
+
+def fingerprint_error(request, fingerprint)
+    """The page that is displayed when a user tries to subscribe to a node
+        that isn't stored in the database."""
+    return render_to_response('fingerprint_error.html', {'fingerprint' :
+        fingerprint})
 
 def runpoller(request):
     # ---------------------------------------------------------------------
     # here is where we need to have code that calls the necessary stuff in
     # models to run stuff throughout the life of the application
     # ---------------------------------------------------------------------
-    client_ip = request.META['HTTP_X_FORWARDED_FOR'] 
-
-    #only allow requests from localhost
-    if client_ip == '127.0.0.1':
-       checker = CheckSubscriptions() 
-       checker.check_all()
-    else:
-        raise Http404
-    return
