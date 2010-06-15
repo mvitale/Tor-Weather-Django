@@ -1,16 +1,199 @@
 from django.db import models
+from weatherapp.helpers import StringGenerator 
 import datetime
 import TorCtl.TorCtl
 import socket
-#import weather.config
 import base64
 import re
 
 # Supposedly required to make class methods.
 # This is called on methods after their definitions.
-class Callable:
-    def __init__(self, anycallable):
-        self.__call__ = anycallable
+# class Callable:
+#    def __init__(self, anycallable):
+#        self.__call__ = anycallable
+
+class Adder:
+    """An adder object is used to add Router, Subscription, or Subscriber
+    objects to their respective databases with default values. All instance
+    variables have default values stored in private class variables, but can
+    be overriden in the constructor.
+
+    @type time: datetime.datetime
+    @ivar time: Datetime representing the default time to use for new Routers'
+                last_seen fields, Subscribers' sub_date, and Subscriptions'
+                last_changed. If unspecified in constructor, set to be 
+                datetime.datetime.now() since, when a Router, Subscriber, or
+                Subscription is added, the Router has just been seen, the 
+                Subscriber has just subscribed, or the Subscription's Router has
+                just changed (or we will act like it has, since this is when
+                we start watching it). The time field of a specific Adder
+                instance should be updated each time a consensus document
+                is received with a call to update_time().
+    @type router_welcomed: Bool
+    @ivar router_welcomed: Default value to use for welcomed fields when
+                           Router objects are added to the database. By
+                           default, set to False.
+    @type router_up: Bool
+    @ivar router_up: Default value to use for up fields when Router objects are
+                     added to the database. By default, set to True.
+    @type subscriber_confirmed: Bool
+    @ivar subscriber_confirmed: Default value to use for confirmed fields when
+                                Subscriber objects are added to the databse. By
+                                default, set to False.
+    @type subscriber_confirm_auth: str
+    @ivar subscriber_confirm_auth: Default value to use for confirm_auth fields
+                                   when Subscriber objects are added to the 
+                                   database. Note: An empty string will cause a
+                                   new authorization code to be generated. By
+                                   default, set to "".
+    @type subscriber_unsubs_auth: str
+    @ivar subscriber_unsubs_auth: Default value to use for unsubs_auth fields
+                                  when Subscriber objects are added to the 
+                                  database. Note: an empty string will cause a
+                                  new authorization code to be generated. By
+                                  default, set to "".
+    @type subscriber_pref_auth: str
+    @ivar subscriber_pref_auth: Default value to use for pref_auth fields when
+                                Subscriber objects are added to the database.
+                                Note: an empty string will cause a new
+                                authorization code to be generated. By default,
+                                set to "".
+    @type subscription_grace_pd: int
+    @ivar subscription_grace_pd: Default value to use for grace_pd fields when
+                                 Subscription objects are added to the
+                                 database. Note: grace_pd is measured in hours.
+                                 By deafult, set to 5.
+    @type subscription_emailed: Bool
+    @ivar subscription_emailed: Default value to use for emailed fields when
+                                Subscription objects are added to the database.
+                                By default, set to False.
+    @type subscription_triggered: Bool
+    @ivar subscription_triggered: Default value to use for triggered fields
+                                  when Subscription objects are added to the 
+                                  database. By default, set to False.
+    """
+    
+    __ROUTER_WELCOMED = False
+    __ROUTER_UP = True
+    __SUBSCRIBER_CONFIRMED = False
+    __SUBSCRIBER_CONFIRM_AUTH = ""
+    __SUBSCRIBER_UNSUBS_AUTH = ""
+    __SUBSCRUBER_PREF_AUTH = ""
+    __SUBSCRIPTION_GRACE_PD = 5
+    __SUBSCRIPTION_EMAILED = False
+    __SUBSCRIPTION_TRIGGERED = False
+
+    def __init__(self,
+                 time = datetime.datetime.now(),
+                 router_welcomed = __ROUTER_WELCOMED,
+                 router_up = __ROUTER_UP,
+                 subscriber_confirmed = __SUBSCRIBER_CONFIRMED,
+                 subscriber_confirm_auth = __SUBSCRIBER_CONFIRM_AUTH,
+                 subscriber_unsubs_auth = __SUBSCRIBER_UNSUBS_AUTH,
+                 subscriber_pref_auth = __SUBSCRIBER_PREF_AUTH,
+                 subscription_grace_pd = __SUBSCRIPTION_GRACE_PD,
+                 subscription_emailed = __SUBSCRIPTION_EMAILED,
+                 subscription_triggered = __SUBSCRIPTION_TRIGGERED):
+        self.time = time
+        self.welcomed_default = router_welcomed
+        self.up_default = router_up
+        self.confirmed_default = subscriber_confirmed
+        self.confirm_auth_default = subscriber_confirm_auth
+        self.unsubs_auth_default = subscriber_unsubs_auth
+        self.pref_auth_default = subscriber_pref_auth
+        self.grace_pd_default = subscription_grace_pd
+        self.emailed_default = subscription_emailed
+        self.triggered_default = subscription_triggered
+
+    def update_time(self, time = datetime.datetime.now())
+    """Updates the time field for this Adder instance. By default, updates
+    to the current time, though a time can be passed to set it to a specific
+    time.
+
+    @type time: datetime.datetime
+    @param time: Optional parameter to specify what time to update to. Default
+                 value is obtained by datetime.datetime.now().
+    """
+        self.time = time
+
+    def add_new_router(self, fingerprint, name,
+                       welcomed = None,
+                       last_seen = None,
+                       up = None):
+    """Adds a new Router object, handling variables that should always be
+    set a certain way when a new Router object is added. The default variables
+    (welcomed, last_seen, and up) can also be changed in the method call.
+
+    @type fingerprint: str
+    @param fingerprint: Fingerprint of Router to be added.
+    @type name: str
+    @param name: Name of Router to be added ("Unnamed" if it doesn't actually
+                 have one)
+    @type welcomed: Bool
+    @param welcomed: [Optional] Whether the router has been welcomed yet. 
+                     Default value is False since a router needs to be marked
+                     as stable before we want to welcome it, so we should 
+                     notice the router and add it to the database long before
+                     it should be welcomed.
+    @type last_seen: datetime.datetime
+    @param last_seen: [Optional] Time when the router was last seen. Default
+                      value is the time for the Adder instance, which should
+                      be updated each time a consensus document is received.
+    @type up: Bool
+    @param up: [Optional] Whether the router was up when the last consensus
+               was received. Default value is True since it would not be added
+               to the Router database if it were not currently up.
+    """
+        if welcomed == None:
+            welcomed = self.welcomed_default
+        if last_seen == None:
+            last_seen = self.time
+        if up == None:
+            up = up_default
+            
+        routr = Router(fingerprint = fingerprint, name = name,
+                       welcomed = welcomed, last_seen = last_seen, up = up)
+        routr.save()
+        return routr
+
+    def add_new_subscriber(email, 
+                           router_id, 
+                           confirmed = False,
+                           confirm_auth = "", 
+                           unsubs_auth = "", 
+                           pref_auth = "",
+                           sub_date = datetime.datetime.now()):
+        
+        g = StringGenerator()
+        if confirm_auth == "":
+            confirm_auth = g.get_rand_string()
+        if unsubs_auth == "":
+            unsubs_auth = g.get_rand_string()
+        if pref_auth == "":
+            pref_auth = g.get_rand_string()
+        
+        subr = Subscriber(email = email, router = router_id,
+                confirmed = confirmed, confirm_auth = confirm_auth,
+                unsubs_auth = unsubs_auth, pref_auth = pref_auth, 
+                sub_date = sub_date)
+        subr.save()
+        return subr
+ 
+    def add_new_subscription(subscriber_id,
+                             name, 
+                             threshold, 
+                             grace_pd = 5,
+                             emailed = False, 
+                             triggered = False,
+                             last_changed = datetime.datetime.now()):
+        subn = Subscription(subscriber = subscriber_id, name = name,
+                            threshold = threshold, grace_pd = grace_pd,
+                            emailed = emailed, triggered = triggered,
+                            last_changed = last_changed)
+        subn.save()
+        return subn
+
+
 
 class Router(models.Model):
     """A model that stores information about every router on the Tor network.
@@ -41,15 +224,17 @@ class Router(models.Model):
     def __unicode__(self):
         return self.fingerprint
 
-    def add_new_router(fingerprint, name, welcomed=False, 
-                       last_seen=datetime.datetime.now()):
-        routr = Router(fingerprint = fingerprint, name = name, 
-                       welcomed = welcomed)
-        routr.save()
-        return routr
-
+    # --- REPLACED WITH CLASS ADDER --------------------------
+    #def add_new_router(fingerprint, name, welcomed=False, 
+    #                   last_seen=datetime.datetime.now()):
+    #    routr = Router(fingerprint = fingerprint, name = name, 
+    #                   welcomed = welcomed)
+    #    routr.save()
+    #    return routr
+    #
     # Supposedly makes add_new_router a class method.
-    add_new_router = Callable(add_new_router)
+    #add_new_router = Callable(add_new_router)
+    # --------------------------------------------------------
 
 class Subscriber(models.Model):
     """
@@ -89,28 +274,6 @@ class Subscriber(models.Model):
     def __unicode__(self):
         return self.email
 
-    def add_new_subscriber(email, router_id, confirmed=False,
-            confirm_auth="", unsubs_auth="", pref_auth="",
-            sub_date=datetime.datetime.now()):
-        
-        g = StringGenerator()
-        if confirm_auth == "":
-            confirm_auth = g.get_rand_string()
-        if unsubs_auth == "":
-            unsubs_auth = g.get_rand_string()
-        if pref_auth == "":
-            pref_auth = g.get_rand_string()
-        
-        subr = Subscriber(email = email, router = router_id,
-                confirmed = confirmed, confirm_auth = confirm_auth,
-                unsubs_auth = unsubs_auth, pref_auth = pref_auth, 
-                sub_date = sub_date)
-        subr.save()
-        return subr
-    
-    # supposedly makes add_new_subscriber() a class method
-    add_new_subscriber = Callable(add_new_subscriber)
-        
 class SubscribeForm(forms.Form):
     """The form for subscribing"""
     email = forms.EmailField(max_length=75)
@@ -148,24 +311,6 @@ class Subscription(models.Model):
             return true
         else:
             return false
-
-
-# ------------------------------------------------------------------------
-# DO STUFF HERE!
-# ------------------------------------------------------------------------
-
-    def add_new_subscription(subscriber_id, name, threshold, grace_pd = 5,
-                             emailed = False, triggered = False,
-                             last_changed = datetime.datetime.now()):
-        subn = Subscription(subscriber = subscriber_id, name = name,
-                            threshold = threshold, grace_pd = grace_pd,
-                            emailed = emailed, triggered = triggered,
-                            last_changed = last_changed)
-        subn.save()
-        return subn
-
-    # Supposedly makes add_new_subscription a class method.
-    add_new_subscription = Callable(add_new_subscription)
 
 class PreferencesForm(forms.Form):
     """The form for changing preferences"""
