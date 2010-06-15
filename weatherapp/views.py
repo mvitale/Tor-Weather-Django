@@ -7,8 +7,14 @@ from weather.weatherapp.helpers import Emailer
 # -----------------------------------------------------------------------
 baseURL = "localhost:8000"
 
+def home(request):
+    """Displays a home page for Tor Weather with basic information about
+        the application"""
+    subURL = baseURL + '/subscribe/'
+    return render_to_response('home.html', {'subURL' : subURL})
+
 def subscribe(request):
-    """Displays the main Tor Weather page (the subscription form) if the
+    """Displays the subscription form (all fields empty or default) if the
         form hasn't been submitted. After the user hits the submit button,
         redirects to the pending page if all of the fields were acceptable"""
     if request.method == 'POST'
