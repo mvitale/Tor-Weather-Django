@@ -36,7 +36,6 @@ class Router(models.Model):
     name = models.CharField(max_length=100)
     welcomed = models.BooleanField()
     last_seen = models.DateTimeField('date last seen')
-    up = models.BooleanField()
     
     def __unicode__(self):
         return self.fingerprint
@@ -295,7 +294,46 @@ class RouterUpdater:
         self.control = None
 
     def update_all(self):
-        #Gets a dictionary with one entry. The value is what we want.
-        descriptor = str(descriptor_dict.values()[0]split("\nrouter ")
-        for router in consensus:
+        """Add ORs we haven't seen before to the database and update the
+        information we have on ORs we have seen before."""
+
+        desc_dict = self.control.get_info("desc/all-recent")
+
+        desc_list = str(descriptor_dict.values()[0]).split("----End Signature----")
+        
+        #Make a list of tuples of all router fingerprints in descriptor with
+        #whitespace removed and router names
+        router_list= []
+
+        for desc in desc_list:
+            desc_lines = desc.split("\n")
+            finger = ""
+            name = ""
+            for line in desc_lines:
+                if line.startswith("opt fingerprint"):
+                    finger = line[15:].replace(' ', '')
+                if line.startswith("router "):
+                    split_line = line.split()
+                    name = split_line[1]
+            if not (finger == "" and name == ""):
+                router_list.append((finger, name))
+        
+        for router in router_list:
+            is_up = False
+            try:
+                control.get_info("ns/id/" + router[0])
+                is_up = True
+            except:
+                pass
+            
+            if is_up:
+                try:
+                    router_data = Router.objects.get(fingerprint = router[0])
+                    router_data.last_seen = datetime.datetime.now()
+                    router_data.name = router.[1]
+                except DoesNotExist:
+                    #let's add it
+                    new_router = Router(router[0], router[1], False,
+                                        datetime.datetime.now())
+    
 
