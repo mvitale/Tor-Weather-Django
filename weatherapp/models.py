@@ -147,7 +147,7 @@ class Adder:
         @param up: [Optional] Whether the router was up when the last consensus
                    was received. Default value is True since it would not be
                    added to the L{Router} database if it were not currently up.
-    """
+        """
         # Note: Nones are used since self cannot be evaluated in the parameter
         # ----- list since it's defined in the parameter list. 
         if welcomed == None:    
@@ -316,7 +316,6 @@ class Router(models.Model):
     name = models.CharField(max_length=100)
     welcomed = models.BooleanField()
     last_seen = models.DateTimeField('date last seen')
-    #up = models.BooleanField()
     
     def is_up(date_of_last_consensus):
         """Returns whether the date_of_last_consensus datetime matches the
@@ -551,7 +550,46 @@ class RouterUpdater:
         self.control = None
 
     def update_all(self):
-        #Gets a dictionary with one entry. The value is what we want.
-        #descriptor = str(descriptor_dict.values()[0]split("\nrouter ")
-        #for router in consensus:
-        pass
+        """Add ORs we haven't seen before to the database and update the
+        information we have on ORs we have seen before."""
+
+        desc_dict = self.control.get_info("desc/all-recent")
+
+        desc_list = str(descriptor_dict.values()[0]).split("----End Signature----")
+        
+        #Make a list of tuples of all router fingerprints in descriptor with
+        #whitespace removed and router names
+        router_list= []
+
+        for desc in desc_list:
+            desc_lines = desc.split("\n")
+            finger = ""
+            name = ""
+            for line in desc_lines:
+                if line.startswith("opt fingerprint"):
+                    finger = line[15:].replace(' ', '')
+                if line.startswith("router "):
+                    split_line = line.split()
+                    name = split_line[1]
+            if not (finger == "" and name == ""):
+                router_list.append((finger, name))
+        
+        for router in router_list:
+            is_up = False
+            try:
+                control.get_info("ns/id/" + router[0])
+                is_up = True
+            except:
+                pass
+            
+            if is_up:
+                try:
+                    router_data = Router.objects.get(fingerprint = router[0])
+                    router_data.last_seen = datetime.datetime.now()
+                    router_data.name = router.[1]
+                except DoesNotExist:
+                    #let's add it
+                    new_router = Router(router[0], router[1], False,
+                                        datetime.datetime.now())
+    
+
