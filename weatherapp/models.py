@@ -58,11 +58,6 @@ class Adder:
                                 Note: an empty string will cause a new
                                 authorization code to be generated. By default,
                                 set to "".
-    @type subscription_grace_pd: int
-    @ivar subscription_grace_pd: Default value to use for grace_pd fields when
-                                 Subscription objects are added to the
-                                 database. Note: grace_pd is measured in hours.
-                                 By deafult, set to 5.
     @type subscription_emailed: Bool
     @ivar subscription_emailed: Default value to use for emailed fields when
                                 Subscription objects are added to the database.
@@ -74,34 +69,31 @@ class Adder:
     """
     
     __ROUTER_WELCOMED = False
-    __ROUTER_UP = True
+    #__ROUTER_UP = True
     __SUBSCRIBER_CONFIRMED = False
     __SUBSCRIBER_CONFIRM_AUTH = ""
     __SUBSCRIBER_UNSUBS_AUTH = ""
     __SUBSCRUBER_PREF_AUTH = ""
-    __SUBSCRIPTION_GRACE_PD = 5
     __SUBSCRIPTION_EMAILED = False
     __SUBSCRIPTION_TRIGGERED = False
 
     def __init__(self,
                  time = datetime.datetime.now(),
                  router_welcomed = __ROUTER_WELCOMED,
-                 router_up = __ROUTER_UP,
+                 #router_up = __ROUTER_UP,
                  subscriber_confirmed = __SUBSCRIBER_CONFIRMED,
                  subscriber_confirm_auth = __SUBSCRIBER_CONFIRM_AUTH,
                  subscriber_unsubs_auth = __SUBSCRIBER_UNSUBS_AUTH,
                  subscriber_pref_auth = __SUBSCRIBER_PREF_AUTH,
-                 subscription_grace_pd = __SUBSCRIPTION_GRACE_PD,
                  subscription_emailed = __SUBSCRIPTION_EMAILED,
                  subscription_triggered = __SUBSCRIPTION_TRIGGERED):
         self.time = time
         self.welcomed_default = router_welcomed
-        self.up_default = router_up
+        #self.up_default = router_up
         self.confirmed_default = subscriber_confirmed
         self.confirm_auth_default = subscriber_confirm_auth
         self.unsubs_auth_default = subscriber_unsubs_auth
         self.pref_auth_default = subscriber_pref_auth
-        self.grace_pd_default = subscription_grace_pd
         self.emailed_default = subscription_emailed
         self.triggered_default = subscription_triggered
 
@@ -123,7 +115,7 @@ class Adder:
         """Adds a new Router object, handling variables that should always be
         set a certain way when a new Router object is added. The default
         variables (welcomed, last_seen, and up), which are stored as instance
-        variables in the Adder class, can also be changed in the method call.
+        variables in the Adder class, can also be overriden in the method call.
     
         @type fingerprint: str
         @param fingerprint: Fingerprint of Router to be added.
@@ -152,8 +144,8 @@ class Adder:
             welcomed = self.welcomed_default
         if last_seen == None:   
             last_seen = self.time
-        if up == None:          
-            up = self.up_default
+        #if up == None:          
+        #    up = self.up_default
             
         routr = Router(fingerprint = fingerprint, name = name,
                        welcomed = welcomed, last_seen = last_seen, up = up)
@@ -170,7 +162,7 @@ class Adder:
         be set a certain way when a new Subscriber object is added. The default
         variables (confirmed, confirm_auth, unsubs_auth, pref_auth, and
         sub_date), which are stored as instance variables of the Adder class,
-        can also be changed in the method call.
+        can also be overriden in the method call.
 
         @type email: str
         @param email: The email address of the Subscriber to be added.
@@ -234,13 +226,48 @@ class Adder:
         subr.save()
         return subr
  
-    def add_new_subscription(subscriber_id,
-                             name, 
-                             threshold, 
-                             grace_pd = 5,
-                             emailed = False, 
-                             triggered = False,
-                             last_changed = datetime.datetime.now()):
+    def add_new_subscription(subscriber_id, name, threshold, grace_pd,
+                             emailed = None, 
+                             triggered = None,
+                             last_changed = None):
+        """Adds a new Subscription object, handling variables that should
+        always be set a certain way when a new Subscription object is added.
+        The default variables (emailed, triggered, and last_changed),
+        which are stored as instance variables of the Adder class, can also be 
+        overriden in the method call.
+
+        @type subscriber_id: int
+        @param subscriber_id: The Subscriber database ID of the Subscriber
+                              subscribed to this subscription.
+        @type name: str
+        @param name: The type of this subscription.
+        @type threshold: str
+        @param threshold: The threshold of this subscription.
+        @type grace_pd: int
+        @param grace_pd: The grace period for this subscription before an email
+                         is sent (measured in hours).
+        @type emailed: Bool
+        @param emailed: [Optional] Whether this subscription has had an email
+                        sent out for it since it was last triggered. Default
+                        value is False since the subscription was just created.
+        @type triggered: Bool
+        @param triggered: [Optional] Whether this subscription is currently
+                          triggered. Default value is False since the
+                          subscription was just created.
+        @type last_changed: datetime.datetime
+        @param last_changed: [Optional] The time when the status of the thing
+                             being watched was last changed. Default value is
+                             datetime.datetime.now() since an arbitrary value
+                             has to be assigned.
+        """
+
+        if emailed = None:
+            emailed = self.emailed_default
+        if triggered = None:
+            triggered = self.triggered_default
+        if last_changed = None:
+            last_changed = self.last_changed_default
+
         subn = Subscription(subscriber = subscriber_id, name = name,
                             threshold = threshold, grace_pd = grace_pd,
                             emailed = emailed, triggered = triggered,
@@ -261,21 +288,39 @@ class Router(models.Model):
     @ivar name: The name associated with the router.
     @type welcomed: bool
     @ivar welcomed: true if the router operater has received a welcome email,
-        false if they haven't.
+                    false if they haven't.
     @type last_seen: datetime
     @ivar last_seen: The most recent time the router was listed on a consensus 
-        document.
+                     document. In the view that is processed when a consensus
+                     document is received, will store the datetime when the
+                     consensus document was received and so will be able to
+                     check if the last_seen datetime matches with the consensus
+                     datetime, informing whether the router is up.
     @type up: bool
     @ivar up: True if this router was up last time a new network consensus
-    was published, false otherwise.
+              was published, false otherwise.
     """
 
     fingerprint = models.CharField(max_length=200)
     name = models.CharField(max_length=100)
     welcomed = models.BooleanField()
     last_seen = models.DateTimeField('date last seen')
-    up = models.BooleanField()
+    #up = models.BooleanField()
     
+    def is_up(date_of_last_consensus):
+        """Returns whether the date_of_last_consensus datetime matches the
+        last_seen datetime. Should be called in the view that processes events
+        after a consensus is received.
+
+        @type date_of_last_consensus: datetime.datetime
+        @param date_of_last_consensus: Date of last consensus.
+        """
+
+        if last_seen = date_of_last_consensus:
+            return True
+        else:
+            return False
+
     def __unicode__(self):
         return self.fingerprint
 
@@ -324,7 +369,7 @@ class Subscriber(models.Model):
     unsubs_auth = models.CharField(max_length=250)
     pref_auth = models.CharField(max_length=250)
 
-    sub_date = models.DateField()
+    sub_date = models.DateTimeField()
 
     def __unicode__(self):
         return self.email
