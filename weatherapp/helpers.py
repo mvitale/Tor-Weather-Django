@@ -1,5 +1,6 @@
 from django.core.mail import send_mail
 import emails
+import os
 import base64
 
 class Emailer:
@@ -132,10 +133,18 @@ class Emailer:
 
 class StringGenerator:
     """A class for generating random strings for use as authorization codes"""
+    
+    __DEFAULT_LENGTH = 24
+
+    def __init__(self, length = __DEFAULT_LENGTH)
+        self.length = length
+
     def get_rand_string():
-        # Code pulled from original Weather, not sure why it cuts off
-        # the last character
-        r = base64.urlsafe_b64encode(os.urandom(18))[:-1]
+        cut_off = length - 24
+        if cut_off == 0:
+            cut_off = 24
+
+        r = base64.urlsafe_b64encode(os.urandom(18))[:cut_off]
 
         # some email clients don't like URLs ending in -
         if r.endswith("-"):
