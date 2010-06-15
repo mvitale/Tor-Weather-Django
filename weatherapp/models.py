@@ -13,59 +13,62 @@ import re
 #        self.__call__ = anycallable
 
 class Adder:
-    """An adder object is used to add Router, Subscription, or Subscriber
-    objects to their respective databases with default values. All instance
-    variables have default values stored in private class variables, but can
-    be overriden in the constructor.
+    """An L{Adder} object is used to add L{Router}, L{Subscription}, or
+    L{Subscriber} objects to their respective databases with default values.
+    All instance variables have default values stored in private class
+    variables, but can be overriden in the constructor.
 
     @type time: datetime.datetime
-    @ivar time: Datetime representing the default time to use for new Routers'
-                last_seen fields, Subscribers' sub_date, and Subscriptions'
-                last_changed. If unspecified in constructor, set to be 
-                datetime.datetime.now() since, when a Router, Subscriber, or
-                Subscription is added, the Router has just been seen, the 
-                Subscriber has just subscribed, or the Subscription's Router has
+    @ivar time: Datetime representing the default time to use for new 
+                L{Router}s' L{Router.last_seen} fields, L{Subscriber}s'
+                L{Subscriber.sub_date}, and L{Subscription}s' 
+                L{Subscription.last_changed}. If unspecified in
+                constructor, set to be C{datetime.datetime.now()} since, when a
+                L{Router}, L{Subscriber}, or L{Subscription} is added, the
+                L{Router} has just been seen, the L{Subscriber} has just
+                subscribed, or the L{Subscription}'s L{Router} has
                 just changed (or we will act like it has, since this is when
-                we start watching it). The time field of a specific Adder
+                we start watching it). The time field of a specific L{Adder}
                 instance should be updated each time a consensus document
-                is received with a call to update_time().
+                is received with a call to L{update_time()}.
     @type router_welcomed: Bool
     @ivar router_welcomed: Default value to use for welcomed fields when
-                           Router objects are added to the database. By
-                           default, set to False.
+                           L{Router} objects are added to the database. By
+                           default, set to C{False}.
     @type router_up: Bool
-    @ivar router_up: Default value to use for up fields when Router objects are
-                     added to the database. By default, set to True.
+    @ivar router_up: Default value to use for C{up} fields when L{Router} 
+                     objects are added to the database. By default, set to 
+                     C{True}.
     @type subscriber_confirmed: Bool
-    @ivar subscriber_confirmed: Default value to use for confirmed fields when
-                                Subscriber objects are added to the databse. By
-                                default, set to False.
+    @ivar subscriber_confirmed: Default value to use for C{confirmed} fields
+                                when L{Subscriber} objects are added to the 
+                                database. By default, set to C{False}.
     @type subscriber_confirm_auth: str
-    @ivar subscriber_confirm_auth: Default value to use for confirm_auth fields
-                                   when Subscriber objects are added to the 
-                                   database. Note: An empty string will cause a
-                                   new authorization code to be generated. By
-                                   default, set to "".
+    @ivar subscriber_confirm_auth: Default value to use for C{confirm_auth}
+                                   fields when L{Subscriber} objects are added
+                                   to the database. Note: An empty string will
+                                   cause a new authorization code to be
+                                   generated. By default, set to C{""}.
     @type subscriber_unsubs_auth: str
-    @ivar subscriber_unsubs_auth: Default value to use for unsubs_auth fields
-                                  when Subscriber objects are added to the 
-                                  database. Note: an empty string will cause a
-                                  new authorization code to be generated. By
-                                  default, set to "".
+    @ivar subscriber_unsubs_auth: Default value to use for C{unsubs_auth} 
+                                  fields when L{Subscriber} objects are added
+                                  to the database. Note: an empty string will
+                                  cause a new authorization code to be
+                                  generated. By default, set to C{""}.
     @type subscriber_pref_auth: str
-    @ivar subscriber_pref_auth: Default value to use for pref_auth fields when
-                                Subscriber objects are added to the database.
-                                Note: an empty string will cause a new
-                                authorization code to be generated. By default,
-                                set to "".
+    @ivar subscriber_pref_auth: Default value to use for C{pref_auth} fields
+                                when L{Subscriber} objects are added to the
+                                database. Note: an empty string will cause a 
+                                new authorization code to be generated. By
+                                default, set to C{""}.
     @type subscription_emailed: Bool
-    @ivar subscription_emailed: Default value to use for emailed fields when
-                                Subscription objects are added to the database.
-                                By default, set to False.
+    @ivar subscription_emailed: Default value to use for C{emailed} fields when
+                                L{Subscription} objects are added to the
+                                database. By default, set to C{False}.
     @type subscription_triggered: Bool
-    @ivar subscription_triggered: Default value to use for triggered fields
-                                  when Subscription objects are added to the 
-                                  database. By default, set to False.
+    @ivar subscription_triggered: Default value to use for C{triggered} fields
+                                  when L{Subscription} objects are added to the
+                                  database. By default, set to C{False}.
     """
     
     __ROUTER_WELCOMED = False
@@ -97,46 +100,53 @@ class Adder:
         self.emailed_default = subscription_emailed
         self.triggered_default = subscription_triggered
 
-    def update_time(self, time = datetime.datetime.now())
-        """Updates the time field for this Adder instance. By default, updates
-        to the current time, though a time can be passed to set it to a specific
-        time.
+    def update_time(self, time = None):
+        """Updates the time field for this L{Adder} instance. By default,
+        updates to the current time, though a time can be passed to set it to a
+        specific time.
 
         @type time: datetime.datetime
         @param time: Optional parameter to specify what time to update to.
-                     Default value is obtained by datetime.datetime.now().
+                     Default value is obtained by C{datetime.datetime.now()}.
         """
+        # Note: None is used since apparently the default values are evaluated
+        # ----- only once when the function definition is read, so putting
+        # ----- datetime.datetime.now() as a default parameter would be 
+        # ----- disastrous.
+        if time == None:
+            time = datetime.datetime.now()
+
         self.time = time
 
     def add_new_router(self, fingerprint, name,
                        welcomed = None,
-                       last_seen = None,
-                       up = None):
-        """Adds a new Router object, handling variables that should always be
-        set a certain way when a new Router object is added. The default
-        variables (welcomed, last_seen, and up), which are stored as instance
-        variables in the Adder class, can also be overriden in the method call.
+                       last_seen = None):
+        """Adds a new L{Router} object, handling variables that should always 
+        be set a certain way when a new L{Router} object is added. The default
+        variables (C{welcomed} and C{last_seen}), which are stored as instance
+        variables in the L{Adder} class, can also be overriden in the method
+        call.
     
         @type fingerprint: str
-        @param fingerprint: Fingerprint of Router to be added.
+        @param fingerprint: Fingerprint of L{Router} to be added.
         @type name: str
-        @param name: Name of Router to be added ("Unnamed" if it doesn't
+        @param name: Name of L{Router} to be added (C{"Unnamed"} if it doesn't
                      actually have one)
         @type welcomed: Bool
         @param welcomed: [Optional] Whether the router has been welcomed yet. 
-                         Default value is False since a router needs to be
+                         Default value is C{False} since a router needs to be
                          marked as stable before we want to welcome it, so we
                          should notice the router and add it to the database
                          long before it should be welcomed.
         @type last_seen: datetime.datetime
         @param last_seen: [Optional] Time when the router was last seen. 
-                          Default value is the time for the Adder instance,
+                          Default value is the time for the L{Adder} instance,
                           which should be updated each time a consensus
                           document is received.
         @type up: Bool
         @param up: [Optional] Whether the router was up when the last consensus
                    was received. Default value is True since it would not be
-                   added to the Router database if it were not currently up.
+                   added to the L{Router} database if it were not currently up.
     """
         # Note: Nones are used since self cannot be evaluated in the parameter
         # ----- list since it's defined in the parameter list. 
@@ -148,7 +158,7 @@ class Adder:
         #    up = self.up_default
             
         routr = Router(fingerprint = fingerprint, name = name,
-                       welcomed = welcomed, last_seen = last_seen, up = up)
+                       welcomed = welcomed, last_seen = last_seen)
         routr.save()
         return routr
 
@@ -158,38 +168,38 @@ class Adder:
                            unsubs_auth = None, 
                            pref_auth = None,
                            sub_date = None):
-        """Adds a new Subscriber object, handling variables that should always
-        be set a certain way when a new Subscriber object is added. The default
-        variables (confirmed, confirm_auth, unsubs_auth, pref_auth, and
-        sub_date), which are stored as instance variables of the Adder class,
-        can also be overriden in the method call.
+        """Adds a new L{Subscriber} object, handling variables that should
+        always be set a certain way when a new L{Subscriber} object is added.
+        The default variables (C{confirmed}, C{confirm_auth}, C{unsubs_auth},
+        C{pref_auth}, and C{sub_date}), which are stored as instance variables
+        of the L{Adder} class, can also be overriden in the method call.
 
         @type email: str
-        @param email: The email address of the Subscriber to be added.
+        @param email: The email address of the L{Subscriber} to be added.
         @type router_id: int
-        @param router_id: The Router database ID of the Router this Subscriber
-                          is following.
+        @param router_id: The L{Router} database ID of the L{Router} this
+                          L{Subscriber} is following.
         @type confirmed: Bool
         @param confirmed: [Optional] Whether the subscriber has confirmed yet.
-                          Default value is False since a Subscriber object
-                          should be added right when they fill out the initial
-                          form, and so they should still have to receive an 
-                          email and follow the confirmation link.
+                          Default value is C{False} since a L{Subscriber} 
+                          object should be added right when they fill out the
+                          initial form, and so they should still have to
+                          receive an email and follow the confirmation link.
         @type confirm_auth: str
         @param confirm_auth: [Optional] Confirmation authorization code.
-                             Default value is "", which will force the
+                             Default value is C{""}, which will force the
                              generation of a new random key.
         @type unsubs_auth: str
         @param unsubs_auth: [Optional] Unsubscribe authorization code.
-                            Default value is "", which will force the
+                            Default value is C{""}, which will force the
                             generation of a new random key.
         @type pref_auth: str
         @param pref_auth: [Optional] Preferences authorization code.
-                          Default value is "", which will force the generation
-                          of a new random key.
+                          Default value is C{""}, which will force the 
+                          generation of a new random key.
         @type sub_date: datetime.datetime
-        @param sub_date: [Optional] Time when the Subscriber subscribed.
-                         Default value is the current time for the Adder
+        @param sub_date: [Optional] Time when the L{Subscriber} subscribed.
+                         Default value is the current time for the L{Adder}
                          instance, which should be updated each time a
                          consensus document is received. This should be
                          sufficiently close to the actual time the user hits
@@ -200,15 +210,15 @@ class Adder:
         """
         # Note: Nones are used since self cannot be evaluated in the parameter
         # ----- list since it's defined in the parameter list.
-        if confirmed = None:
+        if confirmed == None:
             confirmed = self.confirmed_default
-        if confirm_auth = None:
+        if confirm_auth == None:
             confirm_auth = self.confirm_auth_default
-        if unsubs_auth = None:
+        if unsubs_auth == None:
             unsubs_auth = self.unsubs_auth_default
-        if pref_auth = None:
+        if pref_auth == None:
             pref_auth = self.pref_auth_default
-        if sub_date = None:
+        if sub_date == None:
             sub_date = self.time
         
         g = StringGenerator()
@@ -260,12 +270,13 @@ class Adder:
                              datetime.datetime.now() since an arbitrary value
                              has to be assigned.
         """
-
-        if emailed = None:
+        # Note: Nones are used since self cannot be evaluated in the parameter
+        # ----- list since it's defined in the parameter list.
+        if emailed == None:
             emailed = self.emailed_default
-        if triggered = None:
+        if triggered == None:
             triggered = self.triggered_default
-        if last_changed = None:
+        if last_changed == None:
             last_changed = self.last_changed_default
 
         subn = Subscription(subscriber = subscriber_id, name = name,
@@ -316,7 +327,7 @@ class Router(models.Model):
         @param date_of_last_consensus: Date of last consensus.
         """
 
-        if last_seen = date_of_last_consensus:
+        if last_seen == date_of_last_consensus:
             return True
         else:
             return False
@@ -403,7 +414,7 @@ class Subscription(models.Model):
     def __unicode__(self):
         return self.name
 
-    def should_email()
+    def should_email():
         time_since_changed = datetime.datetime.now() - last_changed
         hours_since_changed = time_since_changed.hours / 3600
         if triggered and not emailed and \
@@ -418,7 +429,7 @@ class PreferencesForm(forms.Form):
 
 class CheckSubscriptions:
     """A class for checking and updating the various subscription types"""
-    def __init__(self)
+    def __init__(self):
         self.pinger = TorPing()
 
     def check_all_down(self):
@@ -472,13 +483,13 @@ class TorPing:
             self.sock.connect((control_host,control_port))
         except:
             #errormsg = "Could not connect to Tor control port" + \
-                       "Is Tor running on %s with its control port opened on %s?" \
-                        % (control_host, control_port)
+            #           "Is Tor running on %s with its control port opened on %s?" \
+            #            % (control_host, control_port)
             #logging.error(errormsg)
             #print >> sys.stderr, errormsg
             errormsg = "Could not connect to Tor control port" + \
-                       "Is Tor running on %s with its control port opened on" +
-                        " %s?" % (control_host, control_port)
+                       "Is Tor running on %s with its control port opened" + \
+                        " on %s?" % (control_host, control_port)
             logging.error(errormsg)
             print >> sys.stderr, errormsg
             raise
@@ -541,6 +552,6 @@ class RouterUpdater:
 
     def update_all(self):
         #Gets a dictionary with one entry. The value is what we want.
-        descriptor = str(descriptor_dict.values()[0]split("\nrouter ")
-        for router in consensus:
-
+        #descriptor = str(descriptor_dict.values()[0]split("\nrouter ")
+        #for router in consensus:
+        pass
