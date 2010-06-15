@@ -423,13 +423,16 @@ class CheckSubscriptions:
     def check_all_down(self):
         """Check if all nodes with node_down subscriptions are up or down, and
         send emails and update subscription data as necessary."""
+
+        #All node down subscriptions
         subscriptions = Subscription.objects.filter(name = "node_down")
+
         for subscription in subscriptions:
             is_up = self.pinger.ping(subscription.subscriber.router.fingerprint) 
             if is_up:
                 if subscription.triggered:
                    subscription.triggered = False
-                   subscription.last_changed = datetime.datetime
+                   subscription.last_changed = datetime.datetime.now()
             else:
                 if subscription.triggered:
                     if subscription.should_email():
@@ -438,7 +441,7 @@ class CheckSubscriptions:
                         subscription.emailed = True 
                 else:
                     subscription.triggered = True
-                    subscription.last_changed = datetime.datetime
+                    subscription.last_changed = datetime.datetime.now()
         return
 
     def check_out_of_date():
@@ -497,9 +500,10 @@ class TorPing:
 
         del self.control
         self.control = None
-
+    
+    "Need to re-include logging functionality" 
     def ping(self, nodeId):
-        "Let's see if this tor node is up by only asking Tor."
+        """See if this tor node is up by only asking Tor."""
         try:
             info = self.control.get_info(str("ns/id/" + nodeId))
         except TorCtl.ErrorReply, e:
@@ -540,10 +544,12 @@ class RouterUpdater:
 
     def update_all(self):
         """Add ORs we haven't seen before to the database and update the
-        information we have on ORs we have seen before."""
+        information of ORs that are already in the database."""
 
+        #The dictionary returned from TorCtl
         desc_dict = self.control.get_info("desc/all-recent")
 
+        #A list of the router descriptors in desc_dict
         desc_list = str(descriptor_dict.values()[0]).split("----End Signature----")
         
         #Make a list of tuples of all router fingerprints in descriptor with
@@ -553,32 +559,34 @@ class RouterUpdater:
         for desc in desc_list:
             desc_lines = desc.split("\n")
             finger = ""
-            name = ""
             for line in desc_lines:
                 if line.startswith("opt fingerprint"):
                     finger = line[15:].replace(' ', '')
                 if line.startswith("router "):
                     split_line = line.split()
                     name = split_line[1]
-            if not (finger == "" and name == ""):
+
+            #We ignore ORs that don't publish their fingerprints
+            if not finger == "":
                 router_list.append((finger, name))
         
         for router in router_list:
             is_up = False
+            finger = router[0]
+            name = router[1]
             try:
-                control.get_info("ns/id/" + router[0])
+                control.get_info("ns/id/" + finger)
                 is_up = True
             except:
                 pass
             
             if is_up:
                 try:
-                    router_data = Router.objects.get(fingerprint = router[0])
+                    router_data = Router.objects.get(fingerprint = finger)
                     router_data.last_seen = datetime.datetime.now()
-                    router_data.name = router.[1]
+                    router_data.name = name
                 except DoesNotExist:
                     #let's add it
-                    new_router = Router(router[0], router[1], False,
+                    new_router = Router(finger, name, False,
                                         datetime.datetime.now())
-    
-
+        return
