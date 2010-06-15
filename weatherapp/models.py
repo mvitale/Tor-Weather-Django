@@ -106,63 +106,118 @@ class Adder:
         self.triggered_default = subscription_triggered
 
     def update_time(self, time = datetime.datetime.now())
-    """Updates the time field for this Adder instance. By default, updates
-    to the current time, though a time can be passed to set it to a specific
-    time.
+        """Updates the time field for this Adder instance. By default, updates
+        to the current time, though a time can be passed to set it to a specific
+        time.
 
-    @type time: datetime.datetime
-    @param time: Optional parameter to specify what time to update to. Default
-                 value is obtained by datetime.datetime.now().
-    """
+        @type time: datetime.datetime
+        @param time: Optional parameter to specify what time to update to.
+                     Default value is obtained by datetime.datetime.now().
+        """
         self.time = time
 
     def add_new_router(self, fingerprint, name,
                        welcomed = None,
                        last_seen = None,
                        up = None):
-    """Adds a new Router object, handling variables that should always be
-    set a certain way when a new Router object is added. The default variables
-    (welcomed, last_seen, and up) can also be changed in the method call.
-
-    @type fingerprint: str
-    @param fingerprint: Fingerprint of Router to be added.
-    @type name: str
-    @param name: Name of Router to be added ("Unnamed" if it doesn't actually
-                 have one)
-    @type welcomed: Bool
-    @param welcomed: [Optional] Whether the router has been welcomed yet. 
-                     Default value is False since a router needs to be marked
-                     as stable before we want to welcome it, so we should 
-                     notice the router and add it to the database long before
-                     it should be welcomed.
-    @type last_seen: datetime.datetime
-    @param last_seen: [Optional] Time when the router was last seen. Default
-                      value is the time for the Adder instance, which should
-                      be updated each time a consensus document is received.
-    @type up: Bool
-    @param up: [Optional] Whether the router was up when the last consensus
-               was received. Default value is True since it would not be added
-               to the Router database if it were not currently up.
+        """Adds a new Router object, handling variables that should always be
+        set a certain way when a new Router object is added. The default
+        variables (welcomed, last_seen, and up), which are stored as instance
+        variables in the Adder class, can also be changed in the method call.
+    
+        @type fingerprint: str
+        @param fingerprint: Fingerprint of Router to be added.
+        @type name: str
+        @param name: Name of Router to be added ("Unnamed" if it doesn't
+                     actually have one)
+        @type welcomed: Bool
+        @param welcomed: [Optional] Whether the router has been welcomed yet. 
+                         Default value is False since a router needs to be
+                         marked as stable before we want to welcome it, so we
+                         should notice the router and add it to the database
+                         long before it should be welcomed.
+        @type last_seen: datetime.datetime
+        @param last_seen: [Optional] Time when the router was last seen. 
+                          Default value is the time for the Adder instance,
+                          which should be updated each time a consensus
+                          document is received.
+        @type up: Bool
+        @param up: [Optional] Whether the router was up when the last consensus
+                   was received. Default value is True since it would not be
+                   added to the Router database if it were not currently up.
     """
-        if welcomed == None:
+        # Note: Nones are used since self cannot be evaluated in the parameter
+        # ----- list since it's defined in the parameter list. 
+        if welcomed == None:    
             welcomed = self.welcomed_default
-        if last_seen == None:
+        if last_seen == None:   
             last_seen = self.time
-        if up == None:
-            up = up_default
+        if up == None:          
+            up = self.up_default
             
         routr = Router(fingerprint = fingerprint, name = name,
                        welcomed = welcomed, last_seen = last_seen, up = up)
         routr.save()
         return routr
 
-    def add_new_subscriber(email, 
-                           router_id, 
-                           confirmed = False,
-                           confirm_auth = "", 
-                           unsubs_auth = "", 
-                           pref_auth = "",
-                           sub_date = datetime.datetime.now()):
+    def add_new_subscriber(email, router_id, 
+                           confirmed = None,
+                           confirm_auth = None, 
+                           unsubs_auth = None, 
+                           pref_auth = None,
+                           sub_date = None):
+        """Adds a new Subscriber object, handling variables that should always
+        be set a certain way when a new Subscriber object is added. The default
+        variables (confirmed, confirm_auth, unsubs_auth, pref_auth, and
+        sub_date), which are stored as instance variables of the Adder class,
+        can also be changed in the method call.
+
+        @type email: str
+        @param email: The email address of the Subscriber to be added.
+        @type router_id: int
+        @param router_id: The Router database ID of the Router this Subscriber
+                          is following.
+        @type confirmed: Bool
+        @param confirmed: [Optional] Whether the subscriber has confirmed yet.
+                          Default value is False since a Subscriber object
+                          should be added right when they fill out the initial
+                          form, and so they should still have to receive an 
+                          email and follow the confirmation link.
+        @type confirm_auth: str
+        @param confirm_auth: [Optional] Confirmation authorization code.
+                             Default value is "", which will force the
+                             generation of a new random key.
+        @type unsubs_auth: str
+        @param unsubs_auth: [Optional] Unsubscribe authorization code.
+                            Default value is "", which will force the
+                            generation of a new random key.
+        @type pref_auth: str
+        @param pref_auth: [Optional] Preferences authorization code.
+                          Default value is "", which will force the generation
+                          of a new random key.
+        @type sub_date: datetime.datetime
+        @param sub_date: [Optional] Time when the Subscriber subscribed.
+                         Default value is the current time for the Adder
+                         instance, which should be updated each time a
+                         consensus document is received. This should be
+                         sufficiently close to the actual time the user hits
+                         subscribe, but maybe sub_date should be passed as
+                         datetime.datetime.now() when this method is called to
+                         be more precise.
+
+        """
+        # Note: Nones are used since self cannot be evaluated in the parameter
+        # ----- list since it's defined in the parameter list.
+        if confirmed = None:
+            confirmed = self.confirmed_default
+        if confirm_auth = None:
+            confirm_auth = self.confirm_auth_default
+        if unsubs_auth = None:
+            unsubs_auth = self.unsubs_auth_default
+        if pref_auth = None:
+            pref_auth = self.pref_auth_default
+        if sub_date = None:
+            sub_date = self.time
         
         g = StringGenerator()
         if confirm_auth == "":
