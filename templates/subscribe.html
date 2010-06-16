@@ -4,17 +4,29 @@
 <h3> Sign Up! </h3>
 
 <br>
-<form method="post" action="/subscribe">
+<form method="post" action="/subscribe/">{% csrf_token %}
+### FIGURE THIS OUT!! ###
 You can use this form to request status updates to tell you when a particular
 Tor node has become unreachable for a sustained period of time.
 <br><br>
-<label for="email">Your e-mail address:</label>
+<p>
+{{ form.email.errors }}
+<label for="id_email">Your e-mail address:<br></label>
 {{ form.email }}
-<label for="router_id">Node fingerprint:</label>
-{{ form.router_id }}
-<label for="grace_pd">How many hours of downtime before we send a notification:</label>
+</p>
+<p>
+{{ form.fingerprint.errors }}
+<label for="id_fingerprint">Node fingerprint:<br></label>
+{{ form.fingerprint }}
+</p>
+<p>
+{{ form.grace_pd.errors }}
+<label for="id_grace_pd">How many hours of downtime until we send a notification:<br></label>
 {{ form.grace_pd }}
+</p>
+<p>
 <input type="submit" class="submit" value="Subscribe to Tor Weather" name="sa"/>
+</p>
 <hr>
 <h3>FAQ</h3>
 <br>
