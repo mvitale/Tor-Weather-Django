@@ -22,7 +22,7 @@ class Emailer:
    """
     
     __DEFAULT_SENDER = 'tor-ops@torproject.org'
-    __DEFAULT_SUBJ_HEADER = '[Tor Weather]'
+    __DEFAULT_SUBJ_HEADER = '[Tor Weather] '
     __MESSAGE_TYPES = { 'confirmation' : ('Confirmation Needed', 
                                           emails.CONFIRMATION_MAIL),
                         'confirmed'    : ('Confirmation Successful',
