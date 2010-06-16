@@ -3,7 +3,7 @@ from weather.weatherapp.models import Subscriber, Subscription, Router
 from weather.weatherapp.models import SubscribeForm, PreferencesForm
 from weather.weatherapp.helpers import Emailer
 from django.core.context_processors import csrf
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpRequest, Http404
 
 # -----------------------------------------------------------------------
 # FILL IN ONCE WE KNOW THE SITE! ----------------------------------------
@@ -138,7 +138,9 @@ def fingerprint_error(request, fingerprint):
     return render_to_response('fingerprint_error.html', {'fingerprint' :
         fingerprint})
 
-#def runpoller(request):
-    # ---------------------------------------------------------------------
-    # here is where we need to have code that calls the necessary stuff in
-    # models to run stuff throughout the life of the application
+def run_updaters(request):
+    client_address = request.META['HTTP_X_FORWARDED_FOR'] 
+    if client_address == "127.0.0.1":
+        updaters.run_all() 
+    else:
+        raise Http404
