@@ -153,6 +153,8 @@ class Subscriber(models.Model):
 
     sub_date = models.DateTimeField()
 
+    objects = SubscriberManager()
+
     def __unicode__(self):
         return self.email
 
@@ -237,6 +239,8 @@ class Subscription(models.Model):
     emailed = models.BooleanField()
     triggered = models.BooleanField()
     last_changed = models.DateTimeField('date of last change')
+
+    objects = SubscriptionManager()
     
     def __unicode__(self):
         return self.name
