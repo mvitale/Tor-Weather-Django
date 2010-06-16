@@ -1,6 +1,6 @@
 import socket
 from TorCtl import TorCtl
-from weatherapp import config
+import config
 
 class CtlConnection:
     """A class that handles communication with TorCtl"""
@@ -46,7 +46,7 @@ class CtlConnection:
         # --------------------------------------------------------
 
         self.connection = TorCtl.Connection(self.sock)
-        self.connection.authenticator(authenticator)
+        self.connection.authenticate(authenticator)
 
         return connection
 
