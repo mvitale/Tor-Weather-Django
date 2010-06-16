@@ -42,23 +42,74 @@ class CtlConnection:
         """
 
         self.sock.connect((self.control_host, self.control_port))
-        # ADD ERROR HANDLING -------------------------------------
-        # --------------------------------------------------------
+        # TO DO -------------------------------------------------- BASE FEATURE
+        # ADD ERROR HANDLING FOR CONNECT --------------------------------------
 
         self.connection = TorCtl.Connection(self.sock)
         self.connection.authenticate(authenticator)
 
         return connection
 
+class SubscriptionChecker:
+    """A class for checking and updating the various subscription types"""
+    
+    # TO DO ------------------------------------------------------ BASE FEATURE
+    # UPDATE CLASS TO WORK WITH CTLUTIL ---------------------------------------
+
+    def __init__(self):
+        self.pinger = TorPing()
+
+    def check_all_down(self):
+        """Check if all nodes with node_down subscriptions are up or down, and
+        send emails and update subscription data as necessary."""
+
+        #All node down subscriptions
+        subscriptions = Subscription.objects.filter(name = "node_down")
+
+        for subscription in subscriptions:
+            is_up = self.pinger.ping(subscription.subscriber.router.fingerprint) 
+            if is_up:
+                if subscription.triggered:
+                   subscription.triggered = False
+                   subscription.last_changed = datetime.datetime.now()
+            else:
+                if subscription.triggered:
+                    if subscription.should_email():
+                        recipient = subscription.subscriber.email
+                        Emailer.send_node_down_email(recipient)
+                        subscription.emailed = True 
+                else:
+                    subscription.triggered = True
+                    subscription.last_changed = datetime.datetime.now()
+        return
+
+    def check_out_of_date():
+        # TO DO ------------------------------------------------- EXTRA FEATURE 
+        # IMPLEMENT THIS ------------------------------------------------------
+        pass
+
+    def check_below_bandwidth():
+        # TO DO ------------------------------------------------- EXTRA FEATURE
+        # IMPLEMENT THIS ------------------------------------------------------
+        pass
+
+    def check_earn_tshirt():
+        # TO DO ------------------------------------------------- EXTRA FEATURE
+        # IMPLEMENT THIS ------------------------------------------------------
+        pass
+
 class RouterUpdater:
     """A class for updating the Router table"""
+
+    # TO DO ------------------------------------------------------ BASE FEATURE
+    # UPDATE CLASS TO WORK WITH CTLUTIL ---------------------------------------
 
     def __init__(self):
         self.connection = CtlConnection()
 
     def get_finger_print_name_list(self):
-        #Make a list of tuples of all router fingerprints in descriptor with
-        #whitespace removed and router names
+        # Make a list of tuples of all router fingerprints in descriptor with
+        # whitespace removed and router names
         router_list= []
 
         for desc in desc_list:

@@ -1,7 +1,8 @@
 from django.db import models
 from django import forms
 from weatherapp.helpers import StringGenerator 
-import datetime
+from weatherapp.helpers import Emailer
+from datetime import datetime
 import base64
 
 # Supposedly required to make class methods.
@@ -382,25 +383,6 @@ class Subscriber(models.Model):
     def __unicode__(self):
         return self.email
 
-    def add_new_subscriber(email, router_id, confirmed=False,
-            confirm_auth="", unsubs_auth="", pref_auth="",
-            sub_date=datetime.datetime.now()):
-        
-        g = StringGenerator()
-        if confirm_auth == "":
-            confirm_auth = g.get_rand_string()
-        if unsubs_auth == "":
-            unsubs_auth = g.get_rand_string()
-        if pref_auth == "":
-            pref_auth = g.get_rand_string()
-        
-        subr = Subscriber(email = email, router = router_id,
-                confirmed = confirmed, confirm_auth = confirm_auth,
-                unsubs_auth = unsubs_auth, pref_auth = pref_auth, 
-                sub_date = sub_date)
-        subr.save()
-        return subr
-    
 class Subscription(models.Model):
     """The model storing information about a specific subscription. Each type
     of email notification that a user selects generates a new subscription. 
@@ -425,27 +407,13 @@ class Subscription(models.Model):
         return self.name
 
     def should_email():
-        time_since_changed = datetime.datetime.now() - last_changed
-        hours_since_changed = time_since_changed.hours / 3600
+        time_since_changed = datetime.now() - last_changed
+        hours_since_changed = time_since_changed.seconds / 3600
         if triggered and not emailed and \
                 (hours_since_changed > grace_pd):
             return True
         else:
             return False
-
-# ------------------------------------------------------------------------
-# DO STUFF HERE!
-# ------------------------------------------------------------------------
-
-    def add_new_subscription(subscriber_id, name, threshold, grace_pd = 5,
-                             emailed = False, triggered = False,
-                             last_changed = datetime.datetime.now()):
-        subn = Subscription(subscriber = subscriber_id, name = name,
-                            threshold = threshold, grace_pd = grace_pd,
-                            emailed = emailed, triggered = triggered,
-                            last_changed = last_changed)
-        subn.save()
-        return subn
 
 class SubscribeForm(forms.Form):
     """The form for a new subscriber"""
@@ -457,52 +425,6 @@ class PreferencesForm(forms.Form):
     """The form for changing preferences"""
     grace_pd = forms.IntegerField()
 
-class CheckSubscriptions:
-    """A class for checking and updating the various subscription types"""
-    def __init__(self):
-        self.pinger = TorPing()
-
-    def check_all_down(self):
-        """Check if all nodes with node_down subscriptions are up or down, and
-        send emails and update subscription data as necessary."""
-
-        #All node down subscriptions
-        subscriptions = Subscription.objects.filter(name = "node_down")
-
-        for subscription in subscriptions:
-            is_up = self.pinger.ping(subscription.subscriber.router.fingerprint) 
-            if is_up:
-                if subscription.triggered:
-                   subscription.triggered = False
-                   subscription.last_changed = datetime.datetime.now()
-            else:
-                if subscription.triggered:
-                    if subscription.should_email():
-                        recipient = subscription.subscriber.email
-                        Emailer.send_node_down_email(recipient)
-                        subscription.emailed = True 
-                else:
-                    subscription.triggered = True
-                    subscription.last_changed = datetime.datetime.now()
-        return
-
-    def check_out_of_date():
-# -------------------------------------------------------------------------
-# Put code here.
-# -------------------------------------------------------------------------
-        pass
-
-    def check_below_bandwidth():
-# -------------------------------------------------------------------------
-# Put code here.
-# -------------------------------------------------------------------------
-        pass
-
-    def check_earn_tshirt():
-# -------------------------------------------------------------------------
-# Put code here.
-# -------------------------------------------------------------------------
-        pass
 """
 class TorPing:
     "Check to see if various tor nodes respond to SSL hanshakes"
