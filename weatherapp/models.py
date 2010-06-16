@@ -1,7 +1,8 @@
 from django.db import models
 from django import forms
 from weatherapp.helpers import StringGenerator 
-import datetime
+from weatherapp.helpers import Emailer
+from datetime import datetime
 import base64
 
 # Supposedly required to make class methods.
@@ -10,8 +11,8 @@ import base64
 #    def __init__(self, anycallable):
 #        self.__call__ = anycallable
 
-class Adder:
-    """An L{Adder} object is used to add L{Router}, L{Subscription}, or
+class ModelAdder:
+    """An L{ModelAdder} object is used to add L{Router}, L{Subscription}, or
     L{Subscriber} objects to their respective databases with default values.
     All instance variables have default values stored in private class
     variables, but can be overriden in the constructor.
@@ -26,9 +27,9 @@ class Adder:
                 L{Router} has just been seen, the L{Subscriber} has just
                 subscribed, or the L{Subscription}'s L{Router} has
                 just changed (or we will act like it has, since this is when
-                we start watching it). The time field of a specific L{Adder}
-                instance should be updated each time a consensus document
-                is received with a call to L{update_time()}.
+                we start watching it). The time field of a specific
+                L{ModelAdder} instance should be updated each time a consensus
+                document is received with a call to L{update_time()}.
     @type router_welcomed: Bool
     @ivar router_welcomed: Default value to use for welcomed fields when
                            L{Router} objects are added to the database. By
@@ -99,7 +100,7 @@ class Adder:
         self.triggered_default = subscription_triggered
 
     def update_time(self, time = None):
-        """Updates the time field for this L{Adder} instance. By default,
+        """Updates the time field for this L{ModelAdder} instance. By default,
         updates to the current time, though a time can be passed to set it to a
         specific time.
 
@@ -122,8 +123,8 @@ class Adder:
         """Adds a new L{Router} object, handling variables that should always 
         be set a certain way when a new L{Router} object is added. The default
         variables (C{welcomed} and C{last_seen}), which are stored as instance
-        variables in the L{Adder} class, can also be overriden in the method
-        call.
+        variables in the L{ModelAdder} class, can also be overriden in the
+        method call.
     
         @type fingerprint: str
         @param fingerprint: Fingerprint of L{Router} to be added.
@@ -138,9 +139,9 @@ class Adder:
                          long before it should be welcomed.
         @type last_seen: datetime.datetime
         @param last_seen: [Optional] Time when the router was last seen. 
-                          Default value is the time for the L{Adder} instance,
-                          which should be updated each time a consensus
-                          document is received.
+                          Default value is the time for the L{ModelAdder}
+                          instance, which should be updated each time a 
+                          consensus document is received.
         @type up: Bool
         @param up: [Optional] Whether the router was up when the last consensus
                    was received. Default value is True since it would not be
@@ -170,7 +171,7 @@ class Adder:
         always be set a certain way when a new L{Subscriber} object is added.
         The default variables (C{confirmed}, C{confirm_auth}, C{unsubs_auth},
         C{pref_auth}, and C{sub_date}), which are stored as instance variables
-        of the L{Adder} class, can also be overriden in the method call.
+        of the L{ModelAdder} class, can also be overriden in the method call.
 
         @type email: str
         @param email: The email address of the L{Subscriber} to be added.
@@ -197,9 +198,9 @@ class Adder:
                           generation of a new random key.
         @type sub_date: datetime.datetime
         @param sub_date: [Optional] Time when the L{Subscriber} subscribed.
-                         Default value is the current time for the L{Adder}
-                         instance, which should be updated each time a
-                         consensus document is received. This should be
+                         Default value is the current time for the
+                         L{ModelAdder} instance, which should be updated each
+                         time a consensus document is received. This should be
                          sufficiently close to the actual time the user hits
                          subscribe, but maybe sub_date should be passed as
                          datetime.datetime.now() when this method is called to
@@ -241,8 +242,8 @@ class Adder:
         """Adds a new Subscription object, handling variables that should
         always be set a certain way when a new Subscription object is added.
         The default variables (emailed, triggered, and last_changed),
-        which are stored as instance variables of the Adder class, can also be 
-        overriden in the method call.
+        which are stored as instance variables of the L{ModelAdder} class, can
+        also be overriden in the method call.
 
         @type subscriber_id: int
         @param subscriber_id: The Subscriber database ID of the Subscriber
@@ -382,25 +383,6 @@ class Subscriber(models.Model):
     def __unicode__(self):
         return self.email
 
-    def add_new_subscriber(email, router_id, confirmed=False,
-            confirm_auth="", unsubs_auth="", pref_auth="",
-            sub_date=datetime.datetime.now()):
-        
-        g = StringGenerator()
-        if confirm_auth == "":
-            confirm_auth = g.get_rand_string()
-        if unsubs_auth == "":
-            unsubs_auth = g.get_rand_string()
-        if pref_auth == "":
-            pref_auth = g.get_rand_string()
-        
-        subr = Subscriber(email = email, router = router_id,
-                confirmed = confirmed, confirm_auth = confirm_auth,
-                unsubs_auth = unsubs_auth, pref_auth = pref_auth, 
-                sub_date = sub_date)
-        subr.save()
-        return subr
-    
 class Subscription(models.Model):
     """The model storing information about a specific subscription. Each type
     of email notification that a user selects generates a new subscription. 
@@ -425,27 +407,13 @@ class Subscription(models.Model):
         return self.name
 
     def should_email():
-        time_since_changed = datetime.datetime.now() - last_changed
-        hours_since_changed = time_since_changed.hours / 3600
+        time_since_changed = datetime.now() - last_changed
+        hours_since_changed = time_since_changed.seconds / 3600
         if triggered and not emailed and \
                 (hours_since_changed > grace_pd):
             return True
         else:
             return False
-
-# ------------------------------------------------------------------------
-# DO STUFF HERE!
-# ------------------------------------------------------------------------
-
-    def add_new_subscription(subscriber_id, name, threshold, grace_pd = 5,
-                             emailed = False, triggered = False,
-                             last_changed = datetime.datetime.now()):
-        subn = Subscription(subscriber = subscriber_id, name = name,
-                            threshold = threshold, grace_pd = grace_pd,
-                            emailed = emailed, triggered = triggered,
-                            last_changed = last_changed)
-        subn.save()
-        return subn
 
 class SubscribeForm(forms.Form):
     """The form for a new subscriber. The form includes an email field, 
@@ -468,52 +436,6 @@ class PreferencesForm(forms.Form):
     """The form for changing preferences"""
     grace_pd = forms.IntegerField(widget=forms.TextInput(attrs={'size':'50'}))
 
-class CheckSubscriptions:
-    """A class for checking and updating the various subscription types"""
-    def __init__(self):
-        self.pinger = TorPing()
-
-    def check_all_down(self):
-        """Check if all nodes with node_down subscriptions are up or down, and
-        send emails and update subscription data as necessary."""
-
-        #All node down subscriptions
-        subscriptions = Subscription.objects.filter(name = "node_down")
-
-        for subscription in subscriptions:
-            is_up = self.pinger.ping(subscription.subscriber.router.fingerprint) 
-            if is_up:
-                if subscription.triggered:
-                   subscription.triggered = False
-                   subscription.last_changed = datetime.datetime.now()
-            else:
-                if subscription.triggered:
-                    if subscription.should_email():
-                        recipient = subscription.subscriber.email
-                        Emailer.send_node_down_email(recipient)
-                        subscription.emailed = True 
-                else:
-                    subscription.triggered = True
-                    subscription.last_changed = datetime.datetime.now()
-        return
-
-    def check_out_of_date():
-# -------------------------------------------------------------------------
-# Put code here.
-# -------------------------------------------------------------------------
-        pass
-
-    def check_below_bandwidth():
-# -------------------------------------------------------------------------
-# Put code here.
-# -------------------------------------------------------------------------
-        pass
-
-    def check_earn_tshirt():
-# -------------------------------------------------------------------------
-# Put code here.
-# -------------------------------------------------------------------------
-        pass
 """
 class TorPing:
     "Check to see if various tor nodes respond to SSL hanshakes"
