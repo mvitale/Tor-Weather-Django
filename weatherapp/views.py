@@ -1,5 +1,6 @@
 from django.shortcuts import render_to_response, get_object_or_404
 from weather.weatherapp.models import Subscriber, Subscription, Router
+from weather.weatherapp.models import SubscribeForm, PreferencesForm
 from weather.weatherapp.helpers import Emailer
 
 # -----------------------------------------------------------------------
@@ -17,7 +18,7 @@ def subscribe(request):
     """Displays the subscription form (all fields empty or default) if the
         form hasn't been submitted. After the user hits the submit button,
         redirects to the pending page if all of the fields were acceptable"""
-    if request.method == 'POST'
+    if request.method == 'POST':
         form = SubscribeForm(request.POST)
 
 # -----------------------------------------------------------------------
@@ -78,10 +79,10 @@ def unsubscribe(request, unsubscribe_auth_id):
     
     #we know the router has a fingerprint, but it might not have a name.
     name = ""
-    if !router_name.equals("Unnamed"):
+    if not router_name.equals("Unnamed"):
         name += " " + router_name + ","
 
-    return render_to_response('unsubscribe.html'{'email' : email, 'name' :
+    return render_to_response('unsubscribe.html', {'email' : email, 'name' : 
             name, 'fingerprint' : fingerprint})
 
 def preferences(request, preferences_auth_id):
@@ -105,10 +106,10 @@ def preferences(request, preferences_auth_id):
         # with the user's existing preferences.    
         # this should be updated as the preferences are expanded
         data = {'grace_pd' : node_down_sub.grace_pd}
-        form = PreferencesForm(data)
+        form = PreferencesForm(initial=data)
     return render_to_response('preferences.html', {'form' : form})
 
-def confirm_pref(request, preferences_auth_id)
+def confirm_pref(request, preferences_auth_id):
     """The page confirming that preferences have been changed."""
     prefURL = baseURL + '/preferences/' + preferences_auth_id + '/'
     user = get_object_or_404(Subscriber, pref_auth = preferences_auth_id)
@@ -116,14 +117,13 @@ def confirm_pref(request, preferences_auth_id)
     return render_to_response('confirm_pref.html', {'prefURL' : prefURL,
             'unsubURL' : unsubURL})
 
-def fingerprint_error(request, fingerprint)
+def fingerprint_error(request, fingerprint):
     """The page that is displayed when a user tries to subscribe to a node
         that isn't stored in the database."""
     return render_to_response('fingerprint_error.html', {'fingerprint' :
         fingerprint})
 
-def runpoller(request):
+#def runpoller(request):
     # ---------------------------------------------------------------------
     # here is where we need to have code that calls the necessary stuff in
     # models to run stuff throughout the life of the application
-    # ---------------------------------------------------------------------

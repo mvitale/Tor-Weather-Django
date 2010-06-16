@@ -136,7 +136,7 @@ class StringGenerator:
     
     __DEFAULT_LENGTH = 24
 
-    def __init__(self, length = __DEFAULT_LENGTH)
+    def __init__(self, length = __DEFAULT_LENGTH):
         self.length = length
 
     def get_rand_string():

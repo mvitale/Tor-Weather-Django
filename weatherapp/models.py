@@ -1,4 +1,5 @@
 from django.db import models
+from django import forms
 import datetime
 import TorCtl.TorCtl
 import socket
@@ -110,12 +111,6 @@ class Subscriber(models.Model):
     
     # supposedly makes add_new_subscriber() a class method
     add_new_subscriber = Callable(add_new_subscriber)
-        
-class SubscribeForm(forms.Form):
-    """The form for subscribing"""
-    email = forms.EmailField(max_length=75)
-    router_id = forms.CharField(max_length=200)
-    grace_pd = forms.IntegerField(default=1)
 
 class Subscription(models.Model):
     """The model storing information about a specific subscription. Each type
@@ -140,14 +135,14 @@ class Subscription(models.Model):
     def __unicode__(self):
         return self.name
 
-    def should_email()
+    def should_email():
         time_since_changed = datetime.datetime.now() - last_changed
         hours_since_changed = time_since_changed.hours / 3600
         if triggered and not emailed and \
                 (hours_since_changed > grace_pd):
-            return true
+            return True
         else:
-            return false
+            return False
 
 
 # ------------------------------------------------------------------------
@@ -167,13 +162,19 @@ class Subscription(models.Model):
     # Supposedly makes add_new_subscription a class method.
     add_new_subscription = Callable(add_new_subscription)
 
+class SubscribeForm(forms.Form):
+    """The form for a new subscriber"""
+    email = forms.EmailField()
+    fingerprint = forms.CharField(max_length=255)
+    grace_pd = forms.IntegerField()
+
 class PreferencesForm(forms.Form):
     """The form for changing preferences"""
     grace_pd = forms.IntegerField()
 
 class CheckSubscriptions:
     """A class for checking and updating the various subscription types"""
-    def __init__(self)
+    def __init__(self):
         self.pinger = TorPing()
 
     def check_all_down(self):
@@ -214,7 +215,7 @@ class CheckSubscriptions:
 # Put code here.
 # -------------------------------------------------------------------------
         pass
-
+"""
 class TorPing:
     "Check to see if various tor nodes respond to SSL hanshakes"
     def __init__(self, control_host = "127.0.0.1", control_port = 9051):
@@ -227,7 +228,7 @@ class TorPing:
             self.sock.connect((control_host,control_port))
         except:
             #errormsg = "Could not connect to Tor control port" + \
-                       "Is Tor running on %s with its control port opened on %s?" \
+            #"Is Tor running on %s with its control port opened on %s?" \
                         % (control_host, control_port)
             #logging.error(errormsg)
             #print >> sys.stderr, errormsg
@@ -269,7 +270,7 @@ class TorPing:
 
         # If we're here, we were able to fetch information about the router
         return True
-
+"""
 class RouterUpdater:
     """A class for updating the Router table"""
     def __init__(self, control_host = "127.0.0.1", control_port = 9051):
@@ -293,9 +294,9 @@ class RouterUpdater:
         
         del self.control
         self.control = None
-
+"""
     def update_all(self):
         #Gets a dictionary with one entry. The value is what we want.
         descriptor = str(descriptor_dict.values()[0]split("\nrouter ")
         for router in consensus:
-
+"""
