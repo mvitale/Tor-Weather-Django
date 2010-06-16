@@ -7,10 +7,9 @@ class SubscriptionChecker:
     """A class for checking and updating the various subscription types"""
     
     # TO DO ------------------------------------------------------ BASE FEATURE
-    # UPDATE CLASS TO WORK WITH CTLUTIL ---------------------------------------
 
-    def __init__(self):
-        self.pinger = TorPing()
+    def __init__(self, ctl_util):
+        self.ctl_util = ctl_util
 
     def check_all_down(self):
         """Check if all nodes with node_down subscriptions are up or down, and
@@ -20,7 +19,7 @@ class SubscriptionChecker:
         subscriptions = Subscription.objects.filter(name = "node_down")
 
         for subscription in subscriptions:
-            is_up = self.pinger.ping( 
+            is_up = self.ctl_util.ping( 
                     subscription.subscriber.router.fingerprint) 
             if is_up:
                 if subscription.triggered:
@@ -56,10 +55,9 @@ class RouterUpdater:
     """A class for updating the Router table and sending 'welcome' emails"""
 
     # TO DO ------------------------------------------------------ BASE FEATURE
-    # UPDATE CLASS TO WORK WITH CTLUTIL ---------------------------------------
 
-    def __init__(self):
-        self.ctl_util = ctlutil.CtlUtil()
+    def __init__(self, ctl_util):
+        self.ctl_util = ctl_util
 
     def update_all(self):
         """Add ORs we haven't seen before to the database and update the
