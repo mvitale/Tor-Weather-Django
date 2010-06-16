@@ -77,7 +77,7 @@ class Adder:
     __SUBSCRIBER_CONFIRMED = False
     __SUBSCRIBER_CONFIRM_AUTH = ""
     __SUBSCRIBER_UNSUBS_AUTH = ""
-    __SUBSCRUBER_PREF_AUTH = ""
+    __SUBSCRIBER_PREF_AUTH = ""
     __SUBSCRIPTION_EMAILED = False
     __SUBSCRIPTION_TRIGGERED = False
 
@@ -404,9 +404,6 @@ class Subscriber(models.Model):
         subr.save()
         return subr
     
-    # supposedly makes add_new_subscriber() a class method
-    add_new_subscriber = Callable(add_new_subscriber)
-
 class Subscription(models.Model):
     """The model storing information about a specific subscription. Each type
     of email notification that a user selects generates a new subscription. 
@@ -452,9 +449,6 @@ class Subscription(models.Model):
                             last_changed = last_changed)
         subn.save()
         return subn
-
-    # Supposedly makes add_new_subscription a class method.
-    add_new_subscription = Callable(add_new_subscription)
 
 class SubscribeForm(forms.Form):
     """The form for a new subscriber"""
@@ -596,10 +590,6 @@ class RouterUpdater:
         self.control = None
 
     def update_all(self):
-        #Gets a dictionary with one entry. The value is what we want.
-        descriptor = str(descriptor_dict.values()[0]split("\nrouter ")
-        for router in consensus:
-
         """Add ORs we haven't seen before to the database and update the
         information of ORs that are already in the database."""
 

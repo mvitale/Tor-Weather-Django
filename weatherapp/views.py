@@ -2,11 +2,12 @@ from django.shortcuts import render_to_response, get_object_or_404
 from weather.weatherapp.models import Subscriber, Subscription, Router
 from weather.weatherapp.models import SubscribeForm, PreferencesForm
 from weather.weatherapp.helpers import Emailer
+from django.core.context_processors import csrf
 
 # -----------------------------------------------------------------------
 # FILL IN ONCE WE KNOW THE SITE! ----------------------------------------
 # -----------------------------------------------------------------------
-baseURL = "localhost:8000"
+baseURL = "http://localhost:8000"
 
 def home(request):
     """Displays a home page for Tor Weather with basic information about
@@ -26,11 +27,11 @@ def subscribe(request):
 # -----------------------------------------------------------------------
         if form.is_valid():
             addr = form.cleaned_data['email']
-            fingerprint = form.cleaned_data['router_id']
+            fingerprint = form.cleaned_data['fingerprint']
             grace_pd = form.cleaned_data['grace_pd']
             
             e = Emailer()
-            e.send_email(addr, "confirmation")
+            e.send_single_email(addr, "confirmation")
 
             # Add subscriber to the database
 # ---------------------------------------------------------------------- 
@@ -42,8 +43,13 @@ def subscribe(request):
             
             return HttpResponseRedirect('/pending/'+subscriber.id+'/')
     else:
-        form = SubscribeForm()
-    return render_to_response('subscribe.html', {'form': form,})
+	form = SubscribeForm()
+	c = {'form' : form}
+
+	# for pages with POST methods, a Cross Site Request Forgery protection
+	# key is added to block attacking sites
+	c.update(csrf(request))
+    return render_to_response('subscribe.html', c)
 
 def pending(request, subscriber_id):
     """The user views the pending page after submitting a registration form.
@@ -106,8 +112,16 @@ def preferences(request, preferences_auth_id):
         # with the user's existing preferences.    
         # this should be updated as the preferences are expanded
         data = {'grace_pd' : node_down_sub.grace_pd}
-        form = PreferencesForm(initial=data)
-    return render_to_response('preferences.html', {'form' : form})
+
+	# populates a PreferencesForm object with the user's existing prefs
+	form = PreferencesForm(initial=data)	
+	
+	# maps the form to the template
+	c = {'form' : form}
+
+	#Creates a CSRF protection key
+	c.update(csrf(request))
+    return render_to_response('preferences.html', c)
 
 def confirm_pref(request, preferences_auth_id):
     """The page confirming that preferences have been changed."""
