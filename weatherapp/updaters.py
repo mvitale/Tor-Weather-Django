@@ -2,6 +2,7 @@ import socket
 from TorCtl import TorCtl
 import ctlutil
 import config
+from models import ModelAdder
 
 class SubscriptionChecker:
     """A class for checking and updating the various subscription types"""
@@ -19,7 +20,7 @@ class SubscriptionChecker:
         subscriptions = Subscription.objects.filter(name = "node_down")
 
         for subscription in subscriptions:
-            is_up = self.ctl_util.ping( 
+            is_up = self.ctl_util.is_up( 
                     subscription.subscriber.router.fingerprint) 
             if is_up:
                 if subscription.triggered:
@@ -58,6 +59,7 @@ class RouterUpdater:
 
     def __init__(self, ctl_util):
         self.ctl_util = ctl_util
+        self.adder = models.ModelAdder()
 
     def update_all(self):
         """Add ORs we haven't seen before to the database and update the
@@ -69,7 +71,7 @@ class RouterUpdater:
 
             finger = router[0]
             name = router[1]
-            is_up = ctl_util.ping(finger)
+            is_up = ctl_util.is_up(finger)
 
             if is_up:
                 try:
@@ -78,6 +80,5 @@ class RouterUpdater:
                     router_data.name = name
                 except DoesNotExist:
                     #let's add it
-                    new_router = Router(finger, name, False,
-                                        datetime.datetime.now())
+                    self.adder.add_new_router(finger, name)
         return
