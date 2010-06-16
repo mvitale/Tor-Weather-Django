@@ -2,17 +2,17 @@ import socket
 from TorCtl import TorCtl
 import ctlutil
 import config
+from models import ModelAdder
 
 class SubscriptionChecker:
     """A class for checking and updating the various subscription types"""
     
     # TO DO ------------------------------------------------------ BASE FEATURE
-    # UPDATE CLASS TO WORK WITH CTLUTIL ---------------------------------------
 
-    def __init__(self):
-        self.pinger = TorPing()
-
-    def check_all_down(self):
+    def __init__(self, ctl_util):
+        self.ctl_util = ctl_util
+    
+    def check_node_down(self):
         """Check if all nodes with node_down subscriptions are up or down, and
         send emails and update subscription data as necessary."""
 
@@ -20,7 +20,7 @@ class SubscriptionChecker:
         subscriptions = Subscription.objects.filter(name = "node_down")
 
         for subscription in subscriptions:
-            is_up = self.pinger.ping( 
+            is_up = self.ctl_util.is_up( 
                     subscription.subscriber.router.fingerprint) 
             if is_up:
                 if subscription.triggered:
@@ -52,14 +52,22 @@ class SubscriptionChecker:
         # IMPLEMENT THIS ------------------------------------------------------
         pass
 
+    def check_all():
+        """Check/update all subscriptions"""
+        self.check_node_down()
+
+        #---Add when implemented---
+        #self.check_out_of_date()
+        #self.check_below_bandwidth()
+        #self.check_earn_tshirt()
 class RouterUpdater:
     """A class for updating the Router table and sending 'welcome' emails"""
 
     # TO DO ------------------------------------------------------ BASE FEATURE
-    # UPDATE CLASS TO WORK WITH CTLUTIL ---------------------------------------
 
-    def __init__(self):
-        self.ctl_util = ctlutil.CtlUtil()
+    def __init__(self, ctl_util):
+        self.ctl_util = ctl_util
+        self.adder = models.ModelAdder()
 
     def update_all(self):
         """Add ORs we haven't seen before to the database and update the
@@ -71,7 +79,7 @@ class RouterUpdater:
 
             finger = router[0]
             name = router[1]
-            is_up = ctl_util.ping(finger)
+            is_up = ctl_util.is_up(finger)
 
             if is_up:
                 try:
@@ -80,6 +88,14 @@ class RouterUpdater:
                     router_data.name = name
                 except DoesNotExist:
                     #let's add it
-                    new_router = Router(finger, name, False,
-                                        datetime.datetime.now())
+                    self.adder.add_new_router(finger, name)
         return
+
+def run_all():
+    ctl_util = ctlutil.CtlUtil()
+    router_updater = RouterUpdater(ctl_util)
+    subscription_checker = SubscriptionChecker(ctl_util)
+    router_updater.update_all()
+    subscription_checker.check_all()
+
+

@@ -1,9 +1,17 @@
+"""
+The views module contains the controllers for the Tor Weather application 
+(Djago is idiosyncratic in that it names controllers 'views'; models are still
+models and views are called templates). This module contains a single 
+controller for each page type. The controllers handle form submission and
+page rendering/redirection.
+"""
+
 from django.shortcuts import render_to_response, get_object_or_404
 from weather.weatherapp.models import Subscriber, Subscription, Router
 from weather.weatherapp.models import SubscribeForm, PreferencesForm
 from weather.weatherapp.helpers import Emailer
 from django.core.context_processors import csrf
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpRequest, Http404
 
 # -----------------------------------------------------------------------
 # FILL IN ONCE WE KNOW THE SITE! ----------------------------------------
@@ -12,7 +20,7 @@ baseURL = "http://localhost:8000"
 
 def home(request):
     """Displays a home page for Tor Weather with basic information about
-        the application"""
+        the application."""
     subURL = baseURL + '/subscribe/'
     return render_to_response('home.html', {'subURL' : subURL})
 
@@ -74,7 +82,9 @@ def confirm(request, confirm_auth_id):
             'unsubURL' : unsubURL, 'prefURL' : prefURL})
         
 def unsubscribe(request, unsubscribe_auth_id):
-    """The unsubscribe page, which tells the """
+    """The unsubscribe page, which displays a message informing the user
+    that they will no longer receive emails at their email address about
+    the given Tor node."""
     
     #get the user and router
     user = get_object_or_404(Subscriber, unsubs_auth = unsubscribe_auth_id)
@@ -120,7 +130,7 @@ def preferences(request, preferences_auth_id):
 	# maps the form to the template
 	c = {'form' : form}
 
-	#Creates a CSRF protection key
+	# Creates a CSRF protection key
 	c.update(csrf(request))
     return render_to_response('preferences.html', c)
 
@@ -129,16 +139,22 @@ def confirm_pref(request, preferences_auth_id):
     prefURL = baseURL + '/preferences/' + preferences_auth_id + '/'
     user = get_object_or_404(Subscriber, pref_auth = preferences_auth_id)
     unsubURL = baseURL + '/unsubscribe/' + user.unsub_auth + '/'
+
+    # The page includes the unsubscribe and change prefs links
     return render_to_response('confirm_pref.html', {'prefURL' : prefURL,
             'unsubURL' : unsubURL})
 
 def fingerprint_error(request, fingerprint):
     """The page that is displayed when a user tries to subscribe to a node
-        that isn't stored in the database."""
+    that isn't stored in the database. The page includes information
+    regarding potential problems."""
     return render_to_response('fingerprint_error.html', {'fingerprint' :
         fingerprint})
 
-#def runpoller(request):
-    # ---------------------------------------------------------------------
-    # here is where we need to have code that calls the necessary stuff in
-    # models to run stuff throughout the life of the application
+def run_updaters(request):
+    client_address = request.META['REMOTE_ADDR'] 
+    if client_address == "127.0.0.1":
+        print "I would be running updaters now!"
+        #updaters.run_all() 
+    else:
+        raise Http404

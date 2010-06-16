@@ -1,3 +1,12 @@
+"""
+The models module handles the bulk of Tor Weather. The module contains three
+models that correspond to database tables (L{Subscriber}, L{Subscription}, and 
+L{Router}) as well as two form classes (L{SubscribeForm} and
+L{PreferencesForm}), which specify the fields to appear on the sign-up
+and change preferences pages. The L{ModelAdder} class contains methods
+to handle database population for the three models.
+"""
+
 from django.db import models
 from django import forms
 from weatherapp.helpers import StringGenerator 
@@ -80,7 +89,7 @@ class ModelAdder:
     _SUBSCRIPTION_TRIGGERED = False
 
     def __init__(self,
-                 time = datetime.datetime.now(),
+                 time = datetime.now(),
                  router_welcomed = _ROUTER_WELCOMED,
                  #router_up = _ROUTER_UP,
                  subscriber_confirmed = _SUBSCRIBER_CONFIRMED,
@@ -255,11 +264,11 @@ class ModelAdder:
         @type grace_pd: int
         @param grace_pd: The grace period for this subscription before an email
                          is sent (measured in hours).
-        @type emailed: Bool
+        @type emailed: bool
         @param emailed: [Optional] Whether this subscription has had an email
                         sent out for it since it was last triggered. Default
                         value is False since the subscription was just created.
-        @type triggered: Bool
+        @type triggered: bool
         @param triggered: [Optional] Whether this subscription is currently
                           triggered. Default value is False since the
                           subscription was just created.
@@ -350,23 +359,21 @@ class Subscriber(models.Model):
     A model to store information about Tor Weather subscribers, including their
     authorization keys.
 
-    @type email: EmailField
     @ivar email: The subscriber's email.
-    @type router: ########################
     @ivar router: A foreign key link to the router model corresponding to the
         node this subscriber is watching.
-    @type confirmed: boolean
-    @ivar confirmed: true if the subscriber has confirmed the subscription by
-        following the link in their confirmation email and false otherwise.
-    @type confirm_auth: String
+    @type confirmed: bool
+    @ivar confirmed: True if the subscriber has confirmed the subscription by
+        following the link in their confirmation email and False otherwise.
+    @type confirm_auth: str
     @ivar confirm_auth: This user's confirmation key, which is incorporated into
         the confirmation url.
-    @type unsubs_auth: String
+    @type unsubs_auth: str
     @ivar unsubs_auth: This user's unsubscribe key, which is incorporated into 
         the unsubscribe url.
-    @type pref_auth: String
+    @type pref_auth: str
     @ivar pref_auth: The key for this user's Tor Weather preferences page.
-    @type sub_date: datetime
+    @type sub_date: datetime.datetime
     @ivar sub_date: The date this user subscribed to Tor Weather.
     """
     email = models.EmailField(max_length=75)
@@ -392,8 +399,25 @@ class Subscription(models.Model):
     @type subscriber: ######### (foreign key)
     @ivar subscriber: A link to the subscriber model representing the owner
         of this subscription.
-    @type name: String
+    @type name: str
     @ivar name: The type of subscription.
+    @type threshold: str
+    @ivar threshold: The threshold for sending a notification (i.e. send a 
+        notification if the version is obsolete vs. out of date; depends on 
+        subscription type)
+    @type grace_pd: int
+    @ivar grace_pd: The amount of time (hours) before a notification is sent
+        after a subscription type is triggered.
+    @type emailed: bool
+    @ivar emailed: True if the user has been emailed about the subscription
+        (trigger must also be True), False if the user has not been emailed.
+    @type triggered: bool
+    @ivar triggered: True if the threshold has been passed for this 
+        subscription/the conditions to send a notification are met, False
+        if not.
+    @type last_changed: datetime.datetime
+    @ivar last_changed: The most recent datetime when the trigger field 
+        was changed.
     """
     subscriber = models.ForeignKey(Subscriber)
     name = models.CharField(max_length=200)
@@ -417,8 +441,15 @@ class Subscription(models.Model):
 
 class SubscribeForm(forms.Form):
     """The form for a new subscriber. The form includes an email field, 
-        a node fingerprint field, and a field to specify the hours of 
-        downtime before receiving a notification."""
+    a node fingerprint field, and a field to specify the hours of downtime 
+    before receiving a notification.
+
+
+    @ivar email: A field for the user's email address
+    @ivar fingerprint: A field for the fingerprint (node ID) corresponding 
+        to the node the user wants to monitor
+    @ivar grace_pd: A field for the hours of downtime the user specifies
+        before being notified via email"""
 
     # widget attributes are modified here to customize the form
     email = forms.EmailField(widget=forms.TextInput(attrs={'size':'50', 
@@ -433,65 +464,9 @@ class SubscribeForm(forms.Form):
         '{this.value=""}'}))
 
 class PreferencesForm(forms.Form):
-    """The form for changing preferences"""
+    """The form for changing preferences.
+
+    @ivar grace_pd: A fiend for the user to specify the hours of 
+        downtime before an email notification is sent"""
+
     grace_pd = forms.IntegerField(widget=forms.TextInput(attrs={'size':'50'}))
-
-"""
-class TorPing:
-    "Check to see if various tor nodes respond to SSL hanshakes"
-    def __init__(self, control_host = "127.0.0.1", control_port = 9051):
-
-        "Keep the connection to the control port lying around"
-        self.control_host = control_host
-        self.control_port = control_port
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            self.sock.connect((control_host,control_port))
-        except:
-            #errormsg = "Could not connect to Tor control port" + \
-            #"Is Tor running on %s with its control port opened on %s?" \
-                        % (control_host, control_port)
-            #           "Is Tor running on %s with its control port opened on %s?" \
-            #            % (control_host, control_port)
-            #logging.error(errormsg)
-            #print >> sys.stderr, errormsg
-            errormsg = "Could not connect to Tor control port" + \
-                       "Is Tor running on %s with its control port opened" + \
-                        " on %s?" % (control_host, control_port)
-            logging.error(errormsg)
-            print >> sys.stderr, errormsg
-            raise
-        self.control = TorCtl.Connection(self.sock)
-        self.control.authenticate(weather.config.authenticator)
-
-    def __del__(self):
-        self.sock.close()
-        del self.sock
-        self.sock = None                # prevents double deletion exceptions
-
-        # it would be better to fix TorCtl!
-        try:
-            self.control.close()
-        except:
-            pass
-
-        del self.control
-        self.control = None
-    
-    "Need to re-include logging functionality" 
-    def ping(self, nodeId):
-        """ """See if this tor node is up by only asking Tor.""" """
-        try:
-            info = self.control.get_info(str("ns/id/" + nodeId))
-        except TorCtl.ErrorReply, e:
-            # If we're getting here, we're likely seeing:
-            # ErrorReply: 552 Unrecognized key "ns/id/46D9..."
-            # This means that the node isn't recognized by 
-            return False
-
-        except:
-            return False
-
-        # If we're here, we were able to fetch information about the router
-        return True
-"""

@@ -10,6 +10,5 @@ authenticator = open("auth_token").read().strip()
 
 mailFrom = "tor-ops@torproject.org"
 
-pollPeriod = 3600 # Check every hour
+run_updaters = URLbase + "/run-updaters"
 
-databaseName = "subscriptions.db"
