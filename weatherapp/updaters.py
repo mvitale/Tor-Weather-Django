@@ -18,24 +18,6 @@ class RouterUpdater:
 
         for router in finger_name:
 
-            #We ignore ORs that don't publish their fingerprints
-            if not finger == "":
-                router_list.append((finger, name))
-
-        return router_list
-
-    def update_all(self):
-        """Add ORs we haven't seen before to the database and update the
-        information of ORs that are already in the database."""
-
-        #The dictionary returned from TorCtl
-        desc_dict = self.connection.get_info("desc/all-recent")
-
-        #A list of the router descriptors in desc_dict
-        desc_list = str(descriptor_dict.values()[0]).split("----End \
-                        Signature----")
-        
-        for router in router_list:
             finger = router[0]
             name = router[1]
             is_up = ctl_util.ping(finger)
