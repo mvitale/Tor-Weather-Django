@@ -1,17 +1,25 @@
 from django.shortcuts import render_to_response, get_object_or_404
 from weather.weatherapp.models import Subscriber, Subscription, Router
+from weather.weatherapp.models import SubscribeForm, PreferencesForm
 from weather.weatherapp.helpers import Emailer
+from django.core.context_processors import csrf
 
 # -----------------------------------------------------------------------
 # FILL IN ONCE WE KNOW THE SITE! ----------------------------------------
 # -----------------------------------------------------------------------
-baseURL = "localhost:8000"
+baseURL = "http://localhost:8000"
+
+def home(request):
+    """Displays a home page for Tor Weather with basic information about
+        the application"""
+    subURL = baseURL + '/subscribe/'
+    return render_to_response('home.html', {'subURL' : subURL})
 
 def subscribe(request):
-    """Displays the main Tor Weather page (the subscription form) if the
+    """Displays the subscription form (all fields empty or default) if the
         form hasn't been submitted. After the user hits the submit button,
         redirects to the pending page if all of the fields were acceptable"""
-    if request.method == 'POST'
+    if request.method == 'POST':
         form = SubscribeForm(request.POST)
 
 # -----------------------------------------------------------------------
@@ -19,11 +27,11 @@ def subscribe(request):
 # -----------------------------------------------------------------------
         if form.is_valid():
             addr = form.cleaned_data['email']
-            fingerprint = form.cleaned_data['router_id']
+            fingerprint = form.cleaned_data['fingerprint']
             grace_pd = form.cleaned_data['grace_pd']
             
             e = Emailer()
-            e.send_email(addr, "confirmation")
+            e.send_single_email(addr, "confirmation")
 
             # Add subscriber to the database
 # ---------------------------------------------------------------------- 
@@ -35,8 +43,13 @@ def subscribe(request):
             
             return HttpResponseRedirect('/pending/'+subscriber.id+'/')
     else:
-        form = SubscribeForm()
-    return render_to_response('subscribe.html', {'form': form,})
+	form = SubscribeForm()
+	c = {'form' : form}
+
+	# for pages with POST methods, a Cross Site Request Forgery protection
+	# key is added to block attacking sites
+	c.update(csrf(request))
+    return render_to_response('subscribe.html', c)
 
 def pending(request, subscriber_id):
     """The user views the pending page after submitting a registration form.
@@ -72,10 +85,10 @@ def unsubscribe(request, unsubscribe_auth_id):
     
     #we know the router has a fingerprint, but it might not have a name.
     name = ""
-    if !router_name.equals("Unnamed"):
+    if not router_name.equals("Unnamed"):
         name += " " + router_name + ","
 
-    return render_to_response('unsubscribe.html'{'email' : email, 'name' :
+    return render_to_response('unsubscribe.html', {'email' : email, 'name' : 
             name, 'fingerprint' : fingerprint})
 
 def preferences(request, preferences_auth_id):
@@ -99,10 +112,18 @@ def preferences(request, preferences_auth_id):
         # with the user's existing preferences.    
         # this should be updated as the preferences are expanded
         data = {'grace_pd' : node_down_sub.grace_pd}
-        form = PreferencesForm(data)
-    return render_to_response('preferences.html', {'form' : form})
 
-def confirm_pref(request, preferences_auth_id)
+	# populates a PreferencesForm object with the user's existing prefs
+	form = PreferencesForm(initial=data)	
+	
+	# maps the form to the template
+	c = {'form' : form}
+
+	#Creates a CSRF protection key
+	c.update(csrf(request))
+    return render_to_response('preferences.html', c)
+
+def confirm_pref(request, preferences_auth_id):
     """The page confirming that preferences have been changed."""
     prefURL = baseURL + '/preferences/' + preferences_auth_id + '/'
     user = get_object_or_404(Subscriber, pref_auth = preferences_auth_id)
@@ -110,14 +131,13 @@ def confirm_pref(request, preferences_auth_id)
     return render_to_response('confirm_pref.html', {'prefURL' : prefURL,
             'unsubURL' : unsubURL})
 
-def fingerprint_error(request, fingerprint)
+def fingerprint_error(request, fingerprint):
     """The page that is displayed when a user tries to subscribe to a node
         that isn't stored in the database."""
     return render_to_response('fingerprint_error.html', {'fingerprint' :
         fingerprint})
 
-def runpoller(request):
+#def runpoller(request):
     # ---------------------------------------------------------------------
     # here is where we need to have code that calls the necessary stuff in
     # models to run stuff throughout the life of the application
-    # ---------------------------------------------------------------------

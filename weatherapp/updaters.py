@@ -1,6 +1,5 @@
 import socket
 from TorCtl import TorCtl
-import weather
 from weatherapp import config
 import torping
 
@@ -30,7 +29,7 @@ class CtlConnection:
         self.sock = None
 
         try:
-            self.control.close()
+            self.connection.close()
         except:
             pass
         
@@ -47,10 +46,10 @@ class CtlConnection:
         # ADD ERROR HANDLING -------------------------------------
         # --------------------------------------------------------
 
-        self.control = TorCtl.Connection(self.sock)
-        self.control.authenticator(authenticator)
+        self.connection = TorCtl.Connection(self.sock)
+        self.connection.authenticator(authenticator)
 
-        return control
+        return connection
 
 class RouterUpdater:
     """A class for updating the Router table"""

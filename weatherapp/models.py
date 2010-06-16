@@ -1,4 +1,5 @@
 from django.db import models
+from django import forms
 from weatherapp.helpers import StringGenerator 
 import datetime
 import base64
@@ -381,12 +382,25 @@ class Subscriber(models.Model):
     def __unicode__(self):
         return self.email
 
-class SubscribeForm(forms.Form):
-    """The form for subscribing"""
-    email = forms.EmailField(max_length=75)
-    router_id = forms.CharField(max_length=200)
-    grace_pd = forms.IntegerField(default=1)
-
+    def add_new_subscriber(email, router_id, confirmed=False,
+            confirm_auth="", unsubs_auth="", pref_auth="",
+            sub_date=datetime.datetime.now()):
+        
+        g = StringGenerator()
+        if confirm_auth == "":
+            confirm_auth = g.get_rand_string()
+        if unsubs_auth == "":
+            unsubs_auth = g.get_rand_string()
+        if pref_auth == "":
+            pref_auth = g.get_rand_string()
+        
+        subr = Subscriber(email = email, router = router_id,
+                confirmed = confirmed, confirm_auth = confirm_auth,
+                unsubs_auth = unsubs_auth, pref_auth = pref_auth, 
+                sub_date = sub_date)
+        subr.save()
+        return subr
+    
 class Subscription(models.Model):
     """The model storing information about a specific subscription. Each type
     of email notification that a user selects generates a new subscription. 
@@ -415,9 +429,29 @@ class Subscription(models.Model):
         hours_since_changed = time_since_changed.hours / 3600
         if triggered and not emailed and \
                 (hours_since_changed > grace_pd):
-            return true
+            return True
         else:
-            return false
+            return False
+
+# ------------------------------------------------------------------------
+# DO STUFF HERE!
+# ------------------------------------------------------------------------
+
+    def add_new_subscription(subscriber_id, name, threshold, grace_pd = 5,
+                             emailed = False, triggered = False,
+                             last_changed = datetime.datetime.now()):
+        subn = Subscription(subscriber = subscriber_id, name = name,
+                            threshold = threshold, grace_pd = grace_pd,
+                            emailed = emailed, triggered = triggered,
+                            last_changed = last_changed)
+        subn.save()
+        return subn
+
+class SubscribeForm(forms.Form):
+    """The form for a new subscriber"""
+    email = forms.EmailField()
+    fingerprint = forms.CharField(max_length=255)
+    grace_pd = forms.IntegerField()
 
 class PreferencesForm(forms.Form):
     """The form for changing preferences"""
@@ -469,7 +503,7 @@ class CheckSubscriptions:
 # Put code here.
 # -------------------------------------------------------------------------
         pass
-
+"""
 class TorPing:
     "Check to see if various tor nodes respond to SSL hanshakes"
     def __init__(self, control_host = "127.0.0.1", control_port = 9051):
@@ -482,6 +516,8 @@ class TorPing:
             self.sock.connect((control_host,control_port))
         except:
             #errormsg = "Could not connect to Tor control port" + \
+            #"Is Tor running on %s with its control port opened on %s?" \
+                        % (control_host, control_port)
             #           "Is Tor running on %s with its control port opened on %s?" \
             #            % (control_host, control_port)
             #logging.error(errormsg)
@@ -511,7 +547,7 @@ class TorPing:
     
     "Need to re-include logging functionality" 
     def ping(self, nodeId):
-        """See if this tor node is up by only asking Tor."""
+        """ """See if this tor node is up by only asking Tor.""" """
         try:
             info = self.control.get_info(str("ns/id/" + nodeId))
         except TorCtl.ErrorReply, e:
@@ -525,3 +561,4 @@ class TorPing:
 
         # If we're here, we were able to fetch information about the router
         return True
+"""

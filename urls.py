@@ -5,7 +5,8 @@ from django.conf.urls.defaults import *
 # admin.autodiscover()
 
 urlpatterns = patterns('weather.weatherapp.views',
-    (r'^$', 'subscribe'),
+    (r'^$', 'home'),
+    (r'^subscribe/$', 'subscribe'),
     (r'^pending/(?P<subscriber_id>\d+)/$', 'pending'),
     (r'^confirm/(?P<confirm_auth_id>[a-zA-Z0-9]+)/$', 'confirm'),
     (r'^unsubscribe/(?P<unsubscribe_auth_id>[a-zA-Z0-9]+)/$','unsubscribe'),
