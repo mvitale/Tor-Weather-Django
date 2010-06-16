@@ -139,8 +139,9 @@ def fingerprint_error(request, fingerprint):
         fingerprint})
 
 def run_updaters(request):
-    client_address = request.META['HTTP_X_FORWARDED_FOR'] 
+    client_address = request.META['REMOTE_ADDR'] 
     if client_address == "127.0.0.1":
-        updaters.run_all() 
+        print "I would be running updaters now!"
+        #updaters.run_all() 
     else:
         raise Http404
