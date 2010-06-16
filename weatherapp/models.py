@@ -74,7 +74,7 @@ class Adder:
     _SUBSCRIBER_CONFIRMED = False
     _SUBSCRIBER_CONFIRM_AUTH = ""
     _SUBSCRIBER_UNSUBS_AUTH = ""
-    _SUBSCRUBER_PREF_AUTH = ""
+    _SUBSCRIBER_PREF_AUTH = ""
     _SUBSCRIPTION_EMAILED = False
     _SUBSCRIPTION_TRIGGERED = False
 
@@ -448,14 +448,25 @@ class Subscription(models.Model):
         return subn
 
 class SubscribeForm(forms.Form):
-    """The form for a new subscriber"""
-    email = forms.EmailField()
-    fingerprint = forms.CharField(max_length=255)
-    grace_pd = forms.IntegerField()
+    """The form for a new subscriber. The form includes an email field, 
+        a node fingerprint field, and a field to specify the hours of 
+        downtime before receiving a notification."""
+
+    # widget attributes are modified here to customize the form
+    email = forms.EmailField(widget=forms.TextInput(attrs={'size':'50', 
+        'value' : 'Enter a valid email address', 'onClick' : 'if (this.value'+\
+        '=="Enter a valid email address") {this.value=""}'}))
+    fingerprint = forms.CharField(widget=forms.TextInput(attrs={'size':'50',
+        'value' : 'Enter one Tor node ID', 'onClick' : 'if (this.value' +\
+        '=="Enter one Tor node ID") {this.value=""}'}))
+    grace_pd = forms.IntegerField(widget=forms.TextInput(attrs={'size':'50',
+        'value' : 'Default is 1 hour, enter up to 8760 (1 year)', 'onClick' :
+        'if (this.value=="Default is 1 hour, enter up to 8760 (1 year)") '+\
+        '{this.value=""}'}))
 
 class PreferencesForm(forms.Form):
     """The form for changing preferences"""
-    grace_pd = forms.IntegerField()
+    grace_pd = forms.IntegerField(widget=forms.TextInput(attrs={'size':'50'}))
 
 class CheckSubscriptions:
     """A class for checking and updating the various subscription types"""
