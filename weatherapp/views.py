@@ -27,9 +27,14 @@ def home(request):
 
 def subscribe(request):
     """Displays the subscription form (all fields empty or default) if the
-        form hasn't been submitted. After the user hits the submit button,
-        redirects to the pending page if all of the fields were acceptable"""
+    form hasn't been submitted. After the user hits the submit button,
+    redirects to the pending page if all of the fields were acceptable.
+    If the user enters a fingerprint that isn't stored in our database,
+    we send them to an error page (see L{fingerprint_error}). If the user
+    is already subscribed to that Tor node, they are sent to an error page."""
+    
     if request.method == 'POST':
+        # handle the submitted form:
         form = SubscribeForm(request.POST)
 
 # -----------------------------------------------------------------------
@@ -40,25 +45,50 @@ def subscribe(request):
             fingerprint = form.cleaned_data['fingerprint']
             grace_pd = form.cleaned_data['grace_pd']
             
-            e = Emailer()
-            e.send_single_email(addr, "confirmation")
+            router_primary_key = 0
+            # this will store the router's primary key, which we need to add
+            # the subscriber to the database
+            try:
+                router = Router.objects.get(fingerprint = fingerprint)
+                router_primary_key = router.id
+            except DoesNotExist:
+                return HttpResponseRedirect('/fingerprint_error/' +\
+                    fingerprint + '/')
 
-            # Add subscriber to the database
-# ---------------------------------------------------------------------- 
-# NEEDS TO CHECK IF THERE IS A ROUTER IN DB WITH SPECIFIED FINGERPRINT
-# AND IF THERE ISN'T SEND THEM TO AN ERROR PAGE, BUT IF THERE IS GET THE
-# ROUTER ID AND THEN USE THAT AS A PARAMETER FOR ADD_NEW_SUBSCRIBER
-# ----------------------------------------------------------------------
-            # subscriber = Subscriber.add_new_subscriber() 
+            try:
+                user = Subscriber.objects.get(router_id=router_primary_key)
+                # if no error is raised, the user is already subscribed to
+                # this router, so we redirect them.
+                return HttpResponseRedirect('/')
+# ---------------------------------------------------------------------
+#   Should redirect to a specific error page (already subscribed)
+# ---------------------------------------------------------------------
+            except DoesNotExist:
+                # the user isn't subscribed yet, send the email & add them
+                pass 
+                      
+            e = Emailer()
+# ---------------------------------------------------------------------
+#  make sure the method name is correct for sending the email
+# ---------------------------------------------------------------------
+            e.send_conf_email(addr, "confirmation", fingerprint, 
+                user.confirm_auth)
+
+            # user = SOMECLASS.add_new_subscriber(addr, router_primary_key)
+            # create the node down subscription
+            # SOMECLASS.add_new_subscription(user.id, "node_down", None, 
+            #    grace_pd)
             
-            return HttpResponseRedirect('/pending/'+subscriber.id+'/')
+            # send the user to the pending page
+            return HttpResponseRedirect('/pending/'+user.id+'/')
     else:
-	form = SubscribeForm()
-	c = {'form' : form}
+        # user hasn't submitted info, just display the empty subscribe form
+	    form = SubscribeForm()
+	    c = {'form' : form}
 
 	# for pages with POST methods, a Cross Site Request Forgery protection
 	# key is added to block attacking sites
-	c.update(csrf(request))
+	    c.update(csrf(request))
     return render_to_response('subscribe.html', c)
 
 def pending(request, subscriber_id):
@@ -111,19 +141,29 @@ def preferences(request, preferences_auth_id):
         #confirmation page.
         form = PreferencesForm(request.POST)
         if form.is_valid():
+            grace_pd = form.cleaned_data['grace_pd']
+            user = get_object_or_404(Subscriber, pref_auth = 
+                preferences_auth_id)
+            # get the node down subscription so we can update grace_pd
+            node_down_sub = get_object_or_404(Subscription, subscriber = user,
+                name = node_down)
+            node_down_sub.update(grace_pd = grace_pd)
             return HttpResponseRedirect('confirm_pref/'+preferences_auth_id+'/',
                     preferences_auth_id) 
-    else:
-        #the user hasn't submitted the form yet, so the page with the 
-        #preferences form is displayed.
-        user = get_object_or_404(Subscriber, pref_auth = preferences_auth_id)
-        node_down_sub = get_object_or_404(Subscription, subscriber = user, 
-                    name = node_down)
 
-        # the data is used to fill in the form on the preferences page 
-        # with the user's existing preferences.    
-        # this should be updated as the preferences are expanded
-        data = {'grace_pd' : node_down_sub.grace_pd}
+    #the user hasn't submitted the form yet or submitted it incorrectly, 
+    # so the page with the preferences form is displayed.
+
+    # get the user
+    user = get_object_or_404(Subscriber, pref_auth = preferences_auth_id)
+    # get the node down subscription 
+    node_down_sub = get_object_or_404(Subscription, subscriber = user, 
+                name = node_down)
+
+    # the data is used to fill in the form on the preferences page
+    # with the user's existing preferences.    
+    # this should be updated as the preferences are expanded
+    data = {'grace_pd' : node_down_sub.grace_pd}
 
 	# populates a PreferencesForm object with the user's existing prefs
 	form = PreferencesForm(initial=data)	
