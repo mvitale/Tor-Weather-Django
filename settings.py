@@ -95,6 +95,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
 
     'weather.weatherapp',
+
     #os.path.basename(os.path.dirname(os.path.realpath(__file__))) \
     #        + '.weather',
 

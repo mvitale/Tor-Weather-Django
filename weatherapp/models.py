@@ -1,10 +1,7 @@
 from django.db import models
 from weatherapp.helpers import StringGenerator 
 import datetime
-import TorCtl.TorCtl
-import socket
 import base64
-import re
 
 # Supposedly required to make class methods.
 # This is called on methods after their definitions.
@@ -71,25 +68,25 @@ class Adder:
                                   database. By default, set to C{False}.
     """
     
-    __ROUTER_WELCOMED = False
-    #__ROUTER_UP = True
-    __SUBSCRIBER_CONFIRMED = False
-    __SUBSCRIBER_CONFIRM_AUTH = ""
-    __SUBSCRIBER_UNSUBS_AUTH = ""
-    __SUBSCRUBER_PREF_AUTH = ""
-    __SUBSCRIPTION_EMAILED = False
-    __SUBSCRIPTION_TRIGGERED = False
+    _ROUTER_WELCOMED = False
+    #_ROUTER_UP = True
+    _SUBSCRIBER_CONFIRMED = False
+    _SUBSCRIBER_CONFIRM_AUTH = ""
+    _SUBSCRIBER_UNSUBS_AUTH = ""
+    _SUBSCRUBER_PREF_AUTH = ""
+    _SUBSCRIPTION_EMAILED = False
+    _SUBSCRIPTION_TRIGGERED = False
 
     def __init__(self,
                  time = datetime.datetime.now(),
-                 router_welcomed = __ROUTER_WELCOMED,
-                 #router_up = __ROUTER_UP,
-                 subscriber_confirmed = __SUBSCRIBER_CONFIRMED,
-                 subscriber_confirm_auth = __SUBSCRIBER_CONFIRM_AUTH,
-                 subscriber_unsubs_auth = __SUBSCRIBER_UNSUBS_AUTH,
-                 subscriber_pref_auth = __SUBSCRIBER_PREF_AUTH,
-                 subscription_emailed = __SUBSCRIPTION_EMAILED,
-                 subscription_triggered = __SUBSCRIPTION_TRIGGERED):
+                 router_welcomed = _ROUTER_WELCOMED,
+                 #router_up = _ROUTER_UP,
+                 subscriber_confirmed = _SUBSCRIBER_CONFIRMED,
+                 subscriber_confirm_auth = _SUBSCRIBER_CONFIRM_AUTH,
+                 subscriber_unsubs_auth = _SUBSCRIBER_UNSUBS_AUTH,
+                 subscriber_pref_auth = _SUBSCRIBER_PREF_AUTH,
+                 subscription_emailed = _SUBSCRIPTION_EMAILED,
+                 subscription_triggered = _SUBSCRIPTION_TRIGGERED):
         self.time = time
         self.welcomed_default = router_welcomed
         #self.up_default = router_up
@@ -528,76 +525,3 @@ class TorPing:
 
         # If we're here, we were able to fetch information about the router
         return True
-
-class RouterUpdater:
-    """A class for updating the Router table"""
-    def __init__(self, control_host = "127.0.0.1", control_port = 9051):
-        self.control_host = control_host
-        self.control_port = control_port
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect((control_host, control_port)) #add error rasing/handling
-        self.control = TorCtl.Connection(self.sock)
-        self.control.authenticate(config.authenticator)
-
-    #We probably need this...see TorPing
-    def __del__(self):
-        self.sock.close()
-        del self.sock
-        self.sock = None
-
-        try:
-            self.control.close()
-        except:
-            pass
-        
-        del self.control
-        self.control = None
-
-    def update_all(self):
-        """Add ORs we haven't seen before to the database and update the
-        information of ORs that are already in the database."""
-
-        #The dictionary returned from TorCtl
-        desc_dict = self.control.get_info("desc/all-recent")
-
-        #A list of the router descriptors in desc_dict
-        desc_list = str(descriptor_dict.values()[0]).split("----End Signature----")
-        
-        #Make a list of tuples of all router fingerprints in descriptor with
-        #whitespace removed and router names
-        router_list= []
-
-        for desc in desc_list:
-            desc_lines = desc.split("\n")
-            finger = ""
-            for line in desc_lines:
-                if line.startswith("opt fingerprint"):
-                    finger = line[15:].replace(' ', '')
-                if line.startswith("router "):
-                    split_line = line.split()
-                    name = split_line[1]
-
-            #We ignore ORs that don't publish their fingerprints
-            if not finger == "":
-                router_list.append((finger, name))
-        
-        for router in router_list:
-            is_up = False
-            finger = router[0]
-            name = router[1]
-            try:
-                control.get_info("ns/id/" + finger)
-                is_up = True
-            except:
-                pass
-            
-            if is_up:
-                try:
-                    router_data = Router.objects.get(fingerprint = finger)
-                    router_data.last_seen = datetime.datetime.now()
-                    router_data.name = name
-                except DoesNotExist:
-                    #let's add it
-                    new_router = Router(finger, name, False,
-                                        datetime.datetime.now())
-        return
