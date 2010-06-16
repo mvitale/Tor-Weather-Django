@@ -10,8 +10,8 @@ import base64
 #    def __init__(self, anycallable):
 #        self.__call__ = anycallable
 
-class Adder:
-    """An L{Adder} object is used to add L{Router}, L{Subscription}, or
+class ModelAdder:
+    """An L{ModelAdder} object is used to add L{Router}, L{Subscription}, or
     L{Subscriber} objects to their respective databases with default values.
     All instance variables have default values stored in private class
     variables, but can be overriden in the constructor.
@@ -26,9 +26,9 @@ class Adder:
                 L{Router} has just been seen, the L{Subscriber} has just
                 subscribed, or the L{Subscription}'s L{Router} has
                 just changed (or we will act like it has, since this is when
-                we start watching it). The time field of a specific L{Adder}
-                instance should be updated each time a consensus document
-                is received with a call to L{update_time()}.
+                we start watching it). The time field of a specific
+                L{ModelAdder} instance should be updated each time a consensus
+                document is received with a call to L{update_time()}.
     @type router_welcomed: Bool
     @ivar router_welcomed: Default value to use for welcomed fields when
                            L{Router} objects are added to the database. By
@@ -99,7 +99,7 @@ class Adder:
         self.triggered_default = subscription_triggered
 
     def update_time(self, time = None):
-        """Updates the time field for this L{Adder} instance. By default,
+        """Updates the time field for this L{ModelAdder} instance. By default,
         updates to the current time, though a time can be passed to set it to a
         specific time.
 
@@ -122,8 +122,8 @@ class Adder:
         """Adds a new L{Router} object, handling variables that should always 
         be set a certain way when a new L{Router} object is added. The default
         variables (C{welcomed} and C{last_seen}), which are stored as instance
-        variables in the L{Adder} class, can also be overriden in the method
-        call.
+        variables in the L{ModelAdder} class, can also be overriden in the
+        method call.
     
         @type fingerprint: str
         @param fingerprint: Fingerprint of L{Router} to be added.
@@ -138,9 +138,9 @@ class Adder:
                          long before it should be welcomed.
         @type last_seen: datetime.datetime
         @param last_seen: [Optional] Time when the router was last seen. 
-                          Default value is the time for the L{Adder} instance,
-                          which should be updated each time a consensus
-                          document is received.
+                          Default value is the time for the L{ModelAdder}
+                          instance, which should be updated each time a 
+                          consensus document is received.
         @type up: Bool
         @param up: [Optional] Whether the router was up when the last consensus
                    was received. Default value is True since it would not be
@@ -170,7 +170,7 @@ class Adder:
         always be set a certain way when a new L{Subscriber} object is added.
         The default variables (C{confirmed}, C{confirm_auth}, C{unsubs_auth},
         C{pref_auth}, and C{sub_date}), which are stored as instance variables
-        of the L{Adder} class, can also be overriden in the method call.
+        of the L{ModelAdder} class, can also be overriden in the method call.
 
         @type email: str
         @param email: The email address of the L{Subscriber} to be added.
@@ -197,9 +197,9 @@ class Adder:
                           generation of a new random key.
         @type sub_date: datetime.datetime
         @param sub_date: [Optional] Time when the L{Subscriber} subscribed.
-                         Default value is the current time for the L{Adder}
-                         instance, which should be updated each time a
-                         consensus document is received. This should be
+                         Default value is the current time for the
+                         L{ModelAdder} instance, which should be updated each
+                         time a consensus document is received. This should be
                          sufficiently close to the actual time the user hits
                          subscribe, but maybe sub_date should be passed as
                          datetime.datetime.now() when this method is called to
@@ -241,8 +241,8 @@ class Adder:
         """Adds a new Subscription object, handling variables that should
         always be set a certain way when a new Subscription object is added.
         The default variables (emailed, triggered, and last_changed),
-        which are stored as instance variables of the Adder class, can also be 
-        overriden in the method call.
+        which are stored as instance variables of the L{ModelAdder} class, can
+        also be overriden in the method call.
 
         @type subscriber_id: int
         @param subscriber_id: The Subscriber database ID of the Subscriber

@@ -6,7 +6,7 @@
 URLbase = "https://weather.torproject.org"
 
 # XXX: Make bulletproof
-authenticator = open("weatherapp/auth_token").read().strip()
+authenticator = open("auth_token").read().strip()
 
 mailFrom = "tor-ops@torproject.org"
 
