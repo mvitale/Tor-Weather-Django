@@ -20,8 +20,7 @@ class SubscriptionChecker:
         subscriptions = Subscription.objects.filter(name = "node_down")
 
         for subscription in subscriptions:
-            is_up = self.ctl_util.is_up( 
-                    subscription.subscriber.router.fingerprint) 
+            is_up = subscription.subscriber.router.up 
             if is_up:
                 if subscription.triggered:
                    subscription.triggered = False
@@ -35,7 +34,6 @@ class SubscriptionChecker:
                 else:
                     subscription.triggered = True
                     subscription.last_changed = datetime.datetime.now()
-        return
 
     def check_out_of_date():
         # TO DO ------------------------------------------------- EXTRA FEATURE 
@@ -60,6 +58,7 @@ class SubscriptionChecker:
         #self.check_out_of_date()
         #self.check_below_bandwidth()
         #self.check_earn_tshirt()
+
 class RouterUpdater:
     """A class for updating the Router table and sending 'welcome' emails"""
 
@@ -67,11 +66,15 @@ class RouterUpdater:
 
     def __init__(self, ctl_util):
         self.ctl_util = ctl_util
-        self.adder = models.ModelAdder()
 
     def update_all(self):
         """Add ORs we haven't seen before to the database and update the
         information of ORs that are already in the database."""
+
+        #set the 'up' flag to False for every router in the DB
+        router_set = Router.objects()
+        for router in router_set:
+            router.up = False
 
         finger_name = ctl_util.get_finger_name_list()
 
@@ -86,10 +89,10 @@ class RouterUpdater:
                     router_data = Router.objects.get(fingerprint = finger)
                     router_data.last_seen = datetime.datetime.now()
                     router_data.name = name
+                    router_data.up = True
                 except DoesNotExist:
                     #let's add it
                     self.adder.add_new_router(finger, name)
-        return
 
 def run_all():
     ctl_util = ctlutil.CtlUtil()

@@ -324,7 +324,8 @@ class Router(models.Model):
     name = models.CharField(max_length=100)
     welcomed = models.BooleanField()
     last_seen = models.DateTimeField('date last seen')
-    
+    up = models.BooleanField()
+
     def is_up(date_of_last_consensus):
         """Returns whether the date_of_last_consensus datetime matches the
         last_seen datetime. Should be called in the view that processes events

@@ -102,3 +102,9 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable the admin:
     # 'django.contrib.admin',
 )
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_PASSWORD = 'torisawesome'
+EMAIL_HOST_USER = 'torweathertester@gmail.com'
+EMAIL_PORT = '587'
+EMAIL_USE_TLS = True
