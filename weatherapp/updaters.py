@@ -2,6 +2,7 @@ import socket
 from TorCtl import TorCtl
 import weather
 from weatherapp import config
+import torping
 
 class CtlConnection:
     """A class that handles communication with TorCtl"""
@@ -56,6 +57,7 @@ class RouterUpdater:
 
     def __init__(self):
         self.connection = CtlConnection()
+        self.pinger = torping.TorPing()
 
     def update_all(self):
         """Add ORs we haven't seen before to the database and update the
