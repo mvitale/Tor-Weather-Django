@@ -132,7 +132,12 @@ class Emailer:
 
 
 class StringGenerator:
-    """A class for generating random strings for use as authorization codes"""
+    """A class for generating random urlsafe strings for use as authorization
+    codes
+    
+    @type length: int 
+    @ivar length: Length of random strings generated
+    """
     
     __DEFAULT_LENGTH = 24
 
