@@ -5,7 +5,19 @@ import config
 debugfile = open("debug", "w")
 
 class CtlUtil:
-    """A class that handles communication with TorCtl"""
+    """A class that handles communication with TorCtl.
+    
+    @type control_host: str
+    @ivar control_host: Control host of the TorCtl connection.
+    @type control_port: int
+    @ivar control_port: Control port of the TorCtl connection.
+    @type sock: socket._socketobject
+    @ivar sock: Socket of the TorCtl connection.
+    @type authenticator: str
+    @ivar authenticator: Authenticator string of the TorCtl connection.
+    @type control: TorCtl Connection
+    @ivar control: Connection to TorCtl.
+    """
 
     _CONTROL_HOST = "127.0.0.1"
     _CONTROL_PORT = 9051
@@ -22,17 +34,24 @@ class CtlUtil:
         self.sock = sock
         self.authenticator = authenticator
 
+        # Try to connect 
         try:
             self.sock.connect((control_host,control_port))
         except:
-            errormsg = "Could not connect to Tor control port" + \
-                       "Is Tor running on %s with its control port opened on %s?" \
-                       % (control_host, control_port)
+            errormsg = "Could not connect to Tor control port./n" + \
+                       "Is Tor running on %s with its control port" + \
+                       "opened on %s?" % (control_host, control_port)
             logging.error(errormsg)
             print >> sys.stderr, errormsg
             raise
+
+        # Create connection to TorCtl
         self.control = TorCtl.Connection(self.sock)
+
+        # Authenticate connection
         self.control.authenticate(config.authenticator)
+
+        # Set up log file
         self.control.debug(debugfile)
 
     def ping(self, nodeId):
