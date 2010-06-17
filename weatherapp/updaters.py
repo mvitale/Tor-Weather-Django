@@ -92,7 +92,7 @@ class RouterUpdater:
                     router_data.up = True
                 except DoesNotExist:
                     #let's add it
-                    self.adder.add_new_router(finger, name)
+                    Router.objects.add_default_router(finger, name)
 
 def run_all():
     ctl_util = ctlutil.CtlUtil()
