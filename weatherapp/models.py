@@ -12,9 +12,6 @@ import emails
 from datetime import datetime
 import base64
 
-_WELCOMED_DEFAULT = False
-_UP_DEFAULT = True
-
 class RouterManager(models.Manager):
     def get_query_set(self):
         return super(RouterManager, self).get_query_set()
@@ -161,7 +158,6 @@ class Subscriber(models.Model):
     router = models.ForeignKey(Router)
     confirmed = models.BooleanField(default = False)
 
-    #change this when more is known?
     confirm_auth = models.CharField(max_length=250, default=get_rand_string()) 
     unsubs_auth = models.CharField(max_length=250, default=get_rand_string())
     pref_auth = models.CharField(max_length=250, default=get_rand_string())
