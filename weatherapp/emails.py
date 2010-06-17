@@ -1,8 +1,11 @@
-#
-#
-#
+import views
 
-CONFIRMATION_MAIL = """
+_SENDER = 'tor-ops@torproject.org'
+_SUBJ_HEADER = '[Tor Weather] '
+_BASE_URL = views.baseURL
+
+_CONFIRMATION_SUBJ = 'Confirmation Needed'
+_CONFIRMATION_MAIL = """
 Dear human,
 
 This is the Tor Weather Report system.
@@ -18,7 +21,8 @@ If you do not wish to receive Tor Weather Reports, you do not need to do
 anything.
 """
 
-SUBS_CONFIRMED_MAIL = """
+_CONFIRMED_SUBJ = 'Confirmation Successful'
+_SUBS_CONFIRMED_MAIL = """
 Dear human,
 
 This is the Tor Weather Report system.
@@ -37,7 +41,8 @@ or change your Tor Weather notification preferences here:
 %s.
 """
 
-NODE_DOWN_MAIL = """
+_NODE_DOWN_SUBJ = 'Node Down!'
+_NODE_DOWN_MAIL = """
 This is a Tor Weather Report.
 
 It appears that a Tor node you elected to monitor, 
@@ -57,7 +62,8 @@ or change your Tor Weather notification preferences here:
 %s.
 """
 
-OUT_OF_DATE_MAIL = """
+_OUT_OF_DATE_SUBJ = 'Node Out of Date!'
+_OUT_OF_DATE_MAIL = """
 This is a Tor Weather Report.
 
 It appears that a Tor node you elected to monitor,
@@ -77,7 +83,8 @@ or change your Tor Weather notification preferences here:
 %s.
 """
 
-T_SHIRT_MAIL = """
+_T_SHIRT_SUBJ = 'Congratulations! Have a t-shirt!'
+_T_SHIRT_MAIL = """
 This is a Tor Weather Report.
 
 Congratulations! The node you are observing has been stable for %s,
@@ -99,7 +106,8 @@ or change your Tor Weather notification preferences here:
 %s.
 """
 
-WELCOME_MAIL = """
+_WELCOME_SUBJ = 'Welcome to Tor!'
+_WELCOME_MAIL = """
 Hello and welcome to Tor!
 
 We've noticed that your Tor node has been running long enough to be
@@ -129,6 +137,57 @@ Disclaimer: If you have no idea why you're receiving this email, we
 sincerely apologize and promise never to email you again!
 """
 
-LEGAL_MAIL = """
+_LEGAL_SUBJ = 'Welcome to Tor! Thanks for agreeing to be an exit node!'
+_LEGAL_MAIL = """
 Legal mumbo jumbo
 """
+
+def send_confirmation(recipient,
+                      # PUT REQUIRED NUMBER OF % PARAMETERS HERE
+                      sender = _SENDER,
+                      subj_header = _SUBJECT_HEADER):
+    subj = _SUBJ_HEADER + _CONFIRMATION_SUBJ
+    msg = _CONFIRMATION_MAIL % # PUT PARAMETERS HERE
+    send_mail(subj, msg, sender, [recipient], fail_silently=True)
+
+def send_confirmed(recipient,
+                   # PUT REQUIRED NUMBER OF % PARAMETERS HERE
+                   sender = _SENDER,
+                   subj_header = _SUBJECT_HEADER):
+    subj = _SUBJ_HEADER + _CONFIRMED_SUBJ
+    msg = _CONFIRMED_MAIL % # PUT PARAMETERS HERE
+    send_mail(subj, msg, sender, [recipient], fail_silently=True)
+
+def send_node_down(recipient,
+                   # PUT REQUIRED NUMBER OF % PARAMETERS HERE
+                   sender = _SENDER,
+                   subj_header = _SUBJECT_HEADER):
+    subj = _SUBJ_HEADER + _NODE_DOWN_SUBJ
+    msg = _NODE_DOWN_MAIL % # PUT PARAMETERS HERE
+    send_mail(subj, msg, sender, [recipient], fail_silently=True)
+
+def send_t_shirt(recipient,
+                 # PUT REQUIRED NUMBER OF % PARAMETERS HERE
+                 sender = _SENDER,
+                 subj_header = _SUBJECT_HEADER):
+    subj = _SUBJ_HEADER + _T_SHIRT_SUBJ
+    msg = _T_SHIRT_MAIL % # PUT PARAMETERS HERE
+    send_mail(subj, msg, sender, [recipient], fail_silently=True)
+
+def send_welcome(recipient,
+                 # PUT REQUIRED NUMBER OF % PARAMETERS HERE
+                 sender = _SENDER,
+                 subj_header = _SUBJECT_HEADER):
+    subj = _SUBJ_HEADER + _WELCOME_SUBJ
+    msg = _WELCOME_MAIL % # PUT PARAMETERS HERE
+    send_mail(subj, msg, sender, [recipient], fail_silently=True)
+
+def send_legal(recipient,
+               # PUT REQUIRED NUMBER OF % PARAMETERS HERE
+               sender = _SENDER,
+               subj_header = _SUBJECT_HEADER):
+    subj = _SUBJ_HEADER + _WELCOME_SUBJ
+    msg = _LEGAL_MAIL % # PUT PARAMETERS HERE
+    send_mail(subj, msg, sender, [recipient], fail_silently=True)
+
+
