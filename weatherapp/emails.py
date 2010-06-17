@@ -143,6 +143,7 @@ Legal mumbo jumbo
 """
 
 class Emailer:
+    @staticmethod
     def send_confirmation(recipient,
                           conf_auth,
                           sender = _SENDER,
@@ -151,6 +152,7 @@ class Emailer:
         msg = _CONFIRMATION_MAIL % baseURL + '/confirm/' + conf_auth + '/'
         send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
+    @staticmethod
     def send_confirmed(recipient,
                        fingerprint,
                        unsub_auth,
@@ -163,6 +165,7 @@ class Emailer:
         msg = _CONFIRMED_MAIL % fingerprint, unsubURL, prefURL 
         send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
+    @staticmethod
     def send_node_down(recipient,
                        fingerprint,
                        grace_pd,
@@ -176,6 +179,7 @@ class Emailer:
         msg = _NODE_DOWN_MAIL % fingerprint, grace_pd, unsubURL, prefURL
         send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
+    @staticmethod
     def send_t_shirt(recipient,
                      unsub_auth,
                      pref_auth,
@@ -187,13 +191,15 @@ class Emailer:
         msg = _T_SHIRT_MAIL % unsubURL, prefURL
         send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
+    @staticmethod
     def send_welcome(recipient,
                      sender = _SENDER,
                      subj_header = _SUBJECT_HEADER):
         subj = _SUBJ_HEADER + _WELCOME_SUBJ
         msg = _WELCOME_MAIL 
         send_mail(subj, msg, sender, [recipient], fail_silently=True)
-    
+
+    @staticmethod
     def send_legal(recipient,
                    # PUT REQUIRED NUMBER OF % PARAMETERS HERE
                    sender = _SENDER,
