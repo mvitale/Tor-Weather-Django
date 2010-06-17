@@ -9,7 +9,7 @@ from models import Subscriber, Subscription, Router, \
                    SubscribeForm, PreferencesForm
 from django.db import models
 from django.shortcuts import render_to_response, get_object_or_404
-import emails
+from emails import Emailer
 from django.core.context_processors import csrf
 from django.http import HttpResponseRedirect, HttpRequest, Http404
 from django.http import HttpResponse
@@ -57,7 +57,8 @@ def subscribe(request):
                     fingerprint + '/')
 
             try:
-                user = Subscriber.objects.get(router=router_primary_key)
+                user = Subscriber.objects.get(email=addr, 
+                                              router=router_primary_key)
                 # if no error is raised, the user is already subscribed to
                 # this router, so we redirect them.
                 return HttpResponseRedirect('/error/already_subscribed/'+\
@@ -68,12 +69,10 @@ def subscribe(request):
             except Subscriber.DoesNotExist:
                 # the user isn't subscribed yet, send the email & add them
                 pass 
-                      
-            e = Emailer()
 # ---------------------------------------------------------------------
 #  make sure the method name is correct for sending the email
 # ---------------------------------------------------------------------
-            e.send_confirmation(addr, fingerprint, user.confirm_auth)
+            Emailer.send_confirmation(addr, fingerprint, user.confirm_auth)
             
             # Create the subscriber model for the user
             user = Subscriber(email=addr, router=router_primary_key)
@@ -108,13 +107,17 @@ def pending(request, subscriber_id):
 def confirm(request, confirm_auth_id):
     """The confirmation page, which is displayed when the user follows the
         link sent to them in the confirmation email"""
-    sub = get_object_or_404(Subscriber, confirm_auth=confirm_auth_id)
-    rout = Router.objects.get(pk=sub.router)
-    unsubURL = baseURL + "/unsubscribe/" + suber.unsubs_auth + "/"
-    prefURL = baseURL + "/preferences/" + suber.pref_auth + "/"
-    return render_to_response('confirm.html', {'email': sub.email, 
-            'fingerprint' : rout.fingerprint, 'nodeName' : rout.name, 
+    user = get_object_or_404(Subscriber, confirm_auth=confirm_auth_id)
+    router = Router.objects.get(pk=user.router)
+    unsubURL = baseURL + "/unsubscribe/" + user.unsubs_auth + "/"
+    prefURL = baseURL + "/preferences/" + user.pref_auth + "/"
+
+    Emailer.send_confirmed(user.email, router.fingerprint, user.unsubs_auth, 
+                           user.pref_auth)
+    return render_to_response('confirm.html', {'email': user.email, 
+            'fingerprint' : router.fingerprint, 'nodeName' : router.name, 
             'unsubURL' : unsubURL, 'prefURL' : prefURL})
+#---------------CHECK THIS TEMPLATE-------------------------------------
         
 def unsubscribe(request, unsubscribe_auth_id):
     """The unsubscribe page, which displays a message informing the user
@@ -133,6 +136,10 @@ def unsubscribe(request, unsubscribe_auth_id):
     name = ""
     if not router_name.equals("Unnamed"):
         name += " " + router_name + ","
+
+    # delete the Subscriber (all Subscriptions with a foreign key relationship
+    # to this Subscriber are automatically deleted)
+    user.delete()
 
     return render_to_response('unsubscribe.html', {'email' : email, 'name' : 
             name, 'fingerprint' : fingerprint})
