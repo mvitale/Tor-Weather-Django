@@ -147,7 +147,7 @@ def send_confirmation(recipient,
                       sender = _SENDER,
                       subj_header = _SUBJECT_HEADER):
     subj = _SUBJ_HEADER + _CONFIRMATION_SUBJ
-    msg = _CONFIRMATION_MAIL % # PUT PARAMETERS HERE
+    msg = _CONFIRMATION_MAIL #% PUT PARAMETERS HERE
     send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
 def send_confirmed(recipient,
@@ -155,7 +155,7 @@ def send_confirmed(recipient,
                    sender = _SENDER,
                    subj_header = _SUBJECT_HEADER):
     subj = _SUBJ_HEADER + _CONFIRMED_SUBJ
-    msg = _CONFIRMED_MAIL % # PUT PARAMETERS HERE
+    msg = _CONFIRMED_MAIL #% PUT PARAMETERS HERE
     send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
 def send_node_down(recipient,
@@ -163,7 +163,7 @@ def send_node_down(recipient,
                    sender = _SENDER,
                    subj_header = _SUBJECT_HEADER):
     subj = _SUBJ_HEADER + _NODE_DOWN_SUBJ
-    msg = _NODE_DOWN_MAIL % # PUT PARAMETERS HERE
+    msg = _NODE_DOWN_MAIL #% PUT PARAMETERS HERE
     send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
 def send_t_shirt(recipient,
@@ -171,7 +171,7 @@ def send_t_shirt(recipient,
                  sender = _SENDER,
                  subj_header = _SUBJECT_HEADER):
     subj = _SUBJ_HEADER + _T_SHIRT_SUBJ
-    msg = _T_SHIRT_MAIL % # PUT PARAMETERS HERE
+    msg = _T_SHIRT_MAIL #% PUT PARAMETERS HERE
     send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
 def send_welcome(recipient,
@@ -179,7 +179,7 @@ def send_welcome(recipient,
                  sender = _SENDER,
                  subj_header = _SUBJECT_HEADER):
     subj = _SUBJ_HEADER + _WELCOME_SUBJ
-    msg = _WELCOME_MAIL % # PUT PARAMETERS HERE
+    msg = _WELCOME_MAIL #% PUT PARAMETERS HERE
     send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
 def send_legal(recipient,
@@ -187,7 +187,7 @@ def send_legal(recipient,
                sender = _SENDER,
                subj_header = _SUBJECT_HEADER):
     subj = _SUBJ_HEADER + _WELCOME_SUBJ
-    msg = _LEGAL_MAIL % # PUT PARAMETERS HERE
+    msg = _LEGAL_MAIL #% PUT PARAMETERS HERE
     send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
 
