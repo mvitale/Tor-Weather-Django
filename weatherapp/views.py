@@ -224,9 +224,8 @@ def error(request, error_type, user_id):
         "alerts about the node you specified. If you'd like, you can" +\
         " <a href = '%s'>change your preferences here</a>" % baseURL #+\
         #'/preferences/' + user.pref_auth + '/'
-#----------------------------------------------------------------------
-# FIX THIS LINK STUFF
-#----------------------------------------------------------------------
+    # TO DO ----------------------------------------------------- EXTRA FEATURE
+    # FIX THIS LINK STUFF -----------------------------------------------------
 
     if error_type == already_subscribed:
         message = __ALREADY_SUBSCRIBED
