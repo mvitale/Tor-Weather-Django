@@ -3,12 +3,11 @@ from TorCtl import TorCtl
 import ctlutil
 import config
 from models import ModelAdder
+from django.db import models
 
 class SubscriptionChecker:
     """A class for checking and updating the various subscription types"""
     
-    # TO DO ------------------------------------------------------ BASE FEATURE
-
     def __init__(self, ctl_util):
         self.ctl_util = ctl_util
     
@@ -34,6 +33,7 @@ class SubscriptionChecker:
                 else:
                     subscription.triggered = True
                     subscription.last_changed = datetime.datetime.now()
+            subscription.save()
 
     def check_out_of_date():
         # TO DO ------------------------------------------------- EXTRA FEATURE 
@@ -60,9 +60,23 @@ class SubscriptionChecker:
         #self.check_earn_tshirt()
 
 class RouterUpdater:
-    """A class for updating the Router table and sending 'welcome' emails"""
+    """
+    A class for updating the Router table and sending 'welcome' emails
+  
+    @type ctl_util: CtlUtil
+    @ivar ctl_util: A CtlUtil object for handling interactions with
+    TorCtl
+    """
 
-    def __init__(self, ctl_util):
+    def __init__(self, ctl_util = ctlutil.CtlUtil()):
+        """
+        Default constructor.
+
+        @type ctl_util: CtlUtil
+        @param ctl_util: [optional] The CtlUtil object you want to use.
+        By default, creates a new CtlUtil instance.
+        """
+
         self.ctl_util = ctl_util
 
     def update_all(self):
@@ -89,9 +103,10 @@ class RouterUpdater:
                     router_data.last_seen = datetime.datetime.now()
                     router_data.name = name
                     router_data.up = True
-                except DoesNotExist:
+                    router_data.save()
+                except Router.DoesNotExist:
                     #let's add it
-                    Router.objects.add_default_router(finger, name)
+                    Router(finger, name).save()
 
 def run_all():
     """Run all updaters/checkers in proper sequence"""

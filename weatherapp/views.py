@@ -1,15 +1,15 @@
 """
 The views module contains the controllers for the Tor Weather application 
-(Djago is idiosyncratic in that it names controllers 'views'; models are still
+(Django is idiosyncratic in that it names controllers 'views'; models are still
 models and views are called templates). This module contains a single 
 controller for each page type. The controllers handle form submission and
 page rendering/redirection.
 """
-
+from models import Subscriber, Subscription, Router, \
+                   SubscribeForm, PreferencesForm
+from django.db import models
 from django.shortcuts import render_to_response, get_object_or_404
-from weather.weatherapp.models import Subscriber, Subscription, Router
-from weather.weatherapp.models import SubscribeForm, PreferencesForm
-from weather.weatherapp.helpers import Emailer
+import emails
 from django.core.context_processors import csrf
 from django.http import HttpResponseRedirect, HttpRequest, Http404
 from django.http import HttpResponse
@@ -22,8 +22,9 @@ baseURL = "http://localhost:8000"
 def home(request):
     """Displays a home page for Tor Weather with basic information about
         the application."""
-    subURL = baseURL + '/subscribe/'
-    return render_to_response('home.html', {'subURL' : subURL})
+    subscribe = '/subscribe/' 
+# --------------- Change this later so it isn't hard coded -------------
+    return render_to_response('home.html', {'sub' : subscribe})
 
 def subscribe(request):
     """Displays the subscription form (all fields empty or default) if the
@@ -51,7 +52,7 @@ def subscribe(request):
             try:
                 router = Router.objects.get(fingerprint = fingerprint)
                 router_primary_key = router.id
-            except DoesNotExist:
+            except Router.DoesNotExist:
                 return HttpResponseRedirect('/fingerprint_error/' +\
                     fingerprint + '/')
 
@@ -59,11 +60,12 @@ def subscribe(request):
                 user = Subscriber.objects.get(router_id=router_primary_key)
                 # if no error is raised, the user is already subscribed to
                 # this router, so we redirect them.
-                return HttpResponseRedirect('/')
+                return HttpResponseRedirect('/error/already_subscribed/'+\
+                    user.id+'/')
 # ---------------------------------------------------------------------
 #   Should redirect to a specific error page (already subscribed)
 # ---------------------------------------------------------------------
-            except DoesNotExist:
+            except Subscriber.DoesNotExist:
                 # the user isn't subscribed yet, send the email & add them
                 pass 
                       
@@ -71,24 +73,26 @@ def subscribe(request):
 # ---------------------------------------------------------------------
 #  make sure the method name is correct for sending the email
 # ---------------------------------------------------------------------
-            e.send_conf_email(addr, "confirmation", fingerprint, 
-                user.confirm_auth)
-
-            # user = SOMECLASS.add_new_subscriber(addr, router_primary_key)
-            # create the node down subscription
-            # SOMECLASS.add_new_subscription(user.id, "node_down", None, 
-            #    grace_pd)
+            e.send_confirmation(addr, fingerprint, user.confirm_auth)
             
+            # Create the subscriber model for the user
+            user = Subscriber(email=addr, router_id=router_primary_key)
+            # Save the subscriber data to the database
+            user.save()
+            # Create the node_down subscription and save to db
+            subscription = Subscription(subscriber=user, name='node_down', 
+                grace_pd=grace_pd)
+            subscription.save()
             # send the user to the pending page
             return HttpResponseRedirect('/pending/'+user.id+'/')
     else:
         # user hasn't submitted info, just display the empty subscribe form
-	    form = SubscribeForm()
-	    c = {'form' : form}
+        form = SubscribeForm()
+        c = {'form' : form}
 
-	# for pages with POST methods, a Cross Site Request Forgery protection
-	# key is added to block attacking sites
-	    c.update(csrf(request))
+        # for pages with POST methods, a Cross Site Request Forgery protection
+        # key is added to block attacking sites
+        c.update(csrf(request))
     return render_to_response('subscribe.html', c)
 
 def pending(request, subscriber_id):
@@ -165,14 +169,14 @@ def preferences(request, preferences_auth_id):
     # this should be updated as the preferences are expanded
     data = {'grace_pd' : node_down_sub.grace_pd}
 
-	# populates a PreferencesForm object with the user's existing prefs
-	form = PreferencesForm(initial=data)	
-	
-	# maps the form to the template
-	c = {'form' : form}
+    # populates a PreferencesForm object with the user's existing prefs
+    form = PreferencesForm(initial=data)    
+    
+    # maps the form to the template
+    c = {'form' : form}
 
-	# Creates a CSRF protection key
-	c.update(csrf(request))
+    # Creates a CSRF protection key
+    c.update(csrf(request))
     return render_to_response('preferences.html', c)
 
 def confirm_pref(request, preferences_auth_id):
@@ -192,10 +196,33 @@ def fingerprint_error(request, fingerprint):
     return render_to_response('fingerprint_error.html', {'fingerprint' :
         fingerprint})
 
+def error(request, error_type, user_id):
+    """The generic error page, which displays a message based on the error
+    type passed to this controller."""
+    
+    #user = get_object_or_404(Subscriber, id=user_id)
+    __ALREADY_SUBSCRIBED = "You are already subscribed to receive email" +\
+        "alerts about the node you specified. If you'd like, you can" +\
+        " <a href = '%s'>change your preferences here</a>" % baseURL #+\
+        #'/preferences/' + user.pref_auth + '/'
+
+    if error_type == already_subscribed:
+        message = __ALREADY_SUBSCRIBED
+    return render_to_response('error.html', {'error_message' : message})
+
 def run_updaters(request):
+    """
+    Runs all updaters when the appropriate request is made from localhost.
+    If any other ip tries to do this, displays 404 error.
+    """
+
     client_address = request.META['REMOTE_ADDR'] 
+
+    #Only allow localhost to make this request.
+    #We need to make sure this works!!!
     if client_address == "127.0.0.1":
         updaters.run_all() 
     else:
         raise Http404
+
     return HttpResponse()

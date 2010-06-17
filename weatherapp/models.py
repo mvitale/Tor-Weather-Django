@@ -3,14 +3,12 @@ The models module handles the bulk of Tor Weather. The module contains three
 models that correspond to database tables (L{Subscriber}, L{Subscription}, and 
 L{Router}) as well as two form classes (L{SubscribeForm} and
 L{PreferencesForm}), which specify the fields to appear on the sign-up
-and change preferences pages. The L{ModelAdder} class contains methods
-to handle database population for the three models.
+and change preferences pages.
 """
 
 from django.db import models
 from django import forms
-from weatherapp.helpers import StringGenerator 
-from weatherapp.helpers import Emailer
+import emails
 from datetime import datetime
 import base64
 
