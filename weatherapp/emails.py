@@ -140,6 +140,7 @@ Legal mumbo jumbo
 """
 
 class Emailer:
+    @staticmethod
     def send_confirmation(recipient,
                           # PUT REQUIRED NUMBER OF % PARAMETERS HERE
                           sender = _SENDER,
@@ -148,6 +149,7 @@ class Emailer:
         msg = _CONFIRMATION_MAIL #% PUT PARAMETERS HERE
         send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
+    @staticmethod
     def send_confirmed(recipient,
                        # PUT REQUIRED NUMBER OF % PARAMETERS HERE
                        sender = _SENDER,
@@ -156,6 +158,7 @@ class Emailer:
         msg = _CONFIRMED_MAIL #% PUT PARAMETERS HERE
         send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
+    @staticmethod
     def send_node_down(recipient,
                        # PUT REQUIRED NUMBER OF % PARAMETERS HERE
                        sender = _SENDER,
@@ -164,6 +167,7 @@ class Emailer:
         msg = _NODE_DOWN_MAIL #% PUT PARAMETERS HERE
         send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
+    @staticmethod
     def send_t_shirt(recipient,
                      # PUT REQUIRED NUMBER OF % PARAMETERS HERE
                      sender = _SENDER,
@@ -172,6 +176,7 @@ class Emailer:
         msg = _T_SHIRT_MAIL #% PUT PARAMETERS HERE
         send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
+    @staticmethod
     def send_welcome(recipient,
                      # PUT REQUIRED NUMBER OF % PARAMETERS HERE
                      sender = _SENDER,
@@ -180,6 +185,7 @@ class Emailer:
         msg = _WELCOME_MAIL #% PUT PARAMETERS HERE
         send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
+    @staticmethod
     def send_legal(recipient,
                    # PUT REQUIRED NUMBER OF % PARAMETERS HERE
                    sender = _SENDER,
