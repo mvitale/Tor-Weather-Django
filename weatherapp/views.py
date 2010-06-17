@@ -1,15 +1,15 @@
 """
 The views module contains the controllers for the Tor Weather application 
-(Djago is idiosyncratic in that it names controllers 'views'; models are still
+(Django is idiosyncratic in that it names controllers 'views'; models are still
 models and views are called templates). This module contains a single 
 controller for each page type. The controllers handle form submission and
 page rendering/redirection.
 """
 
 from weather.weatherapp.models import Subscriber, Subscription, Router
-from weather.weatherapp.models import SubscribeForm, PreferencesForm 
 from django.shortcuts import render_to_response, get_object_or_404
 import emails
+from weather.weatherapp.models import SubscribeForm, PreferencesForm
 from django.core.context_processors import csrf
 from django.http import HttpResponseRedirect, HttpRequest, Http404
 from django.http import HttpResponse
@@ -86,12 +86,12 @@ def subscribe(request):
             return HttpResponseRedirect('/pending/'+user.id+'/')
     else:
         # user hasn't submitted info, just display the empty subscribe form
-	    form = SubscribeForm()
-	    c = {'form' : form}
+        form = SubscribeForm()
+        c = {'form' : form}
 
-	# for pages with POST methods, a Cross Site Request Forgery protection
-	# key is added to block attacking sites
-	    c.update(csrf(request))
+    # for pages with POST methods, a Cross Site Request Forgery protection
+    # key is added to block attacking sites
+        c.update(csrf(request))
     return render_to_response('subscribe.html', c)
 
 def pending(request, subscriber_id):
@@ -169,8 +169,13 @@ def preferences(request, preferences_auth_id):
     data = {'grace_pd' : node_down_sub.grace_pd}
 
     # populates a PreferencesForm object with the user's existing prefs
+<<<<<<< HEAD:weatherapp/views.py
     form = PreferencesForm(initial=data)	
 	
+=======
+    form = PreferencesForm(initial=data)    
+    
+>>>>>>> b2ba23f3f7db09117cc4bc1f490b4a2f742e3087:weatherapp/views.py
     # maps the form to the template
     c = {'form' : form}
 
@@ -210,9 +215,18 @@ def error(request, error_type, user_id):
     return render_to_response('error.html', {'error_message' : message})
 
 def run_updaters(request):
+    """
+    Runs all updaters when the appropriate request is made from localhost.
+    If any other ip tries to do this, displays 404 error.
+    """
+
     client_address = request.META['REMOTE_ADDR'] 
+
+    #Only allow localhost to make this request.
+    #We need to make sure this works!!!
     if client_address == "127.0.0.1":
         updaters.run_all() 
     else:
         raise Http404
+
     return HttpResponse()
