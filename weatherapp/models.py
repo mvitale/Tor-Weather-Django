@@ -132,6 +132,19 @@ class SubscriberManager(models.Manager):
                                 confirm_auth, unsubs_auth, pref_auth,
                                 sub_date) != self.none()
 
+    @staticmethod
+    def get_rand_string(length = 24):
+        cut_off = length - 24
+        if cut_off == 0:
+            cut_off = 24
+
+        r = base64.urlsafe_b64encode(os.urandom(18))[:cut_off]
+
+        # some email clients don't like URLs ending in -
+        if r.endswith("-"):
+            r = r.replace("-", "x")
+        return r
+
           
 class Subscriber(models.Model):
     """
@@ -161,9 +174,12 @@ class Subscriber(models.Model):
     router = models.ForeignKey(Router)
     confirmed = models.BooleanField(default = False)
 
-    confirm_auth = models.CharField(max_length=250, default=get_rand_string()) 
-    unsubs_auth = models.CharField(max_length=250, default=get_rand_string())
-    pref_auth = models.CharField(max_length=250, default=get_rand_string())
+    confirm_auth = models.CharField(max_length=250, 
+                    default=SubscriberManager.get_rand_string()) 
+    unsubs_auth = models.CharField(max_length=250, 
+                    default=SubscriberManager.get_rand_string())
+    pref_auth = models.CharField(max_length=250, 
+                    default=SubscriberManager.get_rand_string())
 
     sub_date = models.DateTimeField(default=datetime.now())
 
@@ -171,20 +187,6 @@ class Subscriber(models.Model):
 
     def __unicode__(self):
         return self.email
-
-    @staticmethod
-    def get_rand_string(length = 24):
-        cut_off = length - 24
-        if cut_off == 0:
-            cut_off = 24
-
-        r = base64.urlsafe_b64encode(os.urandom(18))[:cut_off]
-
-        # some email clients don't like URLs ending in -
-        if r.endswith("-"):
-            r = r.replace("-", "x")
-        return r
- 
 
 class SubscriptionManager(models.Manager):
     def get_query_set(self):
