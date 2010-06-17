@@ -139,52 +139,53 @@ _LEGAL_MAIL = """
 Legal mumbo jumbo
 """
 
-def send_confirmation(recipient,
-                      # PUT REQUIRED NUMBER OF % PARAMETERS HERE
-                      sender = _SENDER,
-                      subj_header = _SUBJECT_HEADER):
-    subj = _SUBJ_HEADER + _CONFIRMATION_SUBJ
-    msg = _CONFIRMATION_MAIL #% PUT PARAMETERS HERE
-    send_mail(subj, msg, sender, [recipient], fail_silently=True)
+class Emailer:
+    def send_confirmation(recipient,
+                          # PUT REQUIRED NUMBER OF % PARAMETERS HERE
+                          sender = _SENDER,
+                          subj_header = _SUBJECT_HEADER):
+        subj = _SUBJ_HEADER + _CONFIRMATION_SUBJ
+        msg = _CONFIRMATION_MAIL #% PUT PARAMETERS HERE
+        send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
-def send_confirmed(recipient,
+    def send_confirmed(recipient,
+                       # PUT REQUIRED NUMBER OF % PARAMETERS HERE
+                       sender = _SENDER,
+                       subj_header = _SUBJECT_HEADER):
+        subj = _SUBJ_HEADER + _CONFIRMED_SUBJ
+        msg = _CONFIRMED_MAIL #% PUT PARAMETERS HERE
+        send_mail(subj, msg, sender, [recipient], fail_silently=True)
+
+    def send_node_down(recipient,
+                       # PUT REQUIRED NUMBER OF % PARAMETERS HERE
+                       sender = _SENDER,
+                       subj_header = _SUBJECT_HEADER):
+        subj = _SUBJ_HEADER + _NODE_DOWN_SUBJ
+        msg = _NODE_DOWN_MAIL #% PUT PARAMETERS HERE
+        send_mail(subj, msg, sender, [recipient], fail_silently=True)
+
+    def send_t_shirt(recipient,
+                     # PUT REQUIRED NUMBER OF % PARAMETERS HERE
+                     sender = _SENDER,
+                     subj_header = _SUBJECT_HEADER):
+        subj = _SUBJ_HEADER + _T_SHIRT_SUBJ
+        msg = _T_SHIRT_MAIL #% PUT PARAMETERS HERE
+        send_mail(subj, msg, sender, [recipient], fail_silently=True)
+
+    def send_welcome(recipient,
+                     # PUT REQUIRED NUMBER OF % PARAMETERS HERE
+                     sender = _SENDER,
+                     subj_header = _SUBJECT_HEADER):
+        subj = _SUBJ_HEADER + _WELCOME_SUBJ
+        msg = _WELCOME_MAIL #% PUT PARAMETERS HERE
+        send_mail(subj, msg, sender, [recipient], fail_silently=True)
+
+    def send_legal(recipient,
                    # PUT REQUIRED NUMBER OF % PARAMETERS HERE
                    sender = _SENDER,
                    subj_header = _SUBJECT_HEADER):
-    subj = _SUBJ_HEADER + _CONFIRMED_SUBJ
-    msg = _CONFIRMED_MAIL #% PUT PARAMETERS HERE
-    send_mail(subj, msg, sender, [recipient], fail_silently=True)
-
-def send_node_down(recipient,
-                   # PUT REQUIRED NUMBER OF % PARAMETERS HERE
-                   sender = _SENDER,
-                   subj_header = _SUBJECT_HEADER):
-    subj = _SUBJ_HEADER + _NODE_DOWN_SUBJ
-    msg = _NODE_DOWN_MAIL #% PUT PARAMETERS HERE
-    send_mail(subj, msg, sender, [recipient], fail_silently=True)
-
-def send_t_shirt(recipient,
-                 # PUT REQUIRED NUMBER OF % PARAMETERS HERE
-                 sender = _SENDER,
-                 subj_header = _SUBJECT_HEADER):
-    subj = _SUBJ_HEADER + _T_SHIRT_SUBJ
-    msg = _T_SHIRT_MAIL #% PUT PARAMETERS HERE
-    send_mail(subj, msg, sender, [recipient], fail_silently=True)
-
-def send_welcome(recipient,
-                 # PUT REQUIRED NUMBER OF % PARAMETERS HERE
-                 sender = _SENDER,
-                 subj_header = _SUBJECT_HEADER):
-    subj = _SUBJ_HEADER + _WELCOME_SUBJ
-    msg = _WELCOME_MAIL #% PUT PARAMETERS HERE
-    send_mail(subj, msg, sender, [recipient], fail_silently=True)
-
-def send_legal(recipient,
-               # PUT REQUIRED NUMBER OF % PARAMETERS HERE
-               sender = _SENDER,
-               subj_header = _SUBJECT_HEADER):
-    subj = _SUBJ_HEADER + _WELCOME_SUBJ
-    msg = _LEGAL_MAIL #% PUT PARAMETERS HERE
-    send_mail(subj, msg, sender, [recipient], fail_silently=True)
+        subj = _SUBJ_HEADER + _WELCOME_SUBJ
+        msg = _LEGAL_MAIL #% PUT PARAMETERS HERE
+        send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
 
