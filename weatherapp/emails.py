@@ -1,8 +1,5 @@
-import views
-
 _SENDER = 'tor-ops@torproject.org'
-_SUBJ_HEADER = '[Tor Weather] '
-_BASE_URL = views.baseURL
+_SUBJECT_HEADER = '[Tor Weather] '
 
 _CONFIRMATION_SUBJ = 'Confirmation Needed'
 _CONFIRMATION_MAIL = """
