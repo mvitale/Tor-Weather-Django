@@ -1,4 +1,4 @@
-baseURL = http://localhost:8000
+baseURL = 'http://localhost:8000'
 _SENDER = 'tor-ops@torproject.org'
 _SUBJECT_HEADER = '[Tor Weather] '
 
