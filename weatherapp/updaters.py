@@ -7,8 +7,6 @@ from models import ModelAdder
 class SubscriptionChecker:
     """A class for checking and updating the various subscription types"""
     
-    # TO DO ------------------------------------------------------ BASE FEATURE
-
     def __init__(self, ctl_util):
         self.ctl_util = ctl_util
     

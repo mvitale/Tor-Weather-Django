@@ -8,6 +8,7 @@ and change preferences pages.
 
 from django.db import models
 from django import forms
+import emails
 from datetime import datetime
 import base64
 

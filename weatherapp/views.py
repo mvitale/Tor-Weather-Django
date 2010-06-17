@@ -6,8 +6,9 @@ controller for each page type. The controllers handle form submission and
 page rendering/redirection.
 """
 from django.db import models
-from django.shortcuts import render_to_response, get_object_or_404
 from weather.weatherapp.models import Subscriber, Subscription, Router
+from django.shortcuts import render_to_response, get_object_or_404
+import emails
 from weather.weatherapp.models import SubscribeForm, PreferencesForm
 from django.core.context_processors import csrf
 from django.http import HttpResponseRedirect, HttpRequest, Http404
@@ -58,7 +59,8 @@ def subscribe(request):
                 user = Subscriber.objects.get(router_id=router_primary_key)
                 # if no error is raised, the user is already subscribed to
                 # this router, so we redirect them.
-                return HttpResponseRedirect('/')
+                return HttpResponseRedirect('/error/already_subscribed/'+\
+                    user.id+'/')
 # ---------------------------------------------------------------------
 #   Should redirect to a specific error page (already subscribed)
 # ---------------------------------------------------------------------
@@ -70,14 +72,16 @@ def subscribe(request):
 # ---------------------------------------------------------------------
 #  make sure the method name is correct for sending the email
 # ---------------------------------------------------------------------
-            e.send_conf_email(addr, "confirmation", fingerprint, 
-                user.confirm_auth)
-
-            # user = SOMECLASS.add_new_subscriber(addr, router_primary_key)
-            # create the node down subscription
-            # SOMECLASS.add_new_subscription(user.id, "node_down", None, 
-            #    grace_pd)
+            e.send_confirmation(addr, fingerprint, user.confirm_auth)
             
+            # Create the subscriber model for the user
+            user = Subscriber(email=addr, router_id=router_primary_key)
+            # Save the subscriber data to the database
+            user.save()
+            # Create the node_down subscription and save to db
+            subscription = Subscription(subscriber=user, name='node_down', 
+                grace_pd=grace_pd)
+            subscription.save()
             # send the user to the pending page
             return HttpResponseRedirect('/pending/'+user.id+'/')
     else:
@@ -165,7 +169,7 @@ def preferences(request, preferences_auth_id):
     data = {'grace_pd' : node_down_sub.grace_pd}
 
     # populates a PreferencesForm object with the user's existing prefs
-    form = PreferencesForm(initial=data)    
+    form = PreferencesForm(initial=data)	
     
     # maps the form to the template
     c = {'form' : form}
@@ -190,6 +194,20 @@ def fingerprint_error(request, fingerprint):
     regarding potential problems."""
     return render_to_response('fingerprint_error.html', {'fingerprint' :
         fingerprint})
+
+def error(request, error_type, user_id):
+    """The generic error page, which displays a message based on the error
+    type passed to this controller."""
+    
+    #user = get_object_or_404(Subscriber, id=user_id)
+    __ALREADY_SUBSCRIBED = "You are already subscribed to receive email" +\
+        "alerts about the node you specified. If you'd like, you can" +\
+        " <a href = '%s'>change your preferences here</a>" % baseURL #+\
+        #'/preferences/' + user.pref_auth + '/'
+
+    if error_type == already_subscribed:
+        message = __ALREADY_SUBSCRIBED
+    return render_to_response('error.html', {'error_message' : message})
 
 def run_updaters(request):
     """
