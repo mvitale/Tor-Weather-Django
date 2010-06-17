@@ -74,6 +74,7 @@ class RouterUpdater:
         for router in router_set:
             router.up = False
 
+        #Get a list of fingerprint/name tuples in the current descriptor file
         finger_name = ctl_util.get_finger_name_list()
 
         for router in finger_name:

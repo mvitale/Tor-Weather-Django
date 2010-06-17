@@ -100,13 +100,12 @@ class SubscriberManager(models.Manager):
         if confirmed == None:
             confirmed = _CONFIRMED_DEFAULT
 
-        g = StringGenerator()
         if confirm_auth == None:
-            confirm_auth = g.get_rand_string()
+            confirm_auth = get_rand_string()
         if unsubs_auth == None:
-            unsubs_auth = g.get_rand_string()
+            unsubs_auth = get_rand_string()
         if pref_auth == None:
-            pref_auth = g.get_rand_string()
+            pref_auth = get_rand_string()
 
         if sub_date == None:
             sub_date = datetime.now()
@@ -119,6 +118,19 @@ class SubscriberManager(models.Manager):
 
     def get_query_set(self):
         return super(SubscriberManager, self).get_query_set()
+
+    def get_rand_string(length = 24):
+        cut_off = length - 24
+        if cut_off == 0:
+            cut_off = 24
+
+        r = base64.urlsafe_b64encode(os.urandom(18))[:cut_off]
+
+        # some email clients don't like URLs ending in -
+        if r.endswith("-"):
+            r = r.replace("-", "x")
+        return r
+
 
 class Subscriber(models.Model):
     """
