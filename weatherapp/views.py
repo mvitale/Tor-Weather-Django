@@ -1,6 +1,6 @@
 """
 The views module contains the controllers for the Tor Weather application 
-(Djago is idiosyncratic in that it names controllers 'views'; models are still
+(Django is idiosyncratic in that it names controllers 'views'; models are still
 models and views are called templates). This module contains a single 
 controller for each page type. The controllers handle form submission and
 page rendering/redirection.
@@ -193,9 +193,18 @@ def fingerprint_error(request, fingerprint):
         fingerprint})
 
 def run_updaters(request):
+    """
+    Runs all updaters when the appropriate request is made from localhost.
+    If any other ip tries to do this, displays 404 error.
+    """
+
     client_address = request.META['REMOTE_ADDR'] 
+
+    #Only allow localhost to make this request.
+    #We need to make sure this works!!!
     if client_address == "127.0.0.1":
         updaters.run_all() 
     else:
         raise Http404
+
     return HttpResponse()
