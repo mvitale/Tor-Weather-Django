@@ -9,7 +9,6 @@ page rendering/redirection.
 from django.shortcuts import render_to_response, get_object_or_404
 from weather.weatherapp.models import Subscriber, Subscription, Router
 from weather.weatherapp.models import SubscribeForm, PreferencesForm
-from weather.weatherapp.helpers import Emailer
 from django.core.context_processors import csrf
 from django.http import HttpResponseRedirect, HttpRequest, Http404
 from django.http import HttpResponse
@@ -83,12 +82,12 @@ def subscribe(request):
             return HttpResponseRedirect('/pending/'+user.id+'/')
     else:
         # user hasn't submitted info, just display the empty subscribe form
-	    form = SubscribeForm()
-	    c = {'form' : form}
+        form = SubscribeForm()
+        c = {'form' : form}
 
-	# for pages with POST methods, a Cross Site Request Forgery protection
-	# key is added to block attacking sites
-	    c.update(csrf(request))
+    # for pages with POST methods, a Cross Site Request Forgery protection
+    # key is added to block attacking sites
+        c.update(csrf(request))
     return render_to_response('subscribe.html', c)
 
 def pending(request, subscriber_id):
@@ -165,14 +164,14 @@ def preferences(request, preferences_auth_id):
     # this should be updated as the preferences are expanded
     data = {'grace_pd' : node_down_sub.grace_pd}
 
-	# populates a PreferencesForm object with the user's existing prefs
-	form = PreferencesForm(initial=data)	
-	
-	# maps the form to the template
-	c = {'form' : form}
+    # populates a PreferencesForm object with the user's existing prefs
+    form = PreferencesForm(initial=data)    
+    
+    # maps the form to the template
+    c = {'form' : form}
 
-	# Creates a CSRF protection key
-	c.update(csrf(request))
+    # Creates a CSRF protection key
+    c.update(csrf(request))
     return render_to_response('preferences.html', c)
 
 def confirm_pref(request, preferences_auth_id):
