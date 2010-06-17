@@ -119,8 +119,14 @@ class SubscriberManager(models.Manager):
         return super(SubscriberManager, self).get_query_set()
 
     def get_rand_string(length = 24):
+        """Gets a random string with length length.
+
+        @type length: int
+        @param length: The length of the random string. Max is 24. If length
+        > 24, the random string returned will have length 24."""
+
         cut_off = length - 24
-        if cut_off == 0:
+        if cut_off <= 0:
             cut_off = 24
 
         r = base64.urlsafe_b64encode(os.urandom(18))[:cut_off]
