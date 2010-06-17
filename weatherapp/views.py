@@ -5,7 +5,7 @@ models and views are called templates). This module contains a single
 controller for each page type. The controllers handle form submission and
 page rendering/redirection.
 """
-
+from django.db import models
 from weather.weatherapp.models import Subscriber, Subscription, Router
 from django.shortcuts import render_to_response, get_object_or_404
 import emails
@@ -170,13 +170,8 @@ def preferences(request, preferences_auth_id):
     data = {'grace_pd' : node_down_sub.grace_pd}
 
     # populates a PreferencesForm object with the user's existing prefs
-<<<<<<< HEAD:weatherapp/views.py
     form = PreferencesForm(initial=data)	
-	
-=======
-    form = PreferencesForm(initial=data)    
     
->>>>>>> b2ba23f3f7db09117cc4bc1f490b4a2f742e3087:weatherapp/views.py
     # maps the form to the template
     c = {'form' : form}
 
