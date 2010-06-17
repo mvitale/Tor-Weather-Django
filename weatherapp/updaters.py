@@ -106,7 +106,7 @@ class RouterUpdater:
                     router_data.save()
                 except Router.DoesNotExist:
                     #let's add it
-                    Router(finger, name).save()
+                    Router(fingerprint=finger, name=name).save()
 
 def run_all():
     """Run all updaters/checkers in proper sequence"""
