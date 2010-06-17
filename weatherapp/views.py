@@ -22,8 +22,9 @@ baseURL = "http://localhost:8000"
 def home(request):
     """Displays a home page for Tor Weather with basic information about
         the application."""
-    subURL = baseURL + '/subscribe/'
-    return render_to_response('home.html', {'subURL' : subURL})
+    subscibe = '/subscribe/' 
+# --------------- Change this later so it isn't hard coded -------------
+    return render_to_response('home.html', {'sub' : subscribe})
 
 def subscribe(request):
     """Displays the subscription form (all fields empty or default) if the
@@ -89,8 +90,8 @@ def subscribe(request):
         form = SubscribeForm()
         c = {'form' : form}
 
-    # for pages with POST methods, a Cross Site Request Forgery protection
-    # key is added to block attacking sites
+        # for pages with POST methods, a Cross Site Request Forgery protection
+        # key is added to block attacking sites
         c.update(csrf(request))
     return render_to_response('subscribe.html', c)
 
