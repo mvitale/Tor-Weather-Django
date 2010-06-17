@@ -3,6 +3,7 @@ from TorCtl import TorCtl
 import ctlutil
 import config
 from models import ModelAdder
+from django.db import models
 
 class SubscriptionChecker:
     """A class for checking and updating the various subscription types"""

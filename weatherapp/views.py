@@ -5,11 +5,11 @@ models and views are called templates). This module contains a single
 controller for each page type. The controllers handle form submission and
 page rendering/redirection.
 """
+from models import Subscriber, Subscription, Router, \
+                   SubscribeForm, PreferencesForm
 from django.db import models
-from weather.weatherapp.models import Subscriber, Subscription, Router
 from django.shortcuts import render_to_response, get_object_or_404
 import emails
-from weather.weatherapp.models import SubscribeForm, PreferencesForm
 from django.core.context_processors import csrf
 from django.http import HttpResponseRedirect, HttpRequest, Http404
 from django.http import HttpResponse
@@ -170,7 +170,7 @@ def preferences(request, preferences_auth_id):
     data = {'grace_pd' : node_down_sub.grace_pd}
 
     # populates a PreferencesForm object with the user's existing prefs
-    form = PreferencesForm(initial=data)	
+    form = PreferencesForm(initial=data)    
     
     # maps the form to the template
     c = {'form' : form}
