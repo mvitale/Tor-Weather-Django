@@ -8,8 +8,6 @@ and change preferences pages.
 
 from django.db import models
 from django import forms
-from weatherapp.helpers import StringGenerator 
-from weatherapp.helpers import Emailer
 from datetime import datetime
 import base64
 
@@ -72,7 +70,7 @@ class Router(models.Model):
                name = None,
                welcomed = None,
                last_seen = None,
-               up = None)
+               up = None):
         if fingerprint != None:
             self.fingerprint = fingerprint
         if name != None:
@@ -212,9 +210,9 @@ class SubscriptionManager(models.Manager):
                                  last_changed = None):
         if emailed == None:
             emailed = _EMAILED_DEFAULT
-        if triggered == None,
+        if triggered == None:
             triggered = _TRIGGERED_DEFAULT
-        if last_changed == None,
+        if last_changed == None:
             last_changed = datetime.now()
             
     def get_query_set(self):
@@ -289,9 +287,9 @@ class Subscription(models.Model):
             self.grace_pd = grace_pd
         if emailed == None:
             self.emailed = emailed
-        if triggered = None:
+        if triggered == None:
             self.triggered = triggered
-        if last_changed = None:
+        if last_changed == None:
             self.last_changed = last_changed
 
         self.save()
