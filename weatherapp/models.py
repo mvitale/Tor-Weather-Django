@@ -12,24 +12,45 @@ import emails
 from datetime import datetime
 import base64
 
+_WELCOMED_DEFAULT = False
+_UP_DEFAULT = True
+
 class RouterManager(models.Manager):
-    _WELCOMED_DEFAULT = False
-
-    def add_default_router(self, fingerprint, name,
-                           welcomed = None,
-                           last_seen = None):
-        if welcomed == None:
-            welcomed = _WELCOMED_DEFAULT
-        if last_seen == None:
-            last_seen = datetime.now()
-
-        routr = Router(fingerprint = fingerprint, name = name,
-                       welcomed = welcomed, last_seen = last_seen)
-        routr.save()
-        return routr
-
     def get_query_set(self):
         return super(RouterManager, self).get_query_set()
+
+    def filt(self, 
+             fingerprint = None,
+             name = None,
+             welcomed = None,
+             last_seen = None):
+        """Manager method to allow filtering of multiple fields without having
+        to worry about chaining filters. Not necessary and only potentially
+        useful, but the necessary code would be required in L{is_in} either
+        way. If a field is specified as None, then it will not filter that
+        field.
+        """
+        filt = self.all()
+        if fingerprint != None:
+            filt = filt.filter(fingerprint__exact=fingerprint)
+        if name != None:
+            filt = filt.filter(name__exact=name)
+        if welcomed != None:
+            filt = filt.filter(welcomed__exact=welcomed)
+        if last_seen != None:
+            filt = filt.filter(last_seen__exact=last_seen)
+        return filt
+
+    def is_in(self, 
+              fingerprint = None,
+              name = None,
+              welcomed = None,
+              last_seen = None):
+        """Manager method allowing convenient testing of whether a 
+        L{Router} with specified parameters is in the database. Uses 
+        L{filt}, so fields specified as None are not filtered.
+        """
+        return self.filt(fingerprint, name, welcomed, last_seen) != self.none()
 
 class Router(models.Model):
     """A model that stores information about every router on the Tor network.
@@ -42,100 +63,76 @@ class Router(models.Model):
     @ivar name: The name associated with the router.
     @type welcomed: bool
     @ivar welcomed: true if the router operater has received a welcome email,
-                    false if they haven't.
+                    false if they haven't. Default value is C{False}.
     @type last_seen: datetime
     @ivar last_seen: The most recent time the router was listed on a consensus 
-                     document. In the view that is processed when a consensus
-                     document is received, will store the datetime when the
-                     consensus document was received and so will be able to
-                     check if the last_seen datetime matches with the consensus
-                     datetime, informing whether the router is up.
+                     document. Default value is C{datetime.now()}.
     @type up: bool
     @ivar up: True if this router was up last time a new network consensus
-              was published, false otherwise.
+              was published, false otherwise. Default value is C{True}.
     """
 
-    fingerprint = models.CharField(max_length=200)
+    fingerprint = models.CharField(max_length=200, unique=True)
     name = models.CharField(max_length=100)
-    welcomed = models.BooleanField()
-    last_seen = models.DateTimeField('date last seen')
-    up = models.BooleanField()
+    welcomed = models.BooleanField(default=False)
+    last_seen = models.DateTimeField('date last seen', default=datetime.now())
+    up = models.BooleanField(default=True)
 
     objects = RouterManager()
     
     def __unicode__(self):
         return self.fingerprint
 
-    def update(self, 
-               fingerprint = None,
-               name = None,
-               welcomed = None,
-               last_seen = None,
-               up = None):
-        if fingerprint != None:
-            self.fingerprint = fingerprint
-        if name != None:
-            self.name = name
-        if welcomed != None:
-            self.welcomed = welcomed
-        if last_seen != None:
-            self.last_seen = last_seen
-        if up != None:
-            self.up = up
-
-        self.save()
-        return self
-
 class SubscriberManager(models.Manager):
-    _CONFIRMED_DEFAULT = False
-
-    def add_default_subscriber(self, email, router_id,
-                               confirmed = None,
-                               confirm_auth = None,
-                               unsubs_auth = None,
-                               pref_auth = None,
-                               sub_date = None):
-        if confirmed == None:
-            confirmed = _CONFIRMED_DEFAULT
-
-        if confirm_auth == None:
-            confirm_auth = get_rand_string()
-        if unsubs_auth == None:
-            unsubs_auth = get_rand_string()
-        if pref_auth == None:
-            pref_auth = get_rand_string()
-
-        if sub_date == None:
-            sub_date = datetime.now()
-
-        subr = Subscriber(email = email, router = router_id,
-                          confirmed = confirmed, confirm_auth = confirm_auth,
-                          unsubs_auth = unsubs_auth, pref_auth = pref_auth)
-        subr.save()
-        return subr
-
     def get_query_set(self):
         return super(SubscriberManager, self).get_query_set()
 
-    def get_rand_string(length = 24):
-        """Gets a random string with length length.
+    def filt(self,
+             email = None,
+             router = None,
+             confirmed = None,
+             confirm_auth = None,
+             unsubs_auth = None,
+             pref_auth = None,
+             sub_date = None):
+        """Manager method to allow filtering of multiple fields without having
+        to worry about chaining filters. Not necessary and only potentially
+        useful, but the necessary code would be required in L{is_in} either
+        way. If a field is specified as None, then it will not filter that
+        field.
+        """
+        filt = self.all()
+        if name != None:
+            filt = filt.filter(email__exact=email)
+        if router != None:
+            filt = filt.filter(router__exact=router)
+        if confirmed != None:
+            filt = filt.filter(confirmed__exact=confirmed)
+        if confirm_auth != None:
+            filt = filt.filter(confirm_auth__exact=confirm_auth)
+        if unsubs_auth != None:
+            filt = filt.filter(unsubs_auth__exact=unsubs_auth)
+        if pref_auth != None:
+            filt = filt.filter(pref_auth__exact=pref_auth)
+        if sub_date != None:
+            filt = filt.filter(sub_date__exact=sub_date)
+        return filt
 
-        @type length: int
-        @param length: The length of the random string. Max is 24. If length
-        > 24, the random string returned will have length 24."""
-
-        cut_off = length - 24
-        if cut_off <= 0:
-            cut_off = 24
-
-        r = base64.urlsafe_b64encode(os.urandom(18))[:cut_off]
-
-        # some email clients don't like URLs ending in -
-        if r.endswith("-"):
-            r = r.replace("-", "x")
-        return r
-
-
+    def is_in(self,
+              email = None,
+              router = None,
+              confirmed = None,
+              confirm_auth = None,
+              unsubs_auth = None,
+              pref_auth = None,
+              sub_date = None):
+        """Manager method allowing convenient testing of whether a 
+        L{Subscriber} with specified parameters is in the database. Uses 
+        L{filt}, so fields specified as None are not filtered.
+        """
+        return self.filt(email, router, confirmed, confirm_auth, unsubs_auth,
+                         pref_auth, sub_date) != self.none()
+           
 class Subscriber(models.Model):
     """
     A model to store information about Tor Weather subscribers, including their
@@ -146,7 +143,8 @@ class Subscriber(models.Model):
         node this subscriber is watching.
     @type confirmed: bool
     @ivar confirmed: True if the subscriber has confirmed the subscription by
-        following the link in their confirmation email and False otherwise.
+        following the link in their confirmation email and False otherwise. 
+        Default value upon creation is C{False}.
     @type confirm_auth: str
     @ivar confirm_auth: This user's confirmation key, which is incorporated into
         the confirmation url.
@@ -156,68 +154,87 @@ class Subscriber(models.Model):
     @type pref_auth: str
     @ivar pref_auth: The key for this user's Tor Weather preferences page.
     @type sub_date: datetime.datetime
-    @ivar sub_date: The date this user subscribed to Tor Weather.
+    @ivar sub_date: The date this user subscribed to Tor Weather. Default value
+                    upon creation is datetime.now().
     """
     email = models.EmailField(max_length=75)
     router = models.ForeignKey(Router)
-    confirmed = models.BooleanField()
+    confirmed = models.BooleanField(default = False)
 
     #change this when more is known?
-    confirm_auth = models.CharField(max_length=250) 
-    unsubs_auth = models.CharField(max_length=250)
-    pref_auth = models.CharField(max_length=250)
+    confirm_auth = models.CharField(max_length=250, default=get_rand_string()) 
+    unsubs_auth = models.CharField(max_length=250, default=get_rand_string())
+    pref_auth = models.CharField(max_length=250, default=get_rand_string())
 
-    sub_date = models.DateTimeField()
+    sub_date = models.DateTimeField(default=datetime.now())
 
     objects = SubscriberManager()
 
     def __unicode__(self):
         return self.email
 
-    def update(self,
-               email = None,
-               router = None,
-               confirmed = None,
-               confirm_auth = None,
-               unsubs_auth = None,
-               pref_auth = None,
-               sub_date = None):
-        if email != None:
-            self.email = email
-        if router != None:
-            self.router = router
-        if confirmed != None:
-            self.confirmed = confirmed
-        if confirm_auth != None:
-            self.confirm_auth = confirm_auth
-        if unsubs_auth != None:
-            self.unsubs_auth = unsubs_auth
-        if pref_auth != None:
-            self.pref_auth = pref_auth
-        if sub_date != None:
-            self.sub_date = sub_date
+    def get_rand_string(length = 24):
+        cut_off = length - 24
+        if cut_off == 0:
+            cut_off = 24
 
-        self.save()
-        return self
+        r = base64.urlsafe_b64encode(os.urandom(18))[:cut_off]
+
+        # some email clients don't like URLs ending in -
+        if r.endswith("-"):
+            r = r.replace("-", "x")
+        return r
 
 class SubscriptionManager(models.Manager):
-    _EMAILED_DEFAULT = False
-    _TRIGGERED_DEFAULT = False
-
-    def add_default_subscription(self, subscriber_id, name, threshold, 
-                                 grace_pd,
-                                 emailed = None,
-                                 triggered = None,
-                                 last_changed = None):
-        if emailed == None:
-            emailed = _EMAILED_DEFAULT
-        if triggered == None:
-            triggered = _TRIGGERED_DEFAULT
-        if last_changed == None:
-            last_changed = datetime.now()
-            
     def get_query_set(self):
         return super(SubscriptionManager, self).get_query_set()
+    
+    def filt(self,
+             subscriber = None,
+             name = None,
+             threshold = None,
+             grace_pd = None,
+             emailed = None,
+             triggered = None,
+             last_changed = None):
+        """Manager method to allow filtering of multiple fields without having
+        to worry about chaining filters. Not necessary and only potentially
+        useful, but the necessary code would be required in L{is_in} either
+        way. If a field is specified as None, then it will not filter that
+        field.
+        """
+        filt = self.all()
+        if subscriber != None:
+            filt = filt.filter(subscriber__exact=subscriber)
+        if name != None:
+            filt = filt.fitler(name__exact=name)
+        if threshold != None:
+            filt = filt.filter(threshold__exact=threshold)
+        if grace_pd != None:
+            filt = filt.filter(grace_pd__exact=grace_pd)
+        if emailed != None:
+            filt = filt.filter(emailed__exact=emailed)
+        if triggered != None:
+            filt = filt.filter(triggered__exact=triggered)
+        if last_changed != None:
+            filt = filt.filter(last_changed__exact=last_changed)
+        return filt
+    
+    def is_in(self, 
+             subscriber = None,
+             name = None,
+             threshold = None,
+             grace_pd = None,
+             emailed = None,
+             triggered = None,
+             last_changed = None):
+        """Manager method allowing convenient testing of whether a 
+        L{Subscription} with specified parameters is in the database. Uses 
+        L{filt}, so fields specified as None are not filtered.
+        """
+        return self.filt(subscriber, name, threshold, grace_pd, emailed,
+                         triggered, last_changed) != self.none()
+             
 
 class Subscription(models.Model):
     """The model storing information about a specific subscription. Each type
@@ -239,22 +256,24 @@ class Subscription(models.Model):
         after a subscription type is triggered.
     @type emailed: bool
     @ivar emailed: True if the user has been emailed about the subscription
-        (trigger must also be True), False if the user has not been emailed.
+        (trigger must also be True), False if the user has not been emailed. 
+        Default upon creation is C{False}.
     @type triggered: bool
     @ivar triggered: True if the threshold has been passed for this 
         subscription/the conditions to send a notification are met, False
-        if not.
+        if not. Default upon creation is C{False}.
     @type last_changed: datetime.datetime
     @ivar last_changed: The most recent datetime when the trigger field 
-        was changed.
+        was changed. Default upon creation is C{datetime.now()}.
     """
     subscriber = models.ForeignKey(Subscriber)
     name = models.CharField(max_length=200)
     threshold = models.CharField(max_length=200)
     grace_pd = models.IntegerField()
-    emailed = models.BooleanField()
-    triggered = models.BooleanField()
-    last_changed = models.DateTimeField('date of last change')
+    emailed = models.BooleanField(default=False)
+    triggered = models.BooleanField(default=False)
+    last_changed = models.DateTimeField('date of last change', 
+                                        default=datetime.now())
 
     objects = SubscriptionManager()
     
@@ -269,32 +288,6 @@ class Subscription(models.Model):
             return True
         else:
             return False
-
-    def update(self,
-               subscriber = None,
-               name = None,
-               threshold = None,
-               grace_pd = None,
-               emailed = None,
-               triggered = None,
-               last_changed = None):
-        if subscriber == None:
-            self.subscriber = subscriber
-        if name == None:
-            self.name = name
-        if threshold == None:
-            self.threshold = threshold
-        if grace_pd == None:
-            self.grace_pd = grace_pd
-        if emailed == None:
-            self.emailed = emailed
-        if triggered == None:
-            self.triggered = triggered
-        if last_changed == None:
-            self.last_changed = last_changed
-
-        self.save()
-        return self
 
 class SubscribeForm(forms.Form):
     """The form for a new subscriber. The form includes an email field, 

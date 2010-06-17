@@ -57,7 +57,7 @@ def subscribe(request):
                     fingerprint + '/')
 
             try:
-                user = Subscriber.objects.get(router_id=router_primary_key)
+                user = Subscriber.objects.get(router=router_primary_key)
                 # if no error is raised, the user is already subscribed to
                 # this router, so we redirect them.
                 return HttpResponseRedirect('/error/already_subscribed/'+\
@@ -76,7 +76,7 @@ def subscribe(request):
             e.send_confirmation(addr, fingerprint, user.confirm_auth)
             
             # Create the subscriber model for the user
-            user = Subscriber(email=addr, router_id=router_primary_key)
+            user = Subscriber(email=addr, router=router_primary_key)
             # Save the subscriber data to the database
             user.save()
             # Create the node_down subscription and save to db
@@ -109,7 +109,7 @@ def confirm(request, confirm_auth_id):
     """The confirmation page, which is displayed when the user follows the
         link sent to them in the confirmation email"""
     sub = get_object_or_404(Subscriber, confirm_auth=confirm_auth_id)
-    rout = Router.objects.get(pk=sub.router_id)
+    rout = Router.objects.get(pk=sub.router)
     unsubURL = baseURL + "/unsubscribe/" + suber.unsubs_auth + "/"
     prefURL = baseURL + "/preferences/" + suber.pref_auth + "/"
     return render_to_response('confirm.html', {'email': sub.email, 
@@ -205,6 +205,9 @@ def error(request, error_type, user_id):
         "alerts about the node you specified. If you'd like, you can" +\
         " <a href = '%s'>change your preferences here</a>" % baseURL #+\
         #'/preferences/' + user.pref_auth + '/'
+#----------------------------------------------------------------------
+# FIX THIS LINK STUFF
+#----------------------------------------------------------------------
 
     if error_type == already_subscribed:
         message = __ALREADY_SUBSCRIBED
