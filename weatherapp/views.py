@@ -55,7 +55,6 @@ def subscribe(request):
                 # MOVE THE URLS TO A GENERAL LOCATION -------------------------
                 return HttpResponseRedirect('/fingerprint_error/' +
                                             'fingerprint' + '/')
-            
             # If there is already a subscriber with same email address and 
             # router, then they're already subscribed and probably don't mean
             # to subscribe again.
@@ -116,15 +115,17 @@ def confirm(request, confirm_auth_id):
     """The confirmation page, which is displayed when the user follows the
         link sent to them in the confirmation email"""
     user = get_object_or_404(Subscriber, confirm_auth=confirm_auth_id)
-    rout = Router.objects.get(pk=sub.router)
+    router = Router.objects.get(pk=sub.router)
 
     # TO DO ----------------------------------------------------- EXTRA FEATURE
     # MOVE THE URLS TO A GENERAL LOCATION -------------------------------------
     unsubURL = baseURL + "/unsubscribe/" + suber.unsubs_auth + "/"
     prefURL = baseURL + "/preferences/" + suber.pref_auth + "/"
-    return render_to_response('confirm.html', {'email': sub.email, 
-            'fingerprint' : rout.fingerprint, 'nodeName' : rout.name, 
+    return render_to_response('confirm.html', {'email': user.email, 
+            'fingerprint' : router.fingerprint, 'nodeName' : router.name, 
             'unsubURL' : unsubURL, 'prefURL' : prefURL})
+    # TO DO ------------------------------------------------------ BASE FEATURE
+    # CHECK IF THE TEMPLATE TO MAKE SURE THIS RIGHT ---------------------------
         
 def unsubscribe(request, unsubscribe_auth_id):
     """The unsubscribe page, which displays a message informing the user
@@ -143,6 +144,10 @@ def unsubscribe(request, unsubscribe_auth_id):
     name = ""
     if router.name != "Unnamed":
         name += " " + router_name + ","
+
+    # delete the Subscriber (all Subscriptions with a foreign key relationship
+    # to this Subscriber are automatically deleted)
+    user.delete()
 
     return render_to_response('unsubscribe.html', {'email' : email, 'name' : 
             name, 'fingerprint' : fingerprint})

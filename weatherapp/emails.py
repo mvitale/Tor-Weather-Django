@@ -1,3 +1,4 @@
+baseURL = 'http://localhost:8000'
 _SENDER = 'tor-ops@torproject.org'
 _SUBJECT_HEADER = '[Tor Weather] '
 
@@ -58,7 +59,9 @@ or change your Tor Weather notification preferences here:
 
 %s.
 """
-
+# ------------------------------------------------------------------
+# CONFIGURE THIS!
+# ------------------------------------------------------------------
 _OUT_OF_DATE_SUBJ = 'Node Out of Date!'
 _OUT_OF_DATE_MAIL = """
 This is a Tor Weather Report.
@@ -139,52 +142,68 @@ _LEGAL_MAIL = """
 Legal mumbo jumbo
 """
 
-def send_confirmation(recipient,
-                      # PUT REQUIRED NUMBER OF % PARAMETERS HERE
-                      sender = _SENDER,
-                      subj_header = _SUBJECT_HEADER):
-    subj = _SUBJ_HEADER + _CONFIRMATION_SUBJ
-    msg = _CONFIRMATION_MAIL #% PUT PARAMETERS HERE
-    send_mail(subj, msg, sender, [recipient], fail_silently=True)
+class Emailer:
+    @staticmethod
+    def send_confirmation(recipient,
+                          conf_auth,
+                          sender = _SENDER,
+                          subj_header = _SUBJECT_HEADER):
+        subj = _SUBJ_HEADER + _CONFIRMATION_SUBJ
+        msg = _CONFIRMATION_MAIL % baseURL + '/confirm/' + conf_auth + '/'
+        send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
-def send_confirmed(recipient,
+    @staticmethod
+    def send_confirmed(recipient,
+                       fingerprint,
+                       unsub_auth,
+                       pref_auth,
+                       sender = _SENDER,
+                       subj_header = _SUBJECT_HEADER):
+        subj = _SUBJ_HEADER + _CONFIRMED_SUBJ
+        unsubURL = baseURL + '/unsubscribe/' + unsub_auth + '/'
+        prefURL = baseURL + '/preferences/' + pref_auth + '/'
+        msg = _CONFIRMED_MAIL % fingerprint, unsubURL, prefURL 
+        send_mail(subj, msg, sender, [recipient], fail_silently=True)
+
+    @staticmethod
+    def send_node_down(recipient,
+                       fingerprint,
+                       grace_pd,
+                       unsub_auth,
+                       pref_auth,
+                       sender = _SENDER,
+                       subj_header = _SUBJECT_HEADER):
+        subj = _SUBJ_HEADER + _NODE_DOWN_SUBJ
+        unsubURL = baseURL + '/unsubscribe/'+ unsub_auth + '/'
+        prefURL = baseURL + '/preferences/' + pref_auth + '/'
+        msg = _NODE_DOWN_MAIL % fingerprint, grace_pd, unsubURL, prefURL
+        send_mail(subj, msg, sender, [recipient], fail_silently=True)
+
+    @staticmethod
+    def send_t_shirt(recipient,
+                     unsub_auth,
+                     pref_auth,
+                     sender = _SENDER,
+                     subj_header = _SUBJECT_HEADER):
+        subj = _SUBJ_HEADER + _T_SHIRT_SUBJ
+        unsubURL = baseURL + '/unsubscribe/' + unsub_auth + '/'
+        prefURL = baseURL + '/preferences/' + pref_auth + '/'
+        msg = _T_SHIRT_MAIL % unsubURL, prefURL
+        send_mail(subj, msg, sender, [recipient], fail_silently=True)
+
+    @staticmethod
+    def send_welcome(recipient,
+                     sender = _SENDER,
+                     subj_header = _SUBJECT_HEADER):
+        subj = _SUBJ_HEADER + _WELCOME_SUBJ
+        msg = _WELCOME_MAIL 
+        send_mail(subj, msg, sender, [recipient], fail_silently=True)
+
+    @staticmethod
+    def send_legal(recipient,
                    # PUT REQUIRED NUMBER OF % PARAMETERS HERE
                    sender = _SENDER,
                    subj_header = _SUBJECT_HEADER):
-    subj = _SUBJ_HEADER + _CONFIRMED_SUBJ
-    msg = _CONFIRMED_MAIL #% PUT PARAMETERS HERE
-    send_mail(subj, msg, sender, [recipient], fail_silently=True)
-
-def send_node_down(recipient,
-                   # PUT REQUIRED NUMBER OF % PARAMETERS HERE
-                   sender = _SENDER,
-                   subj_header = _SUBJECT_HEADER):
-    subj = _SUBJ_HEADER + _NODE_DOWN_SUBJ
-    msg = _NODE_DOWN_MAIL #% PUT PARAMETERS HERE
-    send_mail(subj, msg, sender, [recipient], fail_silently=True)
-
-def send_t_shirt(recipient,
-                 # PUT REQUIRED NUMBER OF % PARAMETERS HERE
-                 sender = _SENDER,
-                 subj_header = _SUBJECT_HEADER):
-    subj = _SUBJ_HEADER + _T_SHIRT_SUBJ
-    msg = _T_SHIRT_MAIL #% PUT PARAMETERS HERE
-    send_mail(subj, msg, sender, [recipient], fail_silently=True)
-
-def send_welcome(recipient,
-                 # PUT REQUIRED NUMBER OF % PARAMETERS HERE
-                 sender = _SENDER,
-                 subj_header = _SUBJECT_HEADER):
-    subj = _SUBJ_HEADER + _WELCOME_SUBJ
-    msg = _WELCOME_MAIL #% PUT PARAMETERS HERE
-    send_mail(subj, msg, sender, [recipient], fail_silently=True)
-
-def send_legal(recipient,
-               # PUT REQUIRED NUMBER OF % PARAMETERS HERE
-               sender = _SENDER,
-               subj_header = _SUBJECT_HEADER):
-    subj = _SUBJ_HEADER + _WELCOME_SUBJ
-    msg = _LEGAL_MAIL #% PUT PARAMETERS HERE
-    send_mail(subj, msg, sender, [recipient], fail_silently=True)
-
-
+        subj = _SUBJ_HEADER + _WELCOME_SUBJ
+        msg = _LEGAL_MAIL #% PUT PARAMETERS HERE
+        send_mail(subj, msg, sender, [recipient], fail_silently=True)

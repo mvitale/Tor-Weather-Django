@@ -4,6 +4,7 @@ import ctlutil
 import config
 from models import ModelAdder
 from django.db import models
+from emails import Emailer
 
 class SubscriptionChecker:
     """A class for checking and updating the various subscription types"""
@@ -28,7 +29,7 @@ class SubscriptionChecker:
                 if subscription.triggered:
                     if subscription.should_email():
                         recipient = subscription.subscriber.email
-                        Emailer.send_node_down_email(recipient)
+                        Emailer.send_node_down(recipient)
                         subscription.emailed = True 
                 else:
                     subscription.triggered = True
