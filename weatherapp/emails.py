@@ -142,63 +142,62 @@ _LEGAL_MAIL = """
 Legal mumbo jumbo
 """
 
-def send_confirmation(recipient,
-                      conf_auth,
-                      sender = _SENDER,
-                      subj_header = _SUBJECT_HEADER):
-    subj = _SUBJ_HEADER + _CONFIRMATION_SUBJ
-    msg = _CONFIRMATION_MAIL % baseURL + '/confirm/' + conf_auth + '/'
-    send_mail(subj, msg, sender, [recipient], fail_silently=True)
+class Emailer:
+    def send_confirmation(recipient,
+                          conf_auth,
+                          sender = _SENDER,
+                          subj_header = _SUBJECT_HEADER):
+        subj = _SUBJ_HEADER + _CONFIRMATION_SUBJ
+        msg = _CONFIRMATION_MAIL % baseURL + '/confirm/' + conf_auth + '/'
+        send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
-def send_confirmed(recipient,
-                   fingerprint,
-                   unsub_auth,
-                   pref_auth,
+    def send_confirmed(recipient,
+                       fingerprint,
+                       unsub_auth,
+                       pref_auth,
+                       sender = _SENDER,
+                       subj_header = _SUBJECT_HEADER):
+        subj = _SUBJ_HEADER + _CONFIRMED_SUBJ
+        unsubURL = baseURL + '/unsubscribe/' + unsub_auth + '/'
+        prefURL = baseURL + '/preferences/' + pref_auth + '/'
+        msg = _CONFIRMED_MAIL % fingerprint, unsubURL, prefURL 
+        send_mail(subj, msg, sender, [recipient], fail_silently=True)
+
+    def send_node_down(recipient,
+                       fingerprint,
+                       grace_pd,
+                       unsub_auth,
+                       pref_auth,
+                       sender = _SENDER,
+                       subj_header = _SUBJECT_HEADER):
+        subj = _SUBJ_HEADER + _NODE_DOWN_SUBJ
+        unsubURL = baseURL + '/unsubscribe/'+ unsub_auth + '/'
+        prefURL = baseURL + '/preferences/' + pref_auth + '/'
+        msg = _NODE_DOWN_MAIL % fingerprint, grace_pd, unsubURL, prefURL
+        send_mail(subj, msg, sender, [recipient], fail_silently=True)
+
+    def send_t_shirt(recipient,
+                     unsub_auth,
+                     pref_auth,
+                     sender = _SENDER,
+                     subj_header = _SUBJECT_HEADER):
+        subj = _SUBJ_HEADER + _T_SHIRT_SUBJ
+        unsubURL = baseURL + '/unsubscribe/' + unsub_auth + '/'
+        prefURL = baseURL + '/preferences/' + pref_auth + '/'
+        msg = _T_SHIRT_MAIL % unsubURL, prefURL
+        send_mail(subj, msg, sender, [recipient], fail_silently=True)
+
+    def send_welcome(recipient,
+                     sender = _SENDER,
+                     subj_header = _SUBJECT_HEADER):
+        subj = _SUBJ_HEADER + _WELCOME_SUBJ
+        msg = _WELCOME_MAIL 
+        send_mail(subj, msg, sender, [recipient], fail_silently=True)
+    
+    def send_legal(recipient,
+                   # PUT REQUIRED NUMBER OF % PARAMETERS HERE
                    sender = _SENDER,
                    subj_header = _SUBJECT_HEADER):
-    subj = _SUBJ_HEADER + _CONFIRMED_SUBJ
-    unsubURL = baseURL + '/unsubscribe/' + unsub_auth + '/'
-    prefURL = baseURL + '/preferences/' + pref_auth + '/'
-    msg = _CONFIRMED_MAIL % fingerprint, unsubURL, prefURL 
-    send_mail(subj, msg, sender, [recipient], fail_silently=True)
-
-def send_node_down(recipient,
-                   fingerprint,
-                   grace_pd,
-                   unsub_auth,
-                   pref_auth,
-                   sender = _SENDER,
-                   subj_header = _SUBJECT_HEADER):
-    subj = _SUBJ_HEADER + _NODE_DOWN_SUBJ
-    unsubURL = baseURL + '/unsubscribe/'+ unsub_auth + '/'
-    prefURL = baseURL + '/preferences/' + pref_auth + '/'
-    msg = _NODE_DOWN_MAIL % fingerprint, grace_pd, unsubURL, prefURL
-    send_mail(subj, msg, sender, [recipient], fail_silently=True)
-
-def send_t_shirt(recipient,
-                 unsub_auth,
-                 pref_auth,
-                 sender = _SENDER,
-                 subj_header = _SUBJECT_HEADER):
-    subj = _SUBJ_HEADER + _T_SHIRT_SUBJ
-    unsubURL = baseURL + '/unsubscribe/' + unsub_auth + '/'
-    prefURL = baseURL + '/preferences/' + pref_auth + '/'
-    msg = _T_SHIRT_MAIL % unsubURL, prefURL
-    send_mail(subj, msg, sender, [recipient], fail_silently=True)
-
-def send_welcome(recipient,
-                 sender = _SENDER,
-                 subj_header = _SUBJECT_HEADER):
-    subj = _SUBJ_HEADER + _WELCOME_SUBJ
-    msg = _WELCOME_MAIL 
-    send_mail(subj, msg, sender, [recipient], fail_silently=True)
-
-def send_legal(recipient,
-               # PUT REQUIRED NUMBER OF % PARAMETERS HERE
-               sender = _SENDER,
-               subj_header = _SUBJECT_HEADER):
-    subj = _SUBJ_HEADER + _WELCOME_SUBJ
-    msg = _LEGAL_MAIL #% PUT PARAMETERS HERE
-    send_mail(subj, msg, sender, [recipient], fail_silently=True)
-
-
+        subj = _SUBJ_HEADER + _WELCOME_SUBJ
+        msg = _LEGAL_MAIL #% PUT PARAMETERS HERE
+        send_mail(subj, msg, sender, [recipient], fail_silently=True)
