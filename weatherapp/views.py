@@ -12,6 +12,7 @@ from weather.weatherapp.models import SubscribeForm, PreferencesForm
 from weather.weatherapp.helpers import Emailer
 from django.core.context_processors import csrf
 from django.http import HttpResponseRedirect, HttpRequest, Http404
+from django.http import HttpResponse
 
 # -----------------------------------------------------------------------
 # FILL IN ONCE WE KNOW THE SITE! ----------------------------------------
@@ -194,7 +195,7 @@ def fingerprint_error(request, fingerprint):
 def run_updaters(request):
     client_address = request.META['REMOTE_ADDR'] 
     if client_address == "127.0.0.1":
-        print "I would be running updaters now!"
-        #updaters.run_all() 
+        updaters.run_all() 
     else:
         raise Http404
+    return HttpResponse()
