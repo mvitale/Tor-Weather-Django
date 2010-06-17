@@ -52,7 +52,7 @@ def subscribe(request):
             try:
                 router = Router.objects.get(fingerprint = fingerprint)
                 router_primary_key = router.id
-            except DoesNotExist:
+            except Router.DoesNotExist:
                 return HttpResponseRedirect('/fingerprint_error/' +\
                     fingerprint + '/')
 
@@ -65,7 +65,7 @@ def subscribe(request):
 # ---------------------------------------------------------------------
 #   Should redirect to a specific error page (already subscribed)
 # ---------------------------------------------------------------------
-            except DoesNotExist:
+            except Subscriber.DoesNotExist:
                 # the user isn't subscribed yet, send the email & add them
                 pass 
                       
