@@ -104,7 +104,7 @@ class RouterUpdater:
                     router_data.name = name
                     router_data.up = True
                     router_data.save()
-                except DoesNotExist:
+                except Router.DoesNotExist:
                     #let's add it
                     Router(finger, name).save()
 
