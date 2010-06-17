@@ -162,9 +162,12 @@ class Subscriber(models.Model):
     confirmed = models.BooleanField(default = False)
 
     #change this when more is known?
-    confirm_auth = models.CharField(max_length=250, default=get_rand_string()) 
-    unsubs_auth = models.CharField(max_length=250, default=get_rand_string())
-    pref_auth = models.CharField(max_length=250, default=get_rand_string())
+    confirm_auth = models.CharField(max_length=250, default=
+                                    self.get_rand_string()) 
+    unsubs_auth = models.CharField(max_length=250, default=
+                                    self.get_rand_string())
+    pref_auth = models.CharField(max_length=250, default=
+                                    self.get_rand_string())
 
     sub_date = models.DateTimeField(default=datetime.now())
 
@@ -173,7 +176,7 @@ class Subscriber(models.Model):
     def __unicode__(self):
         return self.email
 
-    def get_rand_string(length = 24):
+    def get_rand_string(self, length = 24):
         cut_off = length - 24
         if cut_off == 0:
             cut_off = 24
