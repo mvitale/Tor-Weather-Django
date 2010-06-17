@@ -34,6 +34,7 @@ class SubscriptionChecker:
                 else:
                     subscription.triggered = True
                     subscription.last_changed = datetime.datetime.now()
+            subscription.save()
 
     def check_out_of_date():
         # TO DO ------------------------------------------------- EXTRA FEATURE 
@@ -103,9 +104,10 @@ class RouterUpdater:
                     router_data.last_seen = datetime.datetime.now()
                     router_data.name = name
                     router_data.up = True
+                    router_data.save()
                 except DoesNotExist:
                     #let's add it
-                    Router.objects.add_default_router(finger, name)
+                    Router(finger, name).save()
 
 def run_all():
     """Run all updaters/checkers in proper sequence"""
