@@ -62,8 +62,6 @@ class SubscriptionChecker:
 class RouterUpdater:
     """A class for updating the Router table and sending 'welcome' emails"""
 
-    # TO DO ------------------------------------------------------ BASE FEATURE
-
     def __init__(self, ctl_util):
         self.ctl_util = ctl_util
 
@@ -95,6 +93,7 @@ class RouterUpdater:
                     Router.objects.add_default_router(finger, name)
 
 def run_all():
+    """Run all updaters/checkers in proper sequence"""
     ctl_util = ctlutil.CtlUtil()
     router_updater = RouterUpdater(ctl_util)
     subscription_checker = SubscriptionChecker(ctl_util)
