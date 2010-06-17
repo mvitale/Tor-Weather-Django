@@ -22,7 +22,7 @@ baseURL = "http://localhost:8000"
 def home(request):
     """Displays a home page for Tor Weather with basic information about
         the application."""
-    subscibe = '/subscribe/' 
+    subscribe = '/subscribe/' 
 # --------------- Change this later so it isn't hard coded -------------
     return render_to_response('home.html', {'sub' : subscribe})
 
