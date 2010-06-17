@@ -103,6 +103,7 @@ INSTALLED_APPS = (
     # 'django.contrib.admin',
 )
 
+#SMTP server configuration
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_PASSWORD = 'torisawesome'
 EMAIL_HOST_USER = 'torweathertester@gmail.com'

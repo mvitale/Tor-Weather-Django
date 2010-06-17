@@ -62,8 +62,6 @@ class SubscriptionChecker:
 class RouterUpdater:
     """A class for updating the Router table and sending 'welcome' emails"""
 
-    # TO DO ------------------------------------------------------ BASE FEATURE
-
     def __init__(self, ctl_util):
         self.ctl_util = ctl_util
 
@@ -76,6 +74,7 @@ class RouterUpdater:
         for router in router_set:
             router.up = False
 
+        #Get a list of fingerprint/name tuples in the current descriptor file
         finger_name = ctl_util.get_finger_name_list()
 
         for router in finger_name:
@@ -92,9 +91,10 @@ class RouterUpdater:
                     router_data.up = True
                 except DoesNotExist:
                     #let's add it
-                    self.adder.add_new_router(finger, name)
+                    Router.objects.add_default_router(finger, name)
 
 def run_all():
+    """Run all updaters/checkers in proper sequence"""
     ctl_util = ctlutil.CtlUtil()
     router_updater = RouterUpdater(ctl_util)
     subscription_checker = SubscriptionChecker(ctl_util)
