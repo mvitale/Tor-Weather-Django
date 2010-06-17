@@ -7,8 +7,6 @@ from models import ModelAdder
 class SubscriptionChecker:
     """A class for checking and updating the various subscription types"""
     
-    # TO DO ------------------------------------------------------ BASE FEATURE
-
     def __init__(self, ctl_util):
         self.ctl_util = ctl_util
     
@@ -61,8 +59,6 @@ class SubscriptionChecker:
 
 class RouterUpdater:
     """A class for updating the Router table and sending 'welcome' emails"""
-
-    # TO DO ------------------------------------------------------ BASE FEATURE
 
     def __init__(self, ctl_util):
         self.ctl_util = ctl_util
