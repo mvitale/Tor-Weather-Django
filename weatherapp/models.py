@@ -11,6 +11,7 @@ from django import forms
 import emails
 from datetime import datetime
 import base64
+import os
 
 class RouterManager(models.Manager):
     def get_query_set(self):
@@ -23,7 +24,7 @@ class RouterManager(models.Manager):
                     last_seen = None):
         """Manager method to allow filtering of multiple fields without having
         to worry about chaining filters. Not necessary and only potentially
-        useful, but the necessary code would be required in L{is_in} either
+        useful, but the necessary code would be required in L{contains} either
         way. If a field is specified as None, then it will not filter that
         field.
         """
@@ -38,11 +39,11 @@ class RouterManager(models.Manager):
             filt = self.filter(last_seen__exact=last_seen)
         return filt
 
-    def is_in(self, 
-              fingerprint = None,
-              name = None,
-              welcomed = None,
-              last_seen = None):
+    def contains(self, 
+                 fingerprint = None,
+                 name = None,
+                 welcomed = None,
+                 last_seen = None):
         """Manager method allowing convenient testing of whether a 
         L{Router} with specified parameters is in the database. Uses 
         L{filt}, so fields specified as None are not filtered.
@@ -95,35 +96,35 @@ class SubscriberManager(models.Manager):
                     sub_date = None):
         """Manager method to allow filtering of multiple fields without having
         to worry about chaining filters. Not necessary and only potentially
-        useful, but the necessary code would be required in L{is_in} either
+        useful, but the necessary code would be required in L{contains} either
         way. If a field is specified as None, then it will not filter that
         field.
         """
         filt = self.all()
         if name != None:
-            filt = self.filter(email__exact=email)
+            filt = self.filter(email=email)
         if router != None:
-            filt = self.filter(router__exact=router)
+            filt = self.filter(router__id=router)
         if confirmed != None:
-            filt = self.filter(confirmed__exact=confirmed)
+            filt = self.filter(confirmed=confirmed)
         if confirm_auth != None:
-            filt = self.filter(confirm_auth__exact=confirm_auth)
+            filt = self.filter(confirm_auth=confirm_auth)
         if unsubs_auth != None:
-            filt = self.filter(unsubs_auth__exact=unsubs_auth)
+            filt = self.filter(unsubs_auth=unsubs_auth)
         if pref_auth != None:
-            filt = self.filter(pref_auth__exact=pref_auth)
+            filt = self.filter(pref_auth=pref_auth)
         if sub_date != None:
-            filt = self.filter(sub_date__exact=sub_date)
+            filt = self.filter(sub_date=sub_date)
         return filt
 
-    def is_in(self,
-              email = None,
-              router = None,
-              confirmed = None,
-              confirm_auth = None,
-              unsubs_auth = None,
-              pref_auth = None,
-              sub_date = None):
+    def contains(self,
+                 email = None,
+                 router_id = None,
+                 confirmed = None,
+                 confirm_auth = None,
+                 unsubs_auth = None,
+                 pref_auth = None,
+                 sub_date = None):
         """Manager method allowing convenient testing of whether a 
         L{Subscriber} with specified parameters is in the database. Uses 
         L{filt}, so fields specified as None are not filtered.
@@ -193,7 +194,7 @@ class SubscriptionManager(models.Manager):
         return super(SubscriptionManager, self).get_query_set()
     
     def multifilter(self,
-                    subscriber = None,
+                    subscriber_id = None,
                     name = None,
                     threshold = None,
                     grace_pd = None,
@@ -202,13 +203,13 @@ class SubscriptionManager(models.Manager):
                     last_changed = None):
         """Manager method to allow filtering of multiple fields without having
         to worry about chaining filters. Not necessary and only potentially
-        useful, but the necessary code would be required in L{is_in} either
+        useful, but the necessary code would be required in L{contains} either
         way. If a field is specified as None, then it will not filter that
         field.
         """
         filt = self.all()
         if subscriber != None:
-            filt = self.filter(subscriber__exact=subscriber)
+            filt = self.filter(subscriber__id__exact=subscriber)
         if name != None:
             filt = self.filter(name__exact=name)
         if threshold != None:
@@ -223,14 +224,14 @@ class SubscriptionManager(models.Manager):
             filt = self.filter(last_changed__exact=last_changed)
         return filt
     
-    def is_in(self, 
-             subscriber = None,
-             name = None,
-             threshold = None,
-             grace_pd = None,
-             emailed = None,
-             triggered = None,
-             last_changed = None):
+    def contains(self, 
+                 subscriber = None,
+                 name = None,
+                 threshold = None,
+                 grace_pd = None,
+                 emailed = None,
+                 triggered = None,
+                 last_changed = None):
         """Manager method allowing convenient testing of whether a 
         L{Subscription} with specified parameters is in the database. Uses 
         L{filt}, so fields specified as None are not filtered.
