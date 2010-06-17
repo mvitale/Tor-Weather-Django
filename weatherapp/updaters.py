@@ -60,9 +60,23 @@ class SubscriptionChecker:
         #self.check_earn_tshirt()
 
 class RouterUpdater:
-    """A class for updating the Router table and sending 'welcome' emails"""
+    """
+    A class for updating the Router table and sending 'welcome' emails
+  
+    @type ctl_util: CtlUtil
+    @ivar ctl_util: A CtlUtil object for handling interactions with
+    TorCtl
+    """
 
-    def __init__(self, ctl_util):
+    def __init__(self, ctl_util = ctlutil.CtlUtil()):
+        """
+        Default constructor.
+
+        @type ctl_util: CtlUtil
+        @param ctl_util: [optional] The CtlUtil object you want to use.
+        By default, creates a new CtlUtil instance.
+        """
+
         self.ctl_util = ctl_util
 
     def update_all(self):
