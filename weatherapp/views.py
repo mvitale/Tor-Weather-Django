@@ -5,7 +5,7 @@ models and views are called templates). This module contains a single
 controller for each page type. The controllers handle form submission and
 page rendering/redirection.
 """
-
+from django.db import models
 from django.shortcuts import render_to_response, get_object_or_404
 from weather.weatherapp.models import Subscriber, Subscription, Router
 from weather.weatherapp.models import SubscribeForm, PreferencesForm
