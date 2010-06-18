@@ -197,7 +197,7 @@ class NewSubscribeForm(forms.Form):
 
     get_node_down = forms.BooleanField(
             help_text='Receive notifications when node is down')
-    node_down_grace_pd = forms.IntegerField(max_length=4, 
+    node_down_grace_pd = forms.IntegerField( 
             help_text='How many hours of downtime?')
     node_down_grace_pd.help_text_2 = \
             'Enter a value between 1 and 4500 (roughly six months)'
@@ -210,23 +210,23 @@ class NewSubscribeForm(forms.Form):
                      (u'c3', u'out of date lvl 3'),
                      (u'c4', u'out of date lvl 4')),
                 help_text='How current would you like your version of Tor?')
-    out_of_date_grace_pd = forms.IntegerField(max_length=4,
+    out_of_date_grace_pd = forms.IntegerField(
             help_text='How quickly, in days, would you like to be notified?')
     out_of_date_grace_pd.help_text_2 = \
             'Enter a value between 1 and 200 (roughly six months)'
     
     get_band_low = forms.BooleanField(
             help_text='Receive notifications when node has low bandwidth')
-    out_of_date_threshold = forms.IntegerField(max_length=10,
+    out_of_date_threshold = forms.IntegerField(
             help_text='Critical bandwidth measured in kilobits')
-    out_of_date_grace_pd = forms.IntegerField(max_lenght=4,
+    out_of_date_grace_pd = forms.IntegerField(
             help_text='How many hours of low bandwidth?')
     out_of_date_grace_pd.help_text_2 = \
             'Enter a value between 1 and 4500 (roughly six months)'
 
     get_t_shirt = forms.BooleanField(
             help_text='Receive notification when node has earned a t-shirt')
-    t_shirt_grace_pd = forms.IntegerField(max_length=4,
+    t_shirt_grace_pd = forms.IntegerField(
             help_text='How quickly, in days, would you like to be notified?')
     t_shirt_grace_pd.help_text_2 = \
             'Enter a value between 1 and 200 (roughly six months)'
