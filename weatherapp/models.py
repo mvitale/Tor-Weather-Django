@@ -88,7 +88,7 @@ class SubscriberManager(models.Manager):
 
     def multifilter(self,
                     email = None,
-                    router = None,
+                    router_id = None,
                     confirmed = None,
                     confirm_auth = None,
                     unsubs_auth = None,
@@ -103,8 +103,8 @@ class SubscriberManager(models.Manager):
         filt = self.all()
         if name != None:
             filt = self.filter(email=email)
-        if router != None:
-            filt = self.filter(router__id=router)
+        if router_id != None:
+            filt = self.filter(router__id=router_id)
         if confirmed != None:
             filt = self.filter(confirmed=confirmed)
         if confirm_auth != None:

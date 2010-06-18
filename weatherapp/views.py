@@ -103,7 +103,7 @@ def pending(request, subscriber_id):
         the address the user provided."""
     user = get_object_or_404(Subscriber, pk=subscriber_id)
 
-    if ! user.confirmed:
+    if not user.confirmed:
         # TO DO ------------------------------------------------- EXTRA FEATURE
         # MOVE THE URLS TO A GENERAL LOCATION ---------------------------------
         return render_to_response('pending.html', {'email': sub.email})
