@@ -81,7 +81,9 @@ def subscribe(request):
             subscription.save()
 
             # Send the user to the pending page.
-            return HttpResponseRedirect('/pending/' + str(user.id) +'/')
+
+            return HttpResponseRedirect('/pending/'+user.confirm_auth+'/')
+
     else:
         # User hasn't submitted info, so just display empty subscribe form.
         form = SubscribeForm()
@@ -104,35 +106,35 @@ def pending(request, confirm_auth):
     if not user.confirmed:
         # TO DO ------------------------------------------------- EXTRA FEATURE
         # MOVE THE URLS TO A GENERAL LOCATION ---------------------------------
-        return render_to_response(Templates.pending, {'email': sub.email})
+        return render_to_response(Templates.pending, {'email': user.email})
 
     # Returns the user to the home page if the subscriber has already confirmed
     return HttpResponseRedirect('/$')
 
-def confirm(request, confirm_auth_id):
+def confirm(request, confirm_auth):
     """The confirmation page, which is displayed when the user follows the
         link sent to them in the confirmation email"""
-    user = get_object_or_404(Subscriber, confirm_auth=confirm_auth_id)
-    router = Router.objects.get(pk=sub.router)
+    user = get_object_or_404(Subscriber, confirm_auth=confirm_auth)
+    router = user.router 
 
     # TO DO ----------------------------------------------------- EXTRA FEATURE
     # MOVE THE URLS TO A GENERAL LOCATION -------------------------------------
-    unsubURL = baseURL + "/unsubscribe/" + suber.unsubs_auth + "/"
-    prefURL = baseURL + "/preferences/" + suber.pref_auth + "/"
+    unsubURL = baseURL + "/unsubscribe/" + user.unsubs_auth + "/"
+    prefURL = baseURL + "/preferences/" + user.pref_auth + "/"
     return render_to_response(Templates.confirm, {'email': user.email, 
             'fingerprint' : router.fingerprint, 'nodeName' : router.name, 
             'unsubURL' : unsubURL, 'prefURL' : prefURL})
     # TO DO ------------------------------------------------------ BASE FEATURE
     # CHECK IF THE TEMPLATE TO MAKE SURE THIS RIGHT ---------------------------
         
-def unsubscribe(request, unsubscribe_auth_id):
+def unsubscribe(request, unsubscribe_auth):
     """The unsubscribe page, which displays a message informing the user
     that they will no longer receive emails at their email address about
     the given Tor node."""
     
     # Get the user and router.
-    user = get_object_or_404(Subscriber, unsubs_auth = unsubscribe_auth_id)
-    router = get_object_or_404(Router, pk = user.router.id)
+    user = get_object_or_404(Subscriber, unsubs_auth = unsubscribe_auth)
+    router = user.router
     
     email = user.email
     router_name = router.name
@@ -219,7 +221,7 @@ def error(request, error_type, subscriber_id):
     type passed to this controller."""
     
     user = get_object_or_404(Subscriber, id=subscriber_id)
-    __ALREADY_SUBSCRIBED = "You are already subscribed to receive email" +\
+    __ALREADY_SUBSCRIBED = "You are already subscribed to receive email " +\
         "alerts about the node you specified. If you'd like, you can" +\
         " <a href = '%s'>change your preferences here</a>" % (baseURL +\
         '/preferences/' + user.pref_auth + '/')
