@@ -145,11 +145,13 @@ Legal mumbo jumbo
 class Emailer:
     @staticmethod
     def send_confirmation(recipient,
+                          fingerprint,
                           conf_auth,
                           sender = _SENDER,
                           subj_header = _SUBJECT_HEADER):
         subj = subj_header + _CONFIRMATION_SUBJ
-        msg = _CONFIRMATION_MAIL % baseURL + '/confirm/' + conf_auth + '/'
+        msg = _CONFIRMATION_MAIL % fingerprint, baseURL + '/confirm/' 
+                                                + conf_auth + '/'
         send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
     @staticmethod
