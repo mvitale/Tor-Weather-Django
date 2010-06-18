@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h3> Neo Sign Up! </h3>
+
+<br />
+<form method="post" action="/subscribe/">{% csrf_token %}
+You can use this form to request status updates to tell you when a particular
+Tor node has become unreachable for a sustained period of time.
+<br /><br />
+
+<div class="subscriber-info">
+<p>
+	<table><tr><td>
+		{{ form.email_1.errors }}
+		<label for="id_email_1">Email Address:</label><br />
+		{{ form.email_1 }}
+	</td><td>
+		{{ form.email_2.errors }}
+		<label for="id_email_2">Re-enter Email Address:</label><br />
+		{{ form.email_2 }}
+	</td></tr></table>
+</p>
+	
+<p>
+	{{ form.fingerprint.errors }}
+	<label for="id_fingerprint">Node Fingerprint:</label><br />
+	{{ form.fingerprint }}
+</p>
+</div>
+
+<div class="node-down-info">
+<p>
+</p>
+
+<div class="out-of-date-info">
+<p>
+</p>
+
+<div class="low-bandwidth-info">
+<p>
+</p>
+
+<div class="t-shirt-info">
+<p>
+</p>
+
+<p>
+<input type="submit" class="submit" value="Subscribe to Tor Weather" name="sa"/>
+</p>
+</form>
+
+{% endblock content %}
