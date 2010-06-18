@@ -46,10 +46,9 @@ def subscribe(request):
             fingerprint = form.cleaned_data['fingerprint']
             grace_pd = form.cleaned_data['grace_pd']
             
-            router_list = Router.objects.multifilter(fingerprint=fingerprint)
+            router_list = Router.objects.filter(fingerprint=fingerprint)
             if router_list != Router.objects.none():
                 router = router_list[0]
-                router_pk = router.id
             else:
                 # TO DO ----------------------------------------- EXTRA FEATURE
                 # MOVE THE URLS TO A GENERAL LOCATION -------------------------
@@ -58,8 +57,8 @@ def subscribe(request):
             # If there is already a subscriber with same email address and 
             # router, then they're already subscribed and probably don't mean
             # to subscribe again.
-            user_list = Subscriber.objects.multifilter(email=addr,
-                                                       router_id=router_pk)
+            user_list = Subscriber.objects.filter(email=addr,
+                                                       router=router)
             if user_list != Subscriber.objects.none():
                 user = user_list[0]
                 # TO DO ----------------------------------------- EXTRA FEATURE
@@ -171,7 +170,11 @@ def preferences(request, preferences_auth_id):
             return HttpResponseRedirect('confirm_pref/'+preferences_auth_id+'/',
                     preferences_auth_id) 
 
-    #the user hasn't submitted the form yet or submitted it incorrectly, 
+    # TO DO ----------------------------------------------------- EXTRA FEATURE
+    # SHOULD IMPLEMENT ERROR MESSAGES THAT SAY THE FORM IS --------------------
+    # SPECIFIED INCORRECTLY ---------------------------------------------------
+
+    # The user hasn't submitted the form yet or submitted it incorrectly, 
     # so the page with the preferences form is displayed.
 
     # get the user
@@ -185,13 +188,13 @@ def preferences(request, preferences_auth_id):
     # this should be updated as the preferences are expanded
     data = {'grace_pd' : node_down_sub.grace_pd}
 
-    # populates a PreferencesForm object with the user's existing prefs
+    # populates a PreferencesForm object with the user's existing prefs.
     form = PreferencesForm(initial=data)    
     
-    # maps the form to the template
+    # maps the form to the template.
     c = {'form' : form}
 
-    # Creates a CSRF protection key
+    # Creates a CSRF protection key.
     c.update(csrf(request))
     return render_to_response('preferences.html', c)
 

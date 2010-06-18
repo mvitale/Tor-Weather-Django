@@ -17,28 +17,6 @@ class RouterManager(models.Manager):
     def get_query_set(self):
         return super(RouterManager, self).get_query_set()
 
-    def multifilter(self, 
-                    fingerprint = None,
-                    name = None,
-                    welcomed = None,
-                    last_seen = None):
-        """Manager method to allow filtering of multiple fields without having
-        to worry about chaining filters. Not necessary and only potentially
-        useful, but the necessary code would be required in L{contains} either
-        way. If a field is specified as None, then it will not filter that
-        field.
-        """
-        filt = self.all()
-        if fingerprint != None:
-            filt = self.filter(fingerprint__exact=fingerprint)
-        if name != None:
-            filt = self.filter(name__exact=name)
-        if welcomed != None:
-            filt = self.filter(welcomed__exact=welcomed)
-        if last_seen != None:
-            filt = self.filter(last_seen__exact=last_seen)
-        return filt
-
     def contains(self, 
                  fingerprint = None,
                  name = None,
@@ -48,8 +26,8 @@ class RouterManager(models.Manager):
         L{Router} with specified parameters is in the database. Uses 
         L{filt}, so fields specified as None are not filtered.
         """
-        return self.multifilter(fingerprint, name, welcomed, 
-                                last_seen) != self.none()
+        return self.filter(fingerprint, name, welcomed, 
+                           last_seen) != self.none()
 
 class Router(models.Model):
     """A model that stores information about every router on the Tor network.
@@ -86,37 +64,6 @@ class SubscriberManager(models.Manager):
     def get_query_set(self):
         return super(SubscriberManager, self).get_query_set()
 
-    def multifilter(self,
-                    email = None,
-                    router_id = None,
-                    confirmed = None,
-                    confirm_auth = None,
-                    unsubs_auth = None,
-                    pref_auth = None,
-                    sub_date = None):
-        """Manager method to allow filtering of multiple fields without having
-        to worry about chaining filters. Not necessary and only potentially
-        useful, but the necessary code would be required in L{contains} either
-        way. If a field is specified as None, then it will not filter that
-        field.
-        """
-        filt = self.all()
-        if name != None:
-            filt = self.filter(email=email)
-        if router_id != None:
-            filt = self.filter(router__id=router_id)
-        if confirmed != None:
-            filt = self.filter(confirmed=confirmed)
-        if confirm_auth != None:
-            filt = self.filter(confirm_auth=confirm_auth)
-        if unsubs_auth != None:
-            filt = self.filter(unsubs_auth=unsubs_auth)
-        if pref_auth != None:
-            filt = self.filter(pref_auth=pref_auth)
-        if sub_date != None:
-            filt = self.filter(sub_date=sub_date)
-        return filt
-
     def contains(self,
                  email = None,
                  router_id = None,
@@ -129,7 +76,7 @@ class SubscriberManager(models.Manager):
         L{Subscriber} with specified parameters is in the database. Uses 
         L{filt}, so fields specified as None are not filtered.
         """
-        return self.multifilter(email, router, confirmed, 
+        return self.filter(email, router, confirmed, 
                                 confirm_auth, unsubs_auth, pref_auth,
                                 sub_date) != self.none()
 
@@ -193,37 +140,6 @@ class SubscriptionManager(models.Manager):
     def get_query_set(self):
         return super(SubscriptionManager, self).get_query_set()
     
-    def multifilter(self,
-                    subscriber_id = None,
-                    name = None,
-                    threshold = None,
-                    grace_pd = None,
-                    emailed = None,
-                    triggered = None,
-                    last_changed = None):
-        """Manager method to allow filtering of multiple fields without having
-        to worry about chaining filters. Not necessary and only potentially
-        useful, but the necessary code would be required in L{contains} either
-        way. If a field is specified as None, then it will not filter that
-        field.
-        """
-        filt = self.all()
-        if subscriber != None:
-            filt = self.filter(subscriber__id__exact=subscriber)
-        if name != None:
-            filt = self.filter(name__exact=name)
-        if threshold != None:
-            filt = self.filter(threshold__exact=threshold)
-        if grace_pd != None:
-            filt = self.filter(grace_pd__exact=grace_pd)
-        if emailed != None:
-            filt = self.filter(emailed__exact=emailed)
-        if triggered != None:
-            filt = self.filter(triggered__exact=triggered)
-        if last_changed != None:
-            filt = self.filter(last_changed__exact=last_changed)
-        return filt
-    
     def contains(self, 
                  subscriber = None,
                  name = None,
@@ -236,7 +152,7 @@ class SubscriptionManager(models.Manager):
         L{Subscription} with specified parameters is in the database. Uses 
         L{filt}, so fields specified as None are not filtered.
         """
-        return self.multifilter(subscriber, name, threshold, grace_pd, emailed,
+        return self.filter(subscriber, name, threshold, grace_pd, emailed,
                                 triggered, last_changed) != self.none()
              
 
