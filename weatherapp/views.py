@@ -14,16 +14,16 @@ from django.core.context_processors import csrf
 from django.http import HttpResponseRedirect, HttpRequest, Http404
 from django.http import HttpResponse
 
-# -----------------------------------------------------------------------
-# FILL IN ONCE WE KNOW THE SITE! ----------------------------------------
-# -----------------------------------------------------------------------
+# TO DO --------------------------------------------------------- EXTRA FEATURE
+# MOVE THIS TO A MORE GENERAL LOCATION ----------------------------------------
 baseURL = "http://localhost:8000"
 
 def home(request):
     """Displays a home page for Tor Weather with basic information about
         the application."""
+    # TO DO ----------------------------------------------------- EXTRA FEATURE
+    # MOVE THE URLS TO A GENERAL LOCATION -------------------------------------
     subscribe = '/subscribe/' 
-# --------------- Change this later so it isn't hard coded -------------
     return render_to_response('home.html', {'sub' : subscribe})
 
 def subscribe(request):
@@ -38,64 +38,60 @@ def subscribe(request):
         # handle the submitted form:
         form = SubscribeForm(request.POST)
 
-# -----------------------------------------------------------------------
-# NEED TO CHECK HOW DJANGO CHECKS IF AN EMAIL FIELD IS VALID ------------
-# -----------------------------------------------------------------------
+        # TO DO ------------------------------------------------- EXTRA FEATURE
+        # CHECK HOW DJANGO CHECKS EMAIL FIELD, POSSIBLY -----------------------
+        # ADD A SECOND EMAIL FIELD FOR CONFIRMATION ---------------------------
         if form.is_valid():
             addr = form.cleaned_data['email']
             fingerprint = form.cleaned_data['fingerprint']
             grace_pd = form.cleaned_data['grace_pd']
             
-            router_primary_key = 0
-            # this will store the router's primary key, which we need to add
-            # the subscriber to the database
-            router_list = Router.objects.filer(fingerprint = fingerprint)
+            router_query_set = Router.objects.filer(fingerprint = fingerprint)
             
-            if router_list.length == 0:
+            if len(router_query_set) == 0:
                 return HttpResponseRedirect('/fingerprint_error/' +\
                     fingerprint + '/')
             router = router_list[0]
             router_primary_key = router.id
 
-# ---------------------------------------------------------------------
-# FIX THIS!!!!!
-
-            try:
-                user = Subscriber.objects.get(email=addr, 
-                                              router=router_primary_key)
-                # if no error is raised, the user is already subscribed to
-                # this router, so we redirect them.
+            user_query_set = Subscriber.objects.filter(email=addr,
+                                                  router=router_primary_key) 
+            # if the Subscriber is in the set, the user is already subscribed 
+            # to this router, so we redirect them.
+            if len(user_query_set) > 0:
+                user = user_query_set[0]
                 return HttpResponseRedirect('/error/already_subscribed/'+\
                     user.id+'/')
-# ---------------------------------------------------------------------
-#   Should redirect to a specific error page (already subscribed)
-# ---------------------------------------------------------------------
-            except Subscriber.DoesNotExist:
-                # the user isn't subscribed yet, send the email & add them
-                pass 
-# ---------------------------------------------------------------------
-#  make sure the method name is correct for sending the email
-# ---------------------------------------------------------------------
+            
+            # the user isn't subscribed yet, send the email & add them
             Emailer.send_confirmation(addr, fingerprint, user.confirm_auth)
             
-            # Create the subscriber model for the user
-            user = Subscriber(email=addr, router=router_primary_key)
-            # Save the subscriber data to the database
+            # Create the subscriber model for the user.
+            user = Subscriber(email=addr, router=router_pk)
+
+            # Save the subscriber data to the database.
             user.save()
-            # Create the node_down subscription and save to db
+            
+            # Create the node_down subscription and save to db.
+            # TO DO --------------------------------------------- EXTRA FEATURE
+            # MOVE THE SUBSCRIPTION NAMES TO A GENERAL LOCATION ---------------
             subscription = Subscription(subscriber=user, name='node_down', 
                 grace_pd=grace_pd)
             subscription.save()
-            # send the user to the pending page
+
+            # Send the user to the pending page.
             return HttpResponseRedirect('/pending/'+user.id+'/')
     else:
-        # user hasn't submitted info, just display the empty subscribe form
+        # User hasn't submitted info, so just display empty subscribe form.
         form = SubscribeForm()
         c = {'form' : form}
 
-        # for pages with POST methods, a Cross Site Request Forgery protection
-        # key is added to block attacking sites
+        # For pages with POST methods, a Cross Site Request Forgery protection
+        # key is added to block attacking sites.
         c.update(csrf(request))
+
+    # TO DO ----------------------------------------------------- EXTRA FEATURE
+    # MOVE THE URLS TO A GENERAL LOCATION -------------------------------------
     return render_to_response('subscribe.html', c)
 
 def pending(request, subscriber_id):
@@ -103,42 +99,47 @@ def pending(request, subscriber_id):
         The page tells the user that a confirmation email has been sent to 
         the address the user provided."""
     user = get_object_or_404(Subscriber, pk=subscriber_id)
-    if user.confirmed == false:
+
+    if ! user.confirmed:
+        # TO DO ------------------------------------------------- EXTRA FEATURE
+        # MOVE THE URLS TO A GENERAL LOCATION ---------------------------------
         return render_to_response('pending.html', {'email': sub.email})
-    #returns the user to the home page if the subscriber has already confirmed
+
+    # Returns the user to the home page if the subscriber has already confirmed
     return HttpResponseRedirect('/$')
 
 def confirm(request, confirm_auth_id):
     """The confirmation page, which is displayed when the user follows the
         link sent to them in the confirmation email"""
     user = get_object_or_404(Subscriber, confirm_auth=confirm_auth_id)
-    router = Router.objects.get(pk=user.router)
-    unsubURL = baseURL + "/unsubscribe/" + user.unsubs_auth + "/"
-    prefURL = baseURL + "/preferences/" + user.pref_auth + "/"
+    router = Router.objects.get(pk=sub.router)
 
-    Emailer.send_confirmed(user.email, router.fingerprint, user.unsubs_auth, 
-                           user.pref_auth)
+    # TO DO ----------------------------------------------------- EXTRA FEATURE
+    # MOVE THE URLS TO A GENERAL LOCATION -------------------------------------
+    unsubURL = baseURL + "/unsubscribe/" + suber.unsubs_auth + "/"
+    prefURL = baseURL + "/preferences/" + suber.pref_auth + "/"
     return render_to_response('confirm.html', {'email': user.email, 
             'fingerprint' : router.fingerprint, 'nodeName' : router.name, 
             'unsubURL' : unsubURL, 'prefURL' : prefURL})
-#---------------CHECK THIS TEMPLATE-------------------------------------
+    # TO DO ------------------------------------------------------ BASE FEATURE
+    # CHECK IF THE TEMPLATE TO MAKE SURE THIS RIGHT ---------------------------
         
 def unsubscribe(request, unsubscribe_auth_id):
     """The unsubscribe page, which displays a message informing the user
     that they will no longer receive emails at their email address about
     the given Tor node."""
     
-    #get the user and router
+    # Get the user and router.
     user = get_object_or_404(Subscriber, unsubs_auth = unsubscribe_auth_id)
-    router = get_object_or_404(Router, pk = user.router)
+    router = get_object_or_404(Router, pk = user.router.id)
     
     email = user.email
     router_name = router.name
     fingerprint = router.fingerprint 
     
-    #we know the router has a fingerprint, but it might not have a name.
+    # We know the router has a fingerprint, but it might not have a name.
     name = ""
-    if not router_name.equals("Unnamed"):
+    if router.name != "Unnamed":
         name += " " + router_name + ","
 
     # delete the Subscriber (all Subscriptions with a foreign key relationship
@@ -152,21 +153,26 @@ def preferences(request, preferences_auth_id):
     """The preferences page, which contains the preferences form initially
         populated by user-specific data"""
     if request.method == "POST":
-        #the user submitted the preferences form and is redirected to the
-        #confirmation page.
+        # The user submitted the preferences form and is redirected to the 
+        # confirmation page.
         form = PreferencesForm(request.POST)
         if form.is_valid():
             grace_pd = form.cleaned_data['grace_pd']
             user = get_object_or_404(Subscriber, pref_auth = 
-                preferences_auth_id)
-            # get the node down subscription so we can update grace_pd
+                                     preferences_auth_id)
+
+            # Get the node_down subscription so we can update grace_pd.
             node_down_sub = get_object_or_404(Subscription, subscriber = user,
                 name = node_down)
             node_down_sub.update(grace_pd = grace_pd)
             return HttpResponseRedirect('confirm_pref/'+preferences_auth_id+'/',
                     preferences_auth_id) 
 
-    #the user hasn't submitted the form yet or submitted it incorrectly, 
+    # TO DO ----------------------------------------------------- EXTRA FEATURE
+    # SHOULD IMPLEMENT ERROR MESSAGES THAT SAY THE FORM IS --------------------
+    # SPECIFIED INCORRECTLY ---------------------------------------------------
+
+    # The user hasn't submitted the form yet or submitted it incorrectly, 
     # so the page with the preferences form is displayed.
 
     # get the user
@@ -180,13 +186,13 @@ def preferences(request, preferences_auth_id):
     # this should be updated as the preferences are expanded
     data = {'grace_pd' : node_down_sub.grace_pd}
 
-    # populates a PreferencesForm object with the user's existing prefs
+    # populates a PreferencesForm object with the user's existing prefs.
     form = PreferencesForm(initial=data)    
     
-    # maps the form to the template
+    # maps the form to the template.
     c = {'form' : form}
 
-    # Creates a CSRF protection key
+    # Creates a CSRF protection key.
     c.update(csrf(request))
     return render_to_response('preferences.html', c)
 
