@@ -49,12 +49,16 @@ def subscribe(request):
             router_primary_key = 0
             # this will store the router's primary key, which we need to add
             # the subscriber to the database
-            try:
-                router = Router.objects.get(fingerprint = fingerprint)
-                router_primary_key = router.id
-            except Router.DoesNotExist:
+            router_list = Router.objects.filer(fingerprint = fingerprint)
+            
+            if router_list.length == 0:
                 return HttpResponseRedirect('/fingerprint_error/' +\
                     fingerprint + '/')
+            router = router_list[0]
+            router_primary_key = router.id
+
+# ---------------------------------------------------------------------
+# FIX THIS!!!!!
 
             try:
                 user = Subscriber.objects.get(email=addr, 
