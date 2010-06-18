@@ -213,7 +213,7 @@ def fingerprint_error(request, fingerprint):
     return render_to_response('fingerprint_error.html', {'fingerprint' :
         fingerprint})
 
-def error(request, error_type, user_id):
+def error(request, error_type, subscriber_id):
     """The generic error page, which displays a message based on the error
     type passed to this controller."""
     
