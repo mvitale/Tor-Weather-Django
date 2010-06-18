@@ -52,10 +52,9 @@ def subscribe(request):
                 return HttpResponseRedirect('/fingerprint_error/' +\
                     fingerprint + '/')
             router = router_query_set[0]
-            router_primary_key = router.id
 
             user_query_set = Subscriber.objects.filter(email=addr,
-                                                  router=router_primary_key) 
+                                                  router=router) 
             # if the Subscriber is in the set, the user is already subscribed 
             # to this router, so we redirect them.
             if len(user_query_set) > 0:
@@ -65,7 +64,7 @@ def subscribe(request):
             
            
             # Create the subscriber model for the user.
-            user = Subscriber(email=addr, router=router_primary_key)
+            user = Subscriber(email=addr, router=router)
 
             # Save the subscriber data to the database.
             user.save()
