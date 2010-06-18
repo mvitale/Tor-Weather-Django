@@ -194,10 +194,42 @@ class NewSubscribeForm(forms.Form):
     email_1 = forms.EmailField(max_length=75, help_text='Email:')
     email_2 = forms.EmailField(max_length=75, help_text='Re-enter Email:')
     fingerprint = forms.CharField(max_length=40, help_text='Node Fingerprint:')
-    node_down_grace_pd = forms.IntegerField(max_length=4)
-    out_of_date_threshold = forms.ChoiceField(choices=[])
 
+    get_node_down = forms.BooleanField(
+            help_text='Receive notifications when node is down')
+    node_down_grace_pd = forms.IntegerField(max_length=4, 
+            help_text='How many hours of downtime?')
+    node_down_grace_pd.help_text_2 = \
+            'Enter a value between 1 and 4500 (roughly six months)'
+    
+    get_out_of_date = forms.BooleanField(
+            help_text='Receive notifications when node is out of date')
+    out_of_date_threshold = forms.ChoiceField(
+            choices=((u'c1', u'out of date lvl 1'),
+                     (u'c2', u'out of date lvl 2'),
+                     (u'c3', u'out of date lvl 3'),
+                     (u'c4', u'out of date lvl 4')),
+                help_text='How current would you like your version of Tor?')
+    out_of_date_grace_pd = forms.IntegerField(max_length=4,
+            help_text='How quickly, in days, would you like to be notified?')
+    out_of_date_grace_pd.help_text_2 = \
+            'Enter a value between 1 and 200 (roughly six months)'
+    
+    get_band_low = forms.BooleanField(
+            help_text='Receive notifications when node has low bandwidth')
+    out_of_date_threshold = forms.IntegerField(max_length=10,
+            help_text='Critical bandwidth measured in kilobits')
+    out_of_date_grace_pd = forms.IntegerField(max_lenght=4,
+            help_text='How many hours of low bandwidth?')
+    out_of_date_grace_pd.help_text_2 = \
+            'Enter a value between 1 and 4500 (roughly six months)'
 
+    get_t_shirt = forms.BooleanField(
+            help_text='Receive notification when node has earned a t-shirt')
+    t_shirt_grace_pd = forms.IntegerField(max_length=4,
+            help_text='How quickly, in days, would you like to be notified?')
+    t_shirt_grace_pd.help_text_2 = \
+            'Enter a value between 1 and 200 (roughly six months)'
 
 class PreferencesForm(forms.Form):
     """The form for changing preferences.
