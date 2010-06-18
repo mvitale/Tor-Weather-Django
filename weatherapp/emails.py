@@ -150,8 +150,8 @@ class Emailer:
                           sender = _SENDER,
                           subj_header = _SUBJECT_HEADER):
         subj = subj_header + _CONFIRMATION_SUBJ
-        msg = _CONFIRMATION_MAIL % fingerprint, baseURL + '/confirm/' 
-                                                + conf_auth + '/'
+        msg = _CONFIRMATION_MAIL % fingerprint, baseURL + '/confirm/' +\
+                                                conf_auth + '/'
         send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
     @staticmethod
