@@ -225,7 +225,7 @@ def error(request, error_type, subscriber_id):
     # TO DO ----------------------------------------------------- EXTRA FEATURE
     # FIX THIS LINK STUFF -----------------------------------------------------
 
-    if error_type == already_subscribed:
+    if error_type == 'already_subscribed':
         message = __ALREADY_SUBSCRIBED
     return render_to_response('error.html', {'error_message' : message})
 
