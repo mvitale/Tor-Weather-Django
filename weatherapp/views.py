@@ -100,7 +100,7 @@ def pending(request, subscriber_id):
         the address the user provided."""
     user = get_object_or_404(Subscriber, pk=subscriber_id)
 
-    if ! user.confirmed:
+    if not user.confirmed:
         # TO DO ------------------------------------------------- EXTRA FEATURE
         # MOVE THE URLS TO A GENERAL LOCATION ---------------------------------
         return render_to_response('pending.html', {'email': sub.email})
@@ -222,9 +222,8 @@ def error(request, error_type, user_id):
         "alerts about the node you specified. If you'd like, you can" +\
         " <a href = '%s'>change your preferences here</a>" % baseURL #+\
         #'/preferences/' + user.pref_auth + '/'
-#----------------------------------------------------------------------
-# FIX THIS LINK STUFF
-#----------------------------------------------------------------------
+    # TO DO ----------------------------------------------------- EXTRA FEATURE
+    # FIX THIS LINK STUFF -----------------------------------------------------
 
     if error_type == already_subscribed:
         message = __ALREADY_SUBSCRIBED

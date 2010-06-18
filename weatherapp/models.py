@@ -17,18 +17,6 @@ class RouterManager(models.Manager):
     def get_query_set(self):
         return super(RouterManager, self).get_query_set()
 
-    def contains(self, 
-                 fingerprint = None,
-                 name = None,
-                 welcomed = None,
-                 last_seen = None):
-        """Manager method allowing convenient testing of whether a 
-        L{Router} with specified parameters is in the database. Uses 
-        L{filt}, so fields specified as None are not filtered.
-        """
-        return self.filter(fingerprint, name, welcomed, 
-                           last_seen) != self.none()
-
 class Router(models.Model):
     """A model that stores information about every router on the Tor network.
     If a router hasn't been seen on the network for at least one year, it is
@@ -63,22 +51,6 @@ class Router(models.Model):
 class SubscriberManager(models.Manager):
     def get_query_set(self):
         return super(SubscriberManager, self).get_query_set()
-
-    def contains(self,
-                 email = None,
-                 router_id = None,
-                 confirmed = None,
-                 confirm_auth = None,
-                 unsubs_auth = None,
-                 pref_auth = None,
-                 sub_date = None):
-        """Manager method allowing convenient testing of whether a 
-        L{Subscriber} with specified parameters is in the database. Uses 
-        L{filt}, so fields specified as None are not filtered.
-        """
-        return self.filter(email, router, confirmed, 
-                                confirm_auth, unsubs_auth, pref_auth,
-                                sub_date) != self.none()
 
     @staticmethod
     def get_rand_string(length = 24):
@@ -140,22 +112,6 @@ class SubscriptionManager(models.Manager):
     def get_query_set(self):
         return super(SubscriptionManager, self).get_query_set()
     
-    def contains(self, 
-                 subscriber = None,
-                 name = None,
-                 threshold = None,
-                 grace_pd = None,
-                 emailed = None,
-                 triggered = None,
-                 last_changed = None):
-        """Manager method allowing convenient testing of whether a 
-        L{Subscription} with specified parameters is in the database. Uses 
-        L{filt}, so fields specified as None are not filtered.
-        """
-        return self.filter(subscriber, name, threshold, grace_pd, emailed,
-                                triggered, last_changed) != self.none()
-             
-
 class Subscription(models.Model):
     """The model storing information about a specific subscription. Each type
     of email notification that a user selects generates a new subscription. 
