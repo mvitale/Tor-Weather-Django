@@ -63,15 +63,16 @@ def subscribe(request):
                 return HttpResponseRedirect('/error/already_subscribed/'+\
                     user.id+'/')
             
-            # the user isn't subscribed yet, send the email & add them
-            Emailer.send_confirmation(addr, fingerprint, user.confirm_auth)
-            
+           
             # Create the subscriber model for the user.
             user = Subscriber(email=addr, router=router_pk)
 
             # Save the subscriber data to the database.
             user.save()
             
+            # the user isn't subscribed yet, send the email & add them
+            Emailer.send_confirmation(addr, fingerprint, user.confirm_auth)
+             
             # Create the node_down subscription and save to db.
             # TO DO --------------------------------------------- EXTRA FEATURE
             # MOVE THE SUBSCRIPTION NAMES TO A GENERAL LOCATION ---------------
