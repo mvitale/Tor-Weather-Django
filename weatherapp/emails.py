@@ -1,3 +1,5 @@
+from django.core.mail import send_mail
+
 baseURL = 'http://localhost:8000'
 _SENDER = 'tor-ops@torproject.org'
 _SUBJECT_HEADER = '[Tor Weather] '
@@ -145,11 +147,13 @@ Legal mumbo jumbo
 class Emailer:
     @staticmethod
     def send_confirmation(recipient,
+                          fingerprint,
                           conf_auth,
                           sender = _SENDER,
                           subj_header = _SUBJECT_HEADER):
         subj = subj_header + _CONFIRMATION_SUBJ
-        msg = _CONFIRMATION_MAIL % baseURL + '/confirm/' + conf_auth + '/'
+        msg = _CONFIRMATION_MAIL % (fingerprint, baseURL + '/confirm/' +\
+                                                conf_auth + '/')
         send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
     @staticmethod
