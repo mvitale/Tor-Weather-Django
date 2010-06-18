@@ -81,7 +81,7 @@ def subscribe(request):
             subscription.save()
 
             # Send the user to the pending page.
-            return HttpResponseRedirect('/pending/'+user.id+'/')
+            return HttpResponseRedirect('/pending/' + str(user.id) +'/')
     else:
         # User hasn't submitted info, so just display empty subscribe form.
         form = SubscribeForm()
@@ -221,8 +221,8 @@ def error(request, error_type, subscriber_id):
     user = get_object_or_404(Subscriber, id=subscriber_id)
     __ALREADY_SUBSCRIBED = "You are already subscribed to receive email" +\
         "alerts about the node you specified. If you'd like, you can" +\
-        " <a href = '%s'>change your preferences here</a>" % baseURL +\
-        '/preferences/' + user.pref_auth + '/'
+        " <a href = '%s'>change your preferences here</a>" % (baseURL +\
+        '/preferences/' + user.pref_auth + '/')
     # TO DO ----------------------------------------------------- EXTRA FEATURE
     # FIX THIS LINK STUFF -----------------------------------------------------
 

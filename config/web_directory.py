@@ -29,7 +29,7 @@ class Templates:
     subscribe = 'subscribe.html'
     unsubscribe = 'unsubscribe.html'
 
-class URLs:
+class Urls:
     """The URLs class maps all of the url extensions to instance variables
     for easier access by the controllers.
 
