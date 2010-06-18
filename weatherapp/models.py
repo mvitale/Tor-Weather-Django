@@ -118,7 +118,6 @@ class Subscription(models.Model):
     For instance, each subscriber who elects to be notified about low bandwidth
     will have a low_bandwidth subscription.
     
-    @type subscriber: ######### (foreign key)
     @ivar subscriber: A link to the subscriber model representing the owner
         of this subscription.
     @type name: str
