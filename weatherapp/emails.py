@@ -148,7 +148,7 @@ class Emailer:
                           conf_auth,
                           sender = _SENDER,
                           subj_header = _SUBJECT_HEADER):
-        subj = _SUBJ_HEADER + _CONFIRMATION_SUBJ
+        subj = subj_header + _CONFIRMATION_SUBJ
         msg = _CONFIRMATION_MAIL % baseURL + '/confirm/' + conf_auth + '/'
         send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
@@ -159,7 +159,7 @@ class Emailer:
                        pref_auth,
                        sender = _SENDER,
                        subj_header = _SUBJECT_HEADER):
-        subj = _SUBJ_HEADER + _CONFIRMED_SUBJ
+        subj = subj_header + _CONFIRMED_SUBJ
         unsubURL = baseURL + '/unsubscribe/' + unsub_auth + '/'
         prefURL = baseURL + '/preferences/' + pref_auth + '/'
         msg = _CONFIRMED_MAIL % fingerprint, unsubURL, prefURL 
@@ -173,7 +173,7 @@ class Emailer:
                        pref_auth,
                        sender = _SENDER,
                        subj_header = _SUBJECT_HEADER):
-        subj = _SUBJ_HEADER + _NODE_DOWN_SUBJ
+        subj = subj_header + _NODE_DOWN_SUBJ
         unsubURL = baseURL + '/unsubscribe/'+ unsub_auth + '/'
         prefURL = baseURL + '/preferences/' + pref_auth + '/'
         msg = _NODE_DOWN_MAIL % fingerprint, grace_pd, unsubURL, prefURL
@@ -185,7 +185,7 @@ class Emailer:
                      pref_auth,
                      sender = _SENDER,
                      subj_header = _SUBJECT_HEADER):
-        subj = _SUBJ_HEADER + _T_SHIRT_SUBJ
+        subj = subj_header + _T_SHIRT_SUBJ
         unsubURL = baseURL + '/unsubscribe/' + unsub_auth + '/'
         prefURL = baseURL + '/preferences/' + pref_auth + '/'
         msg = _T_SHIRT_MAIL % unsubURL, prefURL
@@ -195,7 +195,7 @@ class Emailer:
     def send_welcome(recipient,
                      sender = _SENDER,
                      subj_header = _SUBJECT_HEADER):
-        subj = _SUBJ_HEADER + _WELCOME_SUBJ
+        subj = subj_header + _WELCOME_SUBJ
         msg = _WELCOME_MAIL 
         send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
@@ -204,6 +204,6 @@ class Emailer:
                    # PUT REQUIRED NUMBER OF % PARAMETERS HERE
                    sender = _SENDER,
                    subj_header = _SUBJECT_HEADER):
-        subj = _SUBJ_HEADER + _WELCOME_SUBJ
+        subj = subj_header + _WELCOME_SUBJ
         msg = _LEGAL_MAIL #% PUT PARAMETERS HERE
         send_mail(subj, msg, sender, [recipient], fail_silently=True)

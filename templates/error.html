@@ -2,5 +2,8 @@
 
 {% block content %}
 <h3>Error</h3>
-<p>{{ error_message }}</p>
+
+<!-->|safe will cause any html in error_message to be rendered as such<-->
+<p>{{ error_message|safe }}</p>
+
 {% endblock content %}
