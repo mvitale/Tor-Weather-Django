@@ -3,7 +3,7 @@
 {% block content %}
 <h3> Preferences </h3>
 <br>
-<form method="post" action=""> <!-- add correct url-->
+<form method="post" action="/preferences/{{ pref_auth }}/"> {% csrf_token %}
 <p>
 You can use this form to configure your preferences for monitoring the
 Tor node {{ fingerprint }}.

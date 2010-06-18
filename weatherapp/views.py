@@ -152,7 +152,7 @@ def unsubscribe(request, unsubscribe_auth):
     return render_to_response(Templates.unsubscribe, {'email' : email, 'name' : 
             name, 'fingerprint' : fingerprint})
 
-def preferences(request, preferences_auth_id):
+def preferences(request, pref_auth):
     """The preferences page, which contains the preferences form initially
         populated by user-specific data"""
     if request.method == "POST":
@@ -162,14 +162,15 @@ def preferences(request, preferences_auth_id):
         if form.is_valid():
             grace_pd = form.cleaned_data['grace_pd']
             user = get_object_or_404(Subscriber, pref_auth = 
-                                     preferences_auth_id)
+                                     pref_auth)
 
             # Get the node_down subscription so we can update grace_pd.
             node_down_sub = get_object_or_404(Subscription, subscriber = user,
                 name = 'node_down')
-            node_down_sub.update(grace_pd = grace_pd)
-            return HttpResponseRedirect('confirm_pref/'+preferences_auth_id+'/',
-                    preferences_auth_id) 
+            node_down_sub.grace_pd = grace_pd
+            node_down_sub.save()
+
+            return HttpResponseRedirect('/confirm_pref/' + pref_auth + '/') 
 
     # TO DO ----------------------------------------------------- EXTRA FEATURE
     # SHOULD IMPLEMENT ERROR MESSAGES THAT SAY THE FORM IS --------------------
@@ -179,7 +180,11 @@ def preferences(request, preferences_auth_id):
     # so the page with the preferences form is displayed.
 
     # get the user
-    user = get_object_or_404(Subscriber, pref_auth = preferences_auth_id)
+    user = get_object_or_404(Subscriber, pref_auth = pref_auth)
+
+    # get the user's router's fingerprint
+    fingerprint = user.router.fingerprint
+
     # get the node down subscription 
     node_down_sub = get_object_or_404(Subscription, subscriber = user, 
                 name = 'node_down')
@@ -193,17 +198,17 @@ def preferences(request, preferences_auth_id):
     form = PreferencesForm(initial=data)    
     
     # maps the form to the template.
-    c = {'form' : form}
+    c = {'pref_auth': pref_auth, 'fingerprint': fingerprint, 'form' : form}
 
     # Creates a CSRF protection key.
     c.update(csrf(request))
     return render_to_response(Templates.preferences, c)
 
-def confirm_pref(request, preferences_auth_id):
+def confirm_pref(request, pref_auth):
     """The page confirming that preferences have been changed."""
-    prefURL = baseURL + '/preferences/' + preferences_auth_id + '/'
-    user = get_object_or_404(Subscriber, pref_auth = preferences_auth_id)
-    unsubURL = baseURL + '/unsubscribe/' + user.unsub_auth + '/'
+    prefURL = baseURL + '/preferences/' + pref_auth + '/'
+    user = get_object_or_404(Subscriber, pref_auth = pref_auth)
+    unsubURL = baseURL + '/unsubscribe/' + user.unsubs_auth + '/'
 
     # The page includes the unsubscribe and change prefs links
     return render_to_response(Templates.confirm_pref, {'prefURL' : prefURL,
