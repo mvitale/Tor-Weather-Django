@@ -65,7 +65,7 @@ def subscribe(request):
             
            
             # Create the subscriber model for the user.
-            user = Subscriber(email=addr, router=router_pk)
+            user = Subscriber(email=addr, router=router_primary_key)
 
             # Save the subscriber data to the database.
             user.save()
