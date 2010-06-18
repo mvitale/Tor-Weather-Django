@@ -119,7 +119,7 @@ def confirm(request, confirm_auth_id):
     # MOVE THE URLS TO A GENERAL LOCATION -------------------------------------
     unsubURL = baseURL + "/unsubscribe/" + suber.unsubs_auth + "/"
     prefURL = baseURL + "/preferences/" + suber.pref_auth + "/"
-    return render_to_response(confirm, {'email': user.email, 
+    return render_to_response(Templates.confirm, {'email': user.email, 
             'fingerprint' : router.fingerprint, 'nodeName' : router.name, 
             'unsubURL' : unsubURL, 'prefURL' : prefURL})
     # TO DO ------------------------------------------------------ BASE FEATURE
@@ -195,7 +195,7 @@ def preferences(request, preferences_auth_id):
 
     # Creates a CSRF protection key.
     c.update(csrf(request))
-    return render_to_response('preferences.html', c)
+    return render_to_response(Templates.preferences, c)
 
 def confirm_pref(request, preferences_auth_id):
     """The page confirming that preferences have been changed."""
@@ -204,14 +204,14 @@ def confirm_pref(request, preferences_auth_id):
     unsubURL = baseURL + '/unsubscribe/' + user.unsub_auth + '/'
 
     # The page includes the unsubscribe and change prefs links
-    return render_to_response('confirm_pref.html', {'prefURL' : prefURL,
+    return render_to_response(Templates.confirm_pref, {'prefURL' : prefURL,
             'unsubURL' : unsubURL})
 
 def fingerprint_error(request, fingerprint):
     """The page that is displayed when a user tries to subscribe to a node
     that isn't stored in the database. The page includes information
     regarding potential problems."""
-    return render_to_response('fingerprint_error.html', {'fingerprint' :
+    return render_to_response(Templates.fingerprint_error, {'fingerprint' :
         fingerprint})
 
 def error(request, error_type, subscriber_id):
@@ -228,7 +228,7 @@ def error(request, error_type, subscriber_id):
 
     if error_type == 'already_subscribed':
         message = __ALREADY_SUBSCRIBED
-    return render_to_response('error.html', {'error_message' : message})
+    return render_to_response(Templates.error, {'error_message' : message})
 
 def run_updaters(request):
     """
