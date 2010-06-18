@@ -60,7 +60,7 @@ def subscribe(request):
             if len(user_query_set) > 0:
                 user = user_query_set[0]
                 return HttpResponseRedirect('/error/already_subscribed/'+\
-                    user.id+'/')
+                    str(user.id) +'/')
             
            
             # Create the subscriber model for the user.
