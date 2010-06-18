@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h3> Preferences </h3>
+<br>
+<form method="post" action=""> <!-- add correct url-->
+<p>
+You can use this form to configure your preferences for monitoring the
+Tor node {{ fingerprint }}.
+</p>
+<br><br>
+<p>
+{{ form.grace_pd.errors }}
+<label for="id_grace_pd">How many hours of downtime before we send a notification:<br></label>
+{{ form.grace_pd }}
+</p>
+<p>
+<input type="submit" class="submit" value="Change Preferences">
+</p>
+<hr>
+<br>
+<p><i>Please note that while we won't ever intentionally publish them, the address/node pairs sent to this server are not protected against SMTP eavesdropping, hacking, or lawyers.</i>
+</form>
+{% endblock content %}
+

@@ -13,6 +13,7 @@ from emails import Emailer
 from django.core.context_processors import csrf
 from django.http import HttpResponseRedirect, HttpRequest, Http404
 from django.http import HttpResponse
+from weather.config.web_directory import Templates, Urls
 
 # TO DO --------------------------------------------------------- EXTRA FEATURE
 # MOVE THIS TO A MORE GENERAL LOCATION ----------------------------------------
@@ -24,7 +25,7 @@ def home(request):
     # TO DO ----------------------------------------------------- EXTRA FEATURE
     # MOVE THE URLS TO A GENERAL LOCATION -------------------------------------
     subscribe = '/subscribe/' 
-    return render_to_response('home.html', {'sub' : subscribe})
+    return render_to_response(Templates.home, {'sub' : subscribe})
 
 def subscribe(request):
     """Displays the subscription form (all fields empty or default) if the
@@ -92,18 +93,18 @@ def subscribe(request):
 
     # TO DO ----------------------------------------------------- EXTRA FEATURE
     # MOVE THE URLS TO A GENERAL LOCATION -------------------------------------
-    return render_to_response('subscribe.html', c)
+    return render_to_response(Templates.subscribe, c)
 
-def pending(request, subscriber_id):
+def pending(request, confirm_auth):
     """The user views the pending page after submitting a registration form.
         The page tells the user that a confirmation email has been sent to 
         the address the user provided."""
-    user = get_object_or_404(Subscriber, pk=subscriber_id)
+    user = get_object_or_404(Subscriber, confirm_auth=confirm_auth)
 
     if not user.confirmed:
         # TO DO ------------------------------------------------- EXTRA FEATURE
         # MOVE THE URLS TO A GENERAL LOCATION ---------------------------------
-        return render_to_response('pending.html', {'email': sub.email})
+        return render_to_response(Templates.pending, {'email': sub.email})
 
     # Returns the user to the home page if the subscriber has already confirmed
     return HttpResponseRedirect('/$')
@@ -118,7 +119,7 @@ def confirm(request, confirm_auth_id):
     # MOVE THE URLS TO A GENERAL LOCATION -------------------------------------
     unsubURL = baseURL + "/unsubscribe/" + suber.unsubs_auth + "/"
     prefURL = baseURL + "/preferences/" + suber.pref_auth + "/"
-    return render_to_response('confirm.html', {'email': user.email, 
+    return render_to_response(confirm, {'email': user.email, 
             'fingerprint' : router.fingerprint, 'nodeName' : router.name, 
             'unsubURL' : unsubURL, 'prefURL' : prefURL})
     # TO DO ------------------------------------------------------ BASE FEATURE
@@ -146,7 +147,7 @@ def unsubscribe(request, unsubscribe_auth_id):
     # to this Subscriber are automatically deleted)
     user.delete()
 
-    return render_to_response('unsubscribe.html', {'email' : email, 'name' : 
+    return render_to_response(Templates.unsubscribe, {'email' : email, 'name' : 
             name, 'fingerprint' : fingerprint})
 
 def preferences(request, preferences_auth_id):
@@ -163,7 +164,7 @@ def preferences(request, preferences_auth_id):
 
             # Get the node_down subscription so we can update grace_pd.
             node_down_sub = get_object_or_404(Subscription, subscriber = user,
-                name = node_down)
+                name = 'node_down')
             node_down_sub.update(grace_pd = grace_pd)
             return HttpResponseRedirect('confirm_pref/'+preferences_auth_id+'/',
                     preferences_auth_id) 
@@ -179,7 +180,7 @@ def preferences(request, preferences_auth_id):
     user = get_object_or_404(Subscriber, pref_auth = preferences_auth_id)
     # get the node down subscription 
     node_down_sub = get_object_or_404(Subscription, subscriber = user, 
-                name = node_down)
+                name = 'node_down')
 
     # the data is used to fill in the form on the preferences page
     # with the user's existing preferences.    
