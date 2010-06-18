@@ -217,15 +217,15 @@ def error(request, error_type, subscriber_id):
     """The generic error page, which displays a message based on the error
     type passed to this controller."""
     
-    #user = get_object_or_404(Subscriber, id=user_id)
+    user = get_object_or_404(Subscriber, id=subscriber_id)
     __ALREADY_SUBSCRIBED = "You are already subscribed to receive email" +\
         "alerts about the node you specified. If you'd like, you can" +\
-        " <a href = '%s'>change your preferences here</a>" % baseURL #+\
-        #'/preferences/' + user.pref_auth + '/'
+        " <a href = '%s'>change your preferences here</a>" % baseURL +\
+        '/preferences/' + user.pref_auth + '/'
     # TO DO ----------------------------------------------------- EXTRA FEATURE
     # FIX THIS LINK STUFF -----------------------------------------------------
 
-    if error_type == already_subscribed:
+    if error_type == 'already_subscribed':
         message = __ALREADY_SUBSCRIBED
     return render_to_response('error.html', {'error_message' : message})
 
