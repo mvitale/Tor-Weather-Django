@@ -51,7 +51,7 @@ def subscribe(request):
             if len(router_query_set) == 0:
                 return HttpResponseRedirect('/fingerprint_error/' +\
                     fingerprint + '/')
-            router = router_list[0]
+            router = router_query_set[0]
             router_primary_key = router.id
 
             user_query_set = Subscriber.objects.filter(email=addr,
