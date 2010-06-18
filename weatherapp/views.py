@@ -46,34 +46,32 @@ def subscribe(request):
             fingerprint = form.cleaned_data['fingerprint']
             grace_pd = form.cleaned_data['grace_pd']
             
-            router_list = Router.objects.filter(fingerprint=fingerprint)
-            if router_list != Router.objects.none():
-                router = router_list[0]
-            else:
-                # TO DO ----------------------------------------- EXTRA FEATURE
-                # MOVE THE URLS TO A GENERAL LOCATION -------------------------
-                return HttpResponseRedirect('/fingerprint_error/' +
-                                            'fingerprint' + '/')
-            # If there is already a subscriber with same email address and 
-            # router, then they're already subscribed and probably don't mean
-            # to subscribe again.
-            user_list = Subscriber.objects.filter(email=addr,
-                                                       router=router)
-            if user_list != Subscriber.objects.none():
-                user = user_list[0]
-                # TO DO ----------------------------------------- EXTRA FEATURE
-                # MOVE THE URLS TO A GENERAL LOCATION -------------------------
-                return HttpResponseRedirect('/error/already_subscribed/' + 
-                                            user.id + '/')
-                
-            Emailer.send_confirmation(addr, fingerprint, user.confirm_auth)
+            router_query_set = Router.objects.filter(fingerprint = fingerprint)
             
+            if len(router_query_set) == 0:
+                return HttpResponseRedirect('/fingerprint_error/' +\
+                    fingerprint + '/')
+            router = router_query_set[0]
+
+            user_query_set = Subscriber.objects.filter(email=addr,
+                                                  router=router) 
+            # if the Subscriber is in the set, the user is already subscribed 
+            # to this router, so we redirect them.
+            if len(user_query_set) > 0:
+                user = user_query_set[0]
+                return HttpResponseRedirect('/error/already_subscribed/'+\
+                    str(user.id) +'/')
+            
+           
             # Create the subscriber model for the user.
-            user = Subscriber(email=addr, router=router_pk)
+            user = Subscriber(email=addr, router=router)
 
             # Save the subscriber data to the database.
             user.save()
             
+            # the user isn't subscribed yet, send the email & add them
+            Emailer.send_confirmation(addr, fingerprint, user.confirm_auth)
+             
             # Create the node_down subscription and save to db.
             # TO DO --------------------------------------------- EXTRA FEATURE
             # MOVE THE SUBSCRIPTION NAMES TO A GENERAL LOCATION ---------------
@@ -215,19 +213,19 @@ def fingerprint_error(request, fingerprint):
     return render_to_response('fingerprint_error.html', {'fingerprint' :
         fingerprint})
 
-def error(request, error_type, user_id):
+def error(request, error_type, subscriber_id):
     """The generic error page, which displays a message based on the error
     type passed to this controller."""
     
-    #user = get_object_or_404(Subscriber, id=user_id)
+    user = get_object_or_404(Subscriber, id=subscriber_id)
     __ALREADY_SUBSCRIBED = "You are already subscribed to receive email" +\
         "alerts about the node you specified. If you'd like, you can" +\
-        " <a href = '%s'>change your preferences here</a>" % baseURL #+\
-        #'/preferences/' + user.pref_auth + '/'
+        " <a href = '%s'>change your preferences here</a>" % baseURL +\
+        '/preferences/' + user.pref_auth + '/'
     # TO DO ----------------------------------------------------- EXTRA FEATURE
     # FIX THIS LINK STUFF -----------------------------------------------------
 
-    if error_type == already_subscribed:
+    if error_type == 'already_subscribed':
         message = __ALREADY_SUBSCRIBED
     return render_to_response('error.html', {'error_message' : message})
 
