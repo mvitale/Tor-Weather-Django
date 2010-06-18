@@ -3,32 +3,40 @@
 {% block content %}
 <h3> Sign Up! </h3>
 
-<br>
+<br />
 <form method="post" action="/subscribe/">{% csrf_token %}
 You can use this form to request status updates to tell you when a particular
 Tor node has become unreachable for a sustained period of time.
-<br><br>
+<br /><br />
+
 <p>
-{{ form.email.errors }}
-<label for="id_email">Your e-mail address:<br></label>
-{{ form.email }}
+	{{ form.email.errors }}
+	<label for="id_email">Your e-mail address:<br /></label>
+	{{ form.email }}
 </p>
+
 <p>
-{{ form.fingerprint.errors }}
-<label for="id_fingerprint">Node fingerprint:<br></label>
-{{ form.fingerprint }}
+	{{ form.fingerprint.errors }}
+	<label for="id_fingerprint">Node fingerprint:<br /></label>
+	{{ form.fingerprint }}
 </p>
+
 <p>
-{{ form.grace_pd.errors }}
-<label for="id_grace_pd">How many hours of downtime until we send a notification:<br></label>
-{{ form.grace_pd }}
+	{{ form.grace_pd.errors }}
+	<label for="id_grace_pd">How many hours of downtime until we send a
+	notification:<br /></label>
+	{{ form.grace_pd }}
 </p>
+
 <p>
 <input type="submit" class="submit" value="Subscribe to Tor Weather" name="sa"/>
 </p>
-<hr>
+</form>
+
+<hr />
+
 <h3>FAQ</h3>
-<br>
+<br />
 <p>Q: <b>Where can I find the fingerprint for my server?</b></p>
 <p>A: <i>Often your node fingerprint can be found on unix-like machines in the file: <tt>/var/lib/tor/fingerprint</tt></i></p>
 <p>Q: <b>Will I be overloaded with alerts that I cannot suppress?</b></p>
@@ -37,9 +45,10 @@ Tor node has become unreachable for a sustained period of time.
 <p>A: <i>Yes.</i>
 <p>Q: <b>I'm having a problem, can you help me?</b></p>
 <p>A: <i>Yes. Send an email to <tt>tor-weather @ torproject dot org</tt></i>
-<br>
-<hr>
-<br>
-<p><i>Please note that while we won't ever intentionally publish them, the address/node pairs sent to this server are not protected against SMTP eavesdropping, hacking, or lawyers.</i>
-</form>
+<br />
+
+<hr />
+
+<br />
+<p><i>Please note that while we won't ever intentionally publish them, the address/node pairs sent to this server are not protected against SMTP eavesdropping, hacking, or lawyers.</i></p>
 {% endblock content %}
