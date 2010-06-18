@@ -46,7 +46,7 @@ def subscribe(request):
             fingerprint = form.cleaned_data['fingerprint']
             grace_pd = form.cleaned_data['grace_pd']
             
-            router_query_set = Router.objects.filer(fingerprint = fingerprint)
+            router_query_set = Router.objects.filter(fingerprint = fingerprint)
             
             if len(router_query_set) == 0:
                 return HttpResponseRedirect('/fingerprint_error/' +\
