@@ -81,7 +81,7 @@ def subscribe(request):
             subscription.save()
 
             # Send the user to the pending page.
-            return HttpResponseRedirect('/pending/'+user.id+'/')
+            return HttpResponseRedirect('/pending/'+user.confirm_auth+'/')
     else:
         # User hasn't submitted info, so just display empty subscribe form.
         form = SubscribeForm()
