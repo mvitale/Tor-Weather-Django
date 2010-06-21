@@ -13,11 +13,6 @@ from datetime import datetime
 import base64
 import os
 
-class RouterManager(models.Manager):
-    def get_query_set(self):
-        return super(RouterManager, self).get_query_set()
-
-
 class Router(models.Model):
     """A model that stores information about every router on the Tor network.
     If a router hasn't been seen on the network for at least one year, it is
@@ -44,23 +39,28 @@ class Router(models.Model):
     last_seen = models.DateTimeField('date last seen', default=datetime.now())
     up = models.BooleanField(default=True)
 
-    objects = RouterManager()
-    
     def __unicode__(self):
         return self.fingerprint
 
 
 class SubscriberManager(models.Manager):
-    def get_query_set(self):
-        return super(SubscriberManager, self).get_query_set()
+    """In Django, each model class has at least one Manager (by default,
+    there is one named 'objects' for each model). The Manager acts as the
+    interface through which database query operations are provided to the 
+    models. The SubscriberManager class is a custom Manager for the Subscriber
+    model, which contains the method get_rand_string to generate a random
+    string for user authentication keys."""
 
     @staticmethod
-    def get_rand_string(length = 24):
-        cut_off = length - 24
-        if cut_off == 0:
-            cut_off = 24
+    def get_rand_string():
+        """Returns a random, url-safe string of 24 characters (no '+' or '/'
+        characters). The generated string does not end in '-'.
+        
+        @rtype: str
+        @return: A randomly generated, 24 character string (url-safe).
+        """
 
-        r = base64.urlsafe_b64encode(os.urandom(18))[:cut_off]
+        r = base64.urlsafe_b64encode(os.urandom(18))
 
         # some email clients don't like URLs ending in -
         if r.endswith("-"):
@@ -112,16 +112,21 @@ class Subscriber(models.Model):
 
 
 class SubscriptionManager(models.Manager):
+    """The custom Manager for the Subscription class. The Manager contains
+    a method to get the number of hours since the time stored in the
+    'last_changed' field in a Subscription object.
     """
-    """
-    def get_query_set(self):
-        """
-        """
-        return super(SubscriptionManager, self).get_query_set()
 
     @staticmethod
     def get_hours_since_changed(last_changed):
-        """
+        """Returns the time that has passed since the datetime parameter
+        last_changed in hours.
+
+        @type last_changed: datetime.datetime
+        @param last_changed: The date and time of the most recent change
+            for some flag.
+        @rtype: int
+        @return: The number of hours since last_changed.
         """
         time_since_changed = datetime.now() - last_changed
         hours_since_changed = time_since_changed.seconds / 3600
@@ -138,13 +143,6 @@ class Subscription(models.Model):
         of this subscription.
     @type name: str
     @ivar name: The type of subscription.
-    @type threshold: str
-    @ivar threshold: The threshold for sending a notification (i.e. send a 
-        notification if the version is obsolete vs. out of date; depends on 
-        subscription type)
-    @type grace_pd: int
-    @ivar grace_pd: The amount of time (hours) before a notification is sent
-        after a subscription type is triggered.
     @type emailed: bool
     @ivar emailed: True if the user has been emailed about the subscription
         (trigger must also be True), False if the user has not been emailed. 
@@ -164,28 +162,29 @@ class Subscription(models.Model):
     last_changed = models.DateTimeField('date of last change', 
                                         default=datetime.now())
 
+    # In Django, Manager objects handle table-wide methods (i.e filtering)
     objects = SubscriptionManager()
     
     def __unicode__(self):
         return self.name
 
-    #def should_email():
-    #    time_since_changed = datetime.now() - last_changed
-    #   hours_since_changed = time_since_changed.seconds / 3600
-    #    if triggered and not emailed and \
-    #            (hours_since_changed > grace_pd):
-    #        return True
-    #    else:
-    #        return False
-
 
 class NodeDownSub(Subscription):
     """
+
+    @type grace_pd: int
+    @ivar grace_pd: The amount of time (hours) before a notification is sent
+        after a node is seen down.
     """
-    grace_pd = models.IntegerField(default = 1)
+    grace_pd = models.IntegerField()
 
     def should_email():
-        """
+        """Returns a bool representing whether or not the Subscriber should
+        be emailed about their node being down.
+
+        @rtype: bool
+        @return: True if the Subscriber should be emailed because their node
+            is down and the grace period has passed, False otherwise.
         """
         hours_since_changed = \
             SubscriptionManager.get_hours_since_changed(last_changed)
@@ -198,15 +197,19 @@ class NodeDownSub(Subscription):
 
 class VersionSub(Subscription):
     """
+
+    @type threshold: str
+    @ivar threshold: The threshold for sending a notification (i.e. send a 
+        notification if the version is obsolete vs. out of date)
     """
+# -----------------------------------------------------------------------
+# FILL IN LATER, FIX DOCUMENTATION
+# -----------------------------------------------------------------------
     threshold = models.CharField(max_length=250)
 
     def should_email():
         """
         """
-# ------------------------------------------------------------------------
-# FILL IN LATER
-# ------------------------------------------------------------------------
 
 
 class LowBandwidthSub(Subscription):    
@@ -255,7 +258,8 @@ class NewSubscribeForm(forms.Form):
     get_node_down = forms.BooleanField(
             help_text='Receive notifications when node is down')
     node_down_grace_pd = forms.IntegerField( 
-            help_text='How many hours of downtime?')
+            help_text='How many hours of downtime before we send'
+                      + 'a notification?')
     node_down_grace_pd.help_text_2 = \
             'Enter a value between 1 and 4500 (roughly six months)'
     

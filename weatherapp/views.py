@@ -126,15 +126,16 @@ def confirm(request, confirm_auth):
     user = get_object_or_404(Subscriber, confirm_auth=confirm_auth)
     router = user.router 
 
-    # TO DO ----------------------------------------------------- EXTRA FEATURE
-    # MOVE THE URLS TO A GENERAL LOCATION -------------------------------------
-    unsubURL = baseURL + "/unsubscribe/" + user.unsubs_auth + "/"
-    prefURL = baseURL + "/preferences/" + user.pref_auth + "/"
-    return render_to_response(Templates.confirm, {'email': user.email, 
-            'fingerprint' : router.fingerprint, 'nodeName' : router.name, 
-            'unsubURL' : unsubURL, 'prefURL' : prefURL})
-    # TO DO ------------------------------------------------------ BASE FEATURE
-    # CHECK IF THE TEMPLATE TO MAKE SURE THIS RIGHT ---------------------------
+    # get the urls for the user's unsubscribe and prefs pages to add links
+    unsubURL = Urls.get_unsubscribe_url(user.unsub_auth)
+    prefURL = Urls.get_preferences_url(user.pref_auth)
+    # get the template for the confirm page
+    template = Templates.confirm
+    return render_to_response(template, {'email': user.email, 
+                                         'fingerprint' : router.fingerprint, 
+                                         'nodeName' : router.name, 
+                                         'unsubURL' : unsubURL, 
+                                         'prefURL' : prefURL})
         
 def unsubscribe(request, unsubscribe_auth):
     """The unsubscribe page, which displays a message informing the user
@@ -158,8 +159,14 @@ def unsubscribe(request, unsubscribe_auth):
     # to this Subscriber are automatically deleted)
     user.delete()
 
-    return render_to_response(Templates.unsubscribe, {'email' : email, 'name' : 
-            name, 'fingerprint' : fingerprint})
+    # get the url extension for the subscribe page to add a link on the page
+    url_extension = Urls.get_subscribe_ext()
+    # get the unsubscribe template
+    template = Templates.unsubscribe
+    return render_to_response(template, {'email' : email, 
+                                         'name' : name,
+                                         'fingerprint' :fingerprint, 
+                                         'subURL': url_extension})
 
 def preferences(request, pref_auth):
     """The preferences page, which contains the preferences form initially
