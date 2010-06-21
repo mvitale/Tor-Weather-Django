@@ -21,28 +21,35 @@ class CtlUtil:
 
     _CONTROL_HOST = "127.0.0.1"
     _CONTROL_PORT = 9051
-    _SOCK = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     _AUTHENTICATOR = config.authenticator
     
     def __init__(self,
                  control_host = _CONTROL_HOST,
                  control_port = _CONTROL_PORT,
-                 sock = _SOCK,
+                 sock = None,
                  authenticator = _AUTHENTICATOR):
+
+        self.sock = sock
+
+        if not sock:
+            print "got here"
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
         self.control_host = control_host
         self.control_port = control_port
-        self.sock = sock
         self.authenticator = authenticator
 
         # Try to connect 
         try:
-            self.sock.connect((control_host,control_port))
+            print 'tried to connect'
+            self.sock.connect((self.control_host, self.control_port))
+            print 'connected'
         except:
-            errormsg = "Could not connect to Tor control port.\n" + \
-                       "Is Tor running on %s with its control port" + \
-                       "opened on %s?" % (control_host, control_port)
-            logging.error(errormsg)
-            print >> sys.stderr, errormsg
+            #errormsg = "Could not connect to Tor control port.\n" + \
+                       #"Is Tor running on %s with its control port" + \
+                       #"opened on %s?" % (control_host, control_port)
+            #logging.error(errormsg)
+            #print >> sys.stderr, errormsg
             raise
 
         # Create connection to TorCtl
@@ -116,15 +123,15 @@ class CtlUtil:
         # all the info stored as the single value, so this extracts the string
         return self.control.get_info("desc/all-recent").values()[0]
 
-    def get_descriptor_list():
+    def get_descriptor_list(self):
         """Get a list of strings of all descriptor files for every router
         currently up.
 
         @rtype: list[str]
         @return: List of strings representing all individual descriptor files.
         """
-        # Individual descriptors are delimited by ----End Signature----
-        return self.get_full_descriptor().split("----End Signature----")
+        # Individual descriptors are delimited by -----END SIGNATURE-----
+        return self.get_full_descriptor().split("-----END SIGNATURE-----")
 
 
     def is_up(self, node_id):
@@ -145,10 +152,10 @@ class CtlUtil:
             # ErrorReply: 552 Unrecognized key "ns/id/46D9..."
             # ^ This was from the original Tor Weather. This probably
             # means simply that a consensus file wasn't found.
-            logging.error("ErrorReply: %s" % str(e))
+            #logging.error("ErrorReply: %s" % str(e))
             return False
         except:
-            logging.error("Unknown exception in ctlutil.is_up()")
+            #logging.error("Unknown exception in ctlutil.is_up()")
             return False
 
         # If we're here, we were able to fetch information about the router
@@ -184,7 +191,8 @@ class CtlUtil:
                     name = line.split()[1]
 
             # We ignore routers that don't publish their fingerprints
-            if finger != "":
+            if not finger == "":
+                print finger, name
                 router_list.append((finger, name))
         
         return router_list
