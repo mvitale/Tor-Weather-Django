@@ -5,7 +5,7 @@ models and views are called templates). This module contains a single
 controller for each page type. The controllers handle form submission and
 page rendering/redirection.
 """
-from models import Subscriber, Subscription, Router, \
+from models import Subscriber, NodeDownSub, Router, \
                    SubscribeForm, PreferencesForm
 from django.db import models
 from django.shortcuts import render_to_response, get_object_or_404
@@ -22,10 +22,8 @@ baseURL = "http://localhost:8000"
 def home(request):
     """Displays a home page for Tor Weather with basic information about
         the application."""
-    # TO DO ----------------------------------------------------- EXTRA FEATURE
-    # MOVE THE URLS TO A GENERAL LOCATION -------------------------------------
-    subscribe = '/subscribe/' 
-    return render_to_response(Templates.home, {'sub' : subscribe})
+    url_extension = Urls.get_subscribe_ext()
+    return render_to_response(Templates.home, {'sub' : url_extension})
 
 def subscribe(request):
     """Displays the subscription form (all fields empty or default) if the
@@ -43,25 +41,34 @@ def subscribe(request):
         # CHECK HOW DJANGO CHECKS EMAIL FIELD, POSSIBLY -----------------------
         # ADD A SECOND EMAIL FIELD FOR CONFIRMATION ---------------------------
         if form.is_valid():
+            # gets the data from the form, ensuring the input conforms to the
+            # types specified in the SubscribeForm object
             addr = form.cleaned_data['email']
-            fingerprint = form.cleaned_data['fingerprint']
+            # gets the fingerprint and removes any whitespace characters
+            fingerprint = form.cleaned_data['fingerprint'].replace(' ','')
             grace_pd = form.cleaned_data['grace_pd']
             
+            # gets a query set of the routers with the given fingerprint
+            # (there should be at most one).
             router_query_set = Router.objects.filter(fingerprint = fingerprint)
             
             if len(router_query_set) == 0:
-                return HttpResponseRedirect('/fingerprint_error/' +\
-                    fingerprint + '/')
+            # we haven't seen this router before. display error page 
+                
+                #gets the url extension for the fingerprint error page
+                url_extension = Urls.get_fingerprint_error_ext(fingerprint)
+                return HttpResponseRedirect(url_extension)
             router = router_query_set[0]
 
             user_query_set = Subscriber.objects.filter(email=addr,
-                                                  router=router) 
+                                                       router=router) 
             # if the Subscriber is in the set, the user is already subscribed 
             # to this router, so we redirect them.
             if len(user_query_set) > 0:
                 user = user_query_set[0]
-                return HttpResponseRedirect('/error/already_subscribed/'+\
-                    str(user.id) +'/')
+                url_extension = Urls.get_error_ext('already_subscribed',
+                    user.confirm_auth)
+                return HttpResponseRedirect(url_extension)
             
            
             # Create the subscriber model for the user.
@@ -71,18 +78,19 @@ def subscribe(request):
             user.save()
             
             # the user isn't subscribed yet, send the email & add them
-            Emailer.send_confirmation(addr, fingerprint, user.confirm_auth)
+            confirm_auth = user.confirm_auth
+            Emailer.send_confirmation(addr, fingerprint, confirm_auth)
              
             # Create the node_down subscription and save to db.
             # TO DO --------------------------------------------- EXTRA FEATURE
             # MOVE THE SUBSCRIPTION NAMES TO A GENERAL LOCATION ---------------
-            subscription = Subscription(subscriber=user, name='node_down', 
+            subscription = NodeDownSub(subscriber=user, name='node_down', 
                 grace_pd=grace_pd)
             subscription.save()
 
             # Send the user to the pending page.
-
-            return HttpResponseRedirect('/pending/'+user.confirm_auth+'/')
+            url_extension = Urls.get_pending_ext(confirm_auth)
+            return HttpResponseRedirect(url_extension)
 
     else:
         # User hasn't submitted info, so just display empty subscribe form.
@@ -109,7 +117,8 @@ def pending(request, confirm_auth):
         return render_to_response(Templates.pending, {'email': user.email})
 
     # Returns the user to the home page if the subscriber has already confirmed
-    return HttpResponseRedirect('/$')
+    url_extension = Urls.get_home_ext()
+    return HttpResponseRedirect(url_extension)
 
 def confirm(request, confirm_auth):
     """The confirmation page, which is displayed when the user follows the
@@ -117,15 +126,16 @@ def confirm(request, confirm_auth):
     user = get_object_or_404(Subscriber, confirm_auth=confirm_auth)
     router = user.router 
 
-    # TO DO ----------------------------------------------------- EXTRA FEATURE
-    # MOVE THE URLS TO A GENERAL LOCATION -------------------------------------
-    unsubURL = baseURL + "/unsubscribe/" + user.unsubs_auth + "/"
-    prefURL = baseURL + "/preferences/" + user.pref_auth + "/"
-    return render_to_response(Templates.confirm, {'email': user.email, 
-            'fingerprint' : router.fingerprint, 'nodeName' : router.name, 
-            'unsubURL' : unsubURL, 'prefURL' : prefURL})
-    # TO DO ------------------------------------------------------ BASE FEATURE
-    # CHECK IF THE TEMPLATE TO MAKE SURE THIS RIGHT ---------------------------
+    # get the urls for the user's unsubscribe and prefs pages to add links
+    unsubURL = Urls.get_unsubscribe_url(user.unsub_auth)
+    prefURL = Urls.get_preferences_url(user.pref_auth)
+    # get the template for the confirm page
+    template = Templates.confirm
+    return render_to_response(template, {'email': user.email, 
+                                         'fingerprint' : router.fingerprint, 
+                                         'nodeName' : router.name, 
+                                         'unsubURL' : unsubURL, 
+                                         'prefURL' : prefURL})
         
 def unsubscribe(request, unsubscribe_auth):
     """The unsubscribe page, which displays a message informing the user
@@ -149,8 +159,14 @@ def unsubscribe(request, unsubscribe_auth):
     # to this Subscriber are automatically deleted)
     user.delete()
 
-    return render_to_response(Templates.unsubscribe, {'email' : email, 'name' : 
-            name, 'fingerprint' : fingerprint})
+    # get the url extension for the subscribe page to add a link on the page
+    url_extension = Urls.get_subscribe_ext()
+    # get the unsubscribe template
+    template = Templates.unsubscribe
+    return render_to_response(template, {'email' : email, 
+                                         'name' : name,
+                                         'fingerprint' :fingerprint, 
+                                         'subURL': url_extension})
 
 def preferences(request, pref_auth):
     """The preferences page, which contains the preferences form initially
@@ -165,12 +181,14 @@ def preferences(request, pref_auth):
                                      pref_auth)
 
             # Get the node_down subscription so we can update grace_pd.
-            node_down_sub = get_object_or_404(Subscription, subscriber = user,
+            node_down_sub = get_object_or_404(NodeDownSub, subscriber = user,
                 name = 'node_down')
+            
             node_down_sub.grace_pd = grace_pd
             node_down_sub.save()
 
-            return HttpResponseRedirect('/confirm_pref/' + pref_auth + '/') 
+            url_extension = Urls.get_confirm_pref_ext(pref_auth)
+            return HttpResponseRedirect(url_extension) 
 
     # TO DO ----------------------------------------------------- EXTRA FEATURE
     # SHOULD IMPLEMENT ERROR MESSAGES THAT SAY THE FORM IS --------------------
@@ -186,7 +204,7 @@ def preferences(request, pref_auth):
     fingerprint = user.router.fingerprint
 
     # get the node down subscription 
-    node_down_sub = get_object_or_404(Subscription, subscriber = user, 
+    node_down_sub = get_object_or_404(NodeDownSub, subscriber = user, 
                 name = 'node_down')
 
     # the data is used to fill in the form on the preferences page
@@ -221,12 +239,12 @@ def fingerprint_error(request, fingerprint):
     return render_to_response(Templates.fingerprint_error, {'fingerprint' :
         fingerprint})
 
-def error(request, error_type, subscriber_id):
+def error(request, error_type, confirm_auth):
     """The generic error page, which displays a message based on the error
     type passed to this controller."""
     
-    user = get_object_or_404(Subscriber, id=subscriber_id)
-    __ALREADY_SUBSCRIBED = "You are already subscribed to receive email " +\
+    user = get_object_or_404(Subscriber, confirm_auth=confirm_auth)
+    __ALREADY_SUBSCRIBED = "You are already subscribed to receive email" +\
         "alerts about the node you specified. If you'd like, you can" +\
         " <a href = '%s'>change your preferences here</a>" % (baseURL +\
         '/preferences/' + user.pref_auth + '/')

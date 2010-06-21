@@ -23,7 +23,7 @@ class SubscriptionChecker:
         send emails and update subscription data as necessary."""
 
         #All node down subscriptions
-        subscriptions = Subscription.objects.filter(name = "node_down")
+        subscriptions = NodeDownSub.objects.filter(name = "node_down")
 
         for subscription in subscriptions:
             is_up = subscription.subscriber.router.up 
