@@ -33,10 +33,10 @@ class SubscriptionChecker:
                    subscription.last_changed = datetime.now()
             else:
                 if subscription.triggered:
-                    if subscription.should_email():
-                        recipient = subscription.subscriber.email
-                        Emailer.send_node_down(recipient)
-                        subscription.emailed = True 
+                    #if subscription.should_email():
+                    recipient = subscription.subscriber.email
+                    Emailer.send_node_down(recipient)
+                    subscription.emailed = True 
                 else:
                     subscription.triggered = True
                     subscription.last_changed = datetime.now()
