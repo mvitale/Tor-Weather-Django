@@ -1,9 +1,16 @@
-import socket
-from TorCtl import TorCtl
+import socket, sys, os
 import ctlutil
 import config
-from django.db import models
 from emails import Emailer
+import datetime 
+
+sys.path.append(os.path.abspath('../..'))
+os.environ['DJANGO_SETTINGS_MODULE'] = 'weather.settings'
+
+from django.core.management import setup_environ
+from weather import settings
+from weather.weatherapp.models import *
+setup_environ(settings)
 
 class SubscriptionChecker:
     """A class for checking and updating the various subscription types"""
@@ -23,7 +30,7 @@ class SubscriptionChecker:
             if is_up:
                 if subscription.triggered:
                    subscription.triggered = False
-                   subscription.last_changed = datetime.datetime.now()
+                   subscription.last_changed = datetime.now()
             else:
                 if subscription.triggered:
                     if subscription.should_email():
@@ -32,25 +39,25 @@ class SubscriptionChecker:
                         subscription.emailed = True 
                 else:
                     subscription.triggered = True
-                    subscription.last_changed = datetime.datetime.now()
+                    subscription.last_changed = datetime.now()
             subscription.save()
 
-    def check_out_of_date():
+    def check_out_of_date(self):
         # TO DO ------------------------------------------------- EXTRA FEATURE 
         # IMPLEMENT THIS ------------------------------------------------------
         pass
 
-    def check_below_bandwidth():
+    def check_below_bandwidth(self):
         # TO DO ------------------------------------------------- EXTRA FEATURE
         # IMPLEMENT THIS ------------------------------------------------------
         pass
 
-    def check_earn_tshirt():
+    def check_earn_tshirt(self):
         # TO DO ------------------------------------------------- EXTRA FEATURE
         # IMPLEMENT THIS ------------------------------------------------------
         pass
 
-    def check_all():
+    def check_all(self):
         """Check/update all subscriptions"""
         self.check_node_down()
 
@@ -68,7 +75,7 @@ class RouterUpdater:
     TorCtl
     """
 
-    def __init__(self, ctl_util = ctlutil.CtlUtil()):
+    def __init__(self, ctl_util = None):
         """
         Default constructor.
 
@@ -76,31 +83,35 @@ class RouterUpdater:
         @param ctl_util: [optional] The CtlUtil object you want to use.
         By default, creates a new CtlUtil instance.
         """
-
         self.ctl_util = ctl_util
+
+        if not ctl_util:
+            self.ctl_util = ctlutil.CtlUtil()
 
     def update_all(self):
         """Add ORs we haven't seen before to the database and update the
         information of ORs that are already in the database."""
 
         #set the 'up' flag to False for every router in the DB
-        router_set = Router.objects()
+        router_set = Router.objects.all()
         for router in router_set:
             router.up = False
 
         #Get a list of fingerprint/name tuples in the current descriptor file
-        finger_name = ctl_util.get_finger_name_list()
+        finger_name = self.ctl_util.get_finger_name_list()
+        for pair in finger_name:
+            print pair
 
         for router in finger_name:
 
             finger = router[0]
             name = router[1]
-            is_up = ctl_util.is_up(finger)
+            is_up = self.ctl_util.is_up(finger)
 
             if is_up:
                 try:
                     router_data = Router.objects.get(fingerprint = finger)
-                    router_data.last_seen = datetime.datetime.now()
+                    router_data.last_seen = datetime.now()
                     router_data.name = name
                     router_data.up = True
                     router_data.save()
@@ -115,5 +126,8 @@ def run_all():
     subscription_checker = SubscriptionChecker(ctl_util)
     router_updater.update_all()
     subscription_checker.check_all()
+
+if __name__ == "__main__":
+    run_all()
 
 
