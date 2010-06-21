@@ -127,7 +127,7 @@ def confirm(request, confirm_auth):
     router = user.router 
 
     # get the urls for the user's unsubscribe and prefs pages to add links
-    unsubURL = Urls.get_unsubscribe_url(user.unsub_auth)
+    unsubURL = Urls.get_unsubscribe_url(user.unsubs_auth)
     prefURL = Urls.get_preferences_url(user.pref_auth)
     # get the template for the confirm page
     template = Templates.confirm
@@ -224,13 +224,16 @@ def preferences(request, pref_auth):
 
 def confirm_pref(request, pref_auth):
     """The page confirming that preferences have been changed."""
-    prefURL = baseURL + '/preferences/' + pref_auth + '/'
     user = get_object_or_404(Subscriber, pref_auth = pref_auth)
-    unsubURL = baseURL + '/unsubscribe/' + user.unsubs_auth + '/'
+    prefURL = Urls.get_preferences_url(pref_auth)
+    unsubURL = Urls.get_unsubscribe_url(unsubs_auth)
+
+    # get the template
+    template = Templates.confirm_pref
 
     # The page includes the unsubscribe and change prefs links
-    return render_to_response(Templates.confirm_pref, {'prefURL' : prefURL,
-            'unsubURL' : unsubURL})
+    return render_to_response(template, {'prefURL' : prefURL,
+                                         'unsubURL' : unsubURL})
 
 def fingerprint_error(request, fingerprint):
     """The page that is displayed when a user tries to subscribe to a node
