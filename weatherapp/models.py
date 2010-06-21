@@ -17,6 +17,7 @@ class RouterManager(models.Manager):
     def get_query_set(self):
         return super(RouterManager, self).get_query_set()
 
+
 class Router(models.Model):
     """A model that stores information about every router on the Tor network.
     If a router hasn't been seen on the network for at least one year, it is
@@ -37,7 +38,7 @@ class Router(models.Model):
               was published, false otherwise. Default value is C{True}.
     """
 
-    fingerprint = models.CharField(max_length=200, unique=True)
+    fingerprint = models.CharField(max_length=40, unique=True)
     name = models.CharField(max_length=100)
     welcomed = models.BooleanField(default=False)
     last_seen = models.DateTimeField('date last seen', default=datetime.now())
@@ -47,6 +48,7 @@ class Router(models.Model):
     
     def __unicode__(self):
         return self.fingerprint
+
 
 class SubscriberManager(models.Manager):
     def get_query_set(self):
@@ -108,10 +110,24 @@ class Subscriber(models.Model):
     def __unicode__(self):
         return self.email
 
+
 class SubscriptionManager(models.Manager):
+    """
+    """
     def get_query_set(self):
+        """
+        """
         return super(SubscriptionManager, self).get_query_set()
+
+    @staticmethod
+    def get_hours_since_changed(last_changed):
+        """
+        """
+        time_since_changed = datetime.now() - last_changed
+        hours_since_changed = time_since_changed.seconds / 3600
+        return hours_since_changed
     
+
 class Subscription(models.Model):
     """The model storing information about a specific subscription. Each type
     of email notification that a user selects generates a new subscription. 
@@ -143,8 +159,6 @@ class Subscription(models.Model):
     """
     subscriber = models.ForeignKey(Subscriber)
     name = models.CharField(max_length=200)
-    threshold = models.CharField(max_length=200)
-    grace_pd = models.IntegerField()
     emailed = models.BooleanField(default=False)
     triggered = models.BooleanField(default=False)
     last_changed = models.DateTimeField('date of last change', 
@@ -155,14 +169,57 @@ class Subscription(models.Model):
     def __unicode__(self):
         return self.name
 
+    #def should_email():
+    #    time_since_changed = datetime.now() - last_changed
+    #   hours_since_changed = time_since_changed.seconds / 3600
+    #    if triggered and not emailed and \
+    #            (hours_since_changed > grace_pd):
+    #        return True
+    #    else:
+    #        return False
+
+
+class NodeDownSub(Subscription):
+    """
+    """
+    grace_pd = models.IntegerField(default = 1)
+
     def should_email():
-        time_since_changed = datetime.now() - last_changed
-        hours_since_changed = time_since_changed.seconds / 3600
+        """
+        """
+        hours_since_changed = \
+            SubscriptionManager.get_hours_since_changed(last_changed)
         if triggered and not emailed and \
-                (hours_since_changed > grace_pd):
+                     (hours_since_changed > grace_pd):
             return True
         else:
             return False
+
+
+class VersionSub(Subscription):
+    """
+    """
+    threshold = models.CharField(max_length=250)
+
+    def should_email():
+        """
+        """
+# ------------------------------------------------------------------------
+# FILL IN LATER
+# ------------------------------------------------------------------------
+
+
+class LowBandwidthSub(Subscription):    
+    """
+    """
+    threshold = models.IntegerField(default = 0)
+    grace_pd = models.IntegerField(default = 1)
+
+    def should_email():
+        """
+        """
+        time_since_changed
+
 
 class SubscribeForm(forms.Form):
     """The form for a new subscriber. The form includes an email field, 
@@ -186,6 +243,51 @@ class SubscribeForm(forms.Form):
         'value' : 'Default is 1 hour, enter up to 8760 (1 year)', 'onClick' :
         'if (this.value=="Default is 1 hour, enter up to 8760 (1 year)") '+\
         '{this.value=""}'}))
+
+
+class NewSubscribeForm(forms.Form):
+    """For full feature list. NOWHERE NEAR READY. """
+
+    email_1 = forms.EmailField(max_length=75, help_text='Email:')
+    email_2 = forms.EmailField(max_length=75, help_text='Re-enter Email:')
+    fingerprint = forms.CharField(max_length=40, help_text='Node Fingerprint:')
+
+    get_node_down = forms.BooleanField(
+            help_text='Receive notifications when node is down')
+    node_down_grace_pd = forms.IntegerField( 
+            help_text='How many hours of downtime?')
+    node_down_grace_pd.help_text_2 = \
+            'Enter a value between 1 and 4500 (roughly six months)'
+    
+    get_out_of_date = forms.BooleanField(
+            help_text='Receive notifications when node is out of date')
+    out_of_date_threshold = forms.ChoiceField(
+            choices=((u'c1', u'out of date lvl 1'),
+                     (u'c2', u'out of date lvl 2'),
+                     (u'c3', u'out of date lvl 3'),
+                     (u'c4', u'out of date lvl 4')),
+                help_text='How current would you like your version of Tor?')
+    out_of_date_grace_pd = forms.IntegerField(
+            help_text='How quickly, in days, would you like to be notified?')
+    out_of_date_grace_pd.help_text_2 = \
+            'Enter a value between 1 and 200 (roughly six months)'
+    
+    get_band_low = forms.BooleanField(
+            help_text='Receive notifications when node has low bandwidth')
+    out_of_date_threshold = forms.IntegerField(
+            help_text='Critical bandwidth measured in kilobits')
+    out_of_date_grace_pd = forms.IntegerField(
+            help_text='How many hours of low bandwidth?')
+    out_of_date_grace_pd.help_text_2 = \
+            'Enter a value between 1 and 4500 (roughly six months)'
+
+    get_t_shirt = forms.BooleanField(
+            help_text='Receive notification when node has earned a t-shirt')
+    t_shirt_grace_pd = forms.IntegerField(
+            help_text='How quickly, in days, would you like to be notified?')
+    t_shirt_grace_pd.help_text_2 = \
+            'Enter a value between 1 and 200 (roughly six months)'
+
 
 class PreferencesForm(forms.Form):
     """The form for changing preferences.
