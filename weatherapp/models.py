@@ -95,7 +95,7 @@ class Subscriber(models.Model):
     email = models.EmailField(max_length=75)
     router = models.ForeignKey(Router)
     confirmed = models.BooleanField(default = False)
-
+# --------------------- IS THIS OK?? (default = ...) ----------------------
     confirm_auth = models.CharField(max_length=250, 
                     default=SubscriberManager.get_rand_string()) 
     unsubs_auth = models.CharField(max_length=250, 

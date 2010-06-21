@@ -220,7 +220,11 @@ def preferences(request, pref_auth):
 
     # Creates a CSRF protection key.
     c.update(csrf(request))
-    return render_to_response(Templates.preferences, c)
+
+    # get the template
+    template = Templates.preferences
+    # display the page
+    return render_to_response(template, c)
 
 def confirm_pref(request, pref_auth):
     """The page confirming that preferences have been changed."""
@@ -238,25 +242,44 @@ def confirm_pref(request, pref_auth):
 def fingerprint_error(request, fingerprint):
     """The page that is displayed when a user tries to subscribe to a node
     that isn't stored in the database. The page includes information
-    regarding potential problems."""
-    return render_to_response(Templates.fingerprint_error, {'fingerprint' :
-        fingerprint})
+    regarding potential problems and references the fingerprint the user
+    entered into the form.
+    
+    @type fingerprint: str
+    @param fingerprint: The fingerprint the user entered in the subscribe form.
+    """
+    # get the template
+    template = Templates.fingerprint_error
+
+    #display the page
+    return render_to_response(template, {'fingerprint' : fingerprint})
 
 def error(request, error_type, confirm_auth):
     """The generic error page, which displays a message based on the error
-    type passed to this controller."""
+    type passed to this controller.
     
-    user = get_object_or_404(Subscriber, confirm_auth=confirm_auth)
+    @type error_type: str
+    @param error_type: A description of the type of error encountered."""
+    
     __ALREADY_SUBSCRIBED = "You are already subscribed to receive email" +\
         "alerts about the node you specified. If you'd like, you can" +\
-        " <a href = '%s'>change your preferences here</a>" % (baseURL +\
-        '/preferences/' + user.pref_auth + '/')
-    # TO DO ----------------------------------------------------- EXTRA FEATURE
-    # FIX THIS LINK STUFF -----------------------------------------------------
+        " <a href = '%s'>change your preferences here</a>" % pref_url
 
+    # get the Subscriber object for this user
+    user = get_object_or_404(Subscriber, confirm_auth=confirm_auth)
+
+    # get the preferences url
+    pref_url = Urls.get_preferences_url(user.pref_auth)
+
+    message = ''
+    
     if error_type == 'already_subscribed':
         message = __ALREADY_SUBSCRIBED
-    return render_to_response(Templates.error, {'error_message' : message})
+
+    # get the error template
+    template = Templates.error
+    # display the page
+    return render_to_response(template, {'error_message' : message})
 
 def run_updaters(request):
     """
