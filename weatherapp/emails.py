@@ -86,7 +86,6 @@ class Emailer:
         Legal mumbo jumbo
         """
 
-
     @staticmethod
     def send_confirmation(recipient,
                           fingerprint,

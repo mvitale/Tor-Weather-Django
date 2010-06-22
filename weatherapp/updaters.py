@@ -23,7 +23,7 @@ class SubscriptionChecker:
         send emails and update subscription data as necessary."""
 
         #All node down subscriptions
-        subscriptions = NodeDownSub.objects.filter(name = "node_down")
+        subscriptions = NodeDownSub.objects.all()
 
         for subscription in subscriptions:
             is_up = subscription.subscriber.router.up 
@@ -33,10 +33,16 @@ class SubscriptionChecker:
                    subscription.last_changed = datetime.now()
             else:
                 if subscription.triggered:
-                    if subscription.should_email():
-                        recipient = subscription.subscriber.email
-                        Emailer.send_node_down(recipient)
-                        subscription.emailed = True 
+                    #if subscription.should_email():
+                    recipient = subscription.subscriber.email
+                    fingerprint = subscription.subscriber.router.fingerprint
+                    grace_pd = subscription.grace_pd
+                    unsubs_auth = subscription.subscriber.unsubs_auth
+                    pref_auth = subscription.subscriber.pref_auth
+                    
+                    Emailer.send_node_down(recipient, fingerprint, grace_pd,
+                                            unsubs_auth, pref_auth)
+                    subscription.emailed = True 
                 else:
                     subscription.triggered = True
                     subscription.last_changed = datetime.now()
@@ -69,6 +75,7 @@ class SubscriptionChecker:
 class RouterUpdater:
     """
     A class for updating the Router table and sending 'welcome' emails
+    (welcome email feature not yet implemented)
   
     @type ctl_util: CtlUtil
     @ivar ctl_util: A CtlUtil object for handling interactions with
@@ -96,11 +103,10 @@ class RouterUpdater:
         router_set = Router.objects.all()
         for router in router_set:
             router.up = False
+            router.save()
 
         #Get a list of fingerprint/name tuples in the current descriptor file
         finger_name = self.ctl_util.get_finger_name_list()
-        for pair in finger_name:
-            print pair
 
         for router in finger_name:
 

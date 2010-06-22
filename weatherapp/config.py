@@ -3,7 +3,7 @@
 # Copyright (c) 2009, 2010 The Tor Project
 # See LICENSE for licensing information
 
-URLbase = "localhost:8000"
+URLbase = "127.0.0.1:8000"
 
 # XXX: Make bulletproof
 authenticator = open("auth_token", "r").read().strip()

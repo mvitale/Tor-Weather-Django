@@ -163,7 +163,7 @@ class Subscription(models.Model):
     objects = SubscriptionManager()
     
     def __unicode__(self):
-        return self.name
+        return self.subscriber.email
 
 
 class NodeDownSub(Subscription):

@@ -32,7 +32,6 @@ class CtlUtil:
         self.sock = sock
 
         if not sock:
-            print "got here"
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         self.control_host = control_host
@@ -41,9 +40,7 @@ class CtlUtil:
 
         # Try to connect 
         try:
-            print 'tried to connect'
             self.sock.connect((self.control_host, self.control_port))
-            print 'connected'
         except:
             #errormsg = "Could not connect to Tor control port.\n" + \
                        #"Is Tor running on %s with its control port" + \
@@ -192,7 +189,6 @@ class CtlUtil:
 
             # We ignore routers that don't publish their fingerprints
             if not finger == "":
-                print finger, name
                 router_list.append((finger, name))
         
         return router_list

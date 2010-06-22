@@ -1,13 +1,13 @@
 from TorCtl import TorCtl
 import socket
 import config
-import urllib2
+import updaters
 """A module for listening to TorCtl for new consensus events. When one occurs,
 initializes checker"""
 
 class MyEventHandler(TorCtl.EventHandler):
     def new_consensus_event(self, event):
-        urllib2.urlopen(config.run_updaters)
+        updaters.run_all()
 
 def main():
     ctrl_host = "127.0.0.1"
