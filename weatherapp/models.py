@@ -244,6 +244,20 @@ class SubscribeForm(forms.Form):
         'if (this.value=="Default is 1 hour, enter up to 8760 (1 year)") '+\
         '{this.value=""}'}))
 
+    def clean_grace_pd(self):
+        """Django lets you specify how to 'clean' form data for specific
+        fields by adding clean methods to the form classes. This method
+        ensures the grace period is between 1 and 8760 hours. If the user
+        enters an integer less than 1 for the node down grace period, the 
+        grace period is stored as 1. If the user enters an integer greater 
+        than 8760, the grace period is stored as 8760."""
+        grace_pd = self.cleaned_data['grace_pd']
+        if grace_pd < 1:
+            grace_pd = 1
+        if grace_pd > 8760
+            grace_pd = 8760
+        return grace_pd
+
 
 class NewSubscribeForm(forms.Form):
     """For full feature list. NOWHERE NEAR READY. """

@@ -39,7 +39,6 @@ def subscribe(request):
 
         # TO DO ------------------------------------------------- EXTRA FEATURE
         # CHECK HOW DJANGO CHECKS EMAIL FIELD, POSSIBLY -----------------------
-        # ADD A SECOND EMAIL FIELD FOR CONFIRMATION ---------------------------
         if form.is_valid():
             # gets the data from the form, ensuring the input conforms to the
             # types specified in the SubscribeForm object
@@ -56,8 +55,11 @@ def subscribe(request):
             # we haven't seen this router before. display error page 
                 
                 #gets the url extension for the fingerprint error page
-                url_extension = Urls.get_fingerprint_error_ext(fingerprint)
+                url_extension = Urls.get_error_ext('fingerprint_not_found', 
+                                                   fingerprint)
                 return HttpResponseRedirect(url_extension)
+
+            # the router is in the database, get the Router object
             router = router_query_set[0]
 
             user_query_set = Subscriber.objects.filter(email=addr,
@@ -67,23 +69,22 @@ def subscribe(request):
             if len(user_query_set) > 0:
                 user = user_query_set[0]
                 url_extension = Urls.get_error_ext('already_subscribed',
-                    user.confirm_auth)
+                                                   user.pref_auth)
                 return HttpResponseRedirect(url_extension)
             
-           
             # Create the subscriber model for the user.
             user = Subscriber(email=addr, router=router)
 
             # Save the subscriber data to the database.
             user.save()
             
-            # the user isn't subscribed yet, send the email & add them
+            # send the confirmation email
             confirm_auth = user.confirm_auth
             Emailer.send_confirmation(addr, fingerprint, confirm_auth)
-             
+
+# ---------------- Do this for every subscription --------------------------
+
             # Create the node down subscription and save to db.
-            # TO DO --------------------------------------------- EXTRA FEATURE
-            # MOVE THE SUBSCRIPTION NAMES TO A GENERAL LOCATION ---------------
             subscription = NodeDownSub(subscriber=user,         
                                        grace_pd=grace_pd)
             subscription.save()
@@ -91,22 +92,16 @@ def subscribe(request):
             # Send the user to the pending page.
             url_extension = Urls.get_pending_ext(confirm_auth)
             return HttpResponseRedirect(url_extension)
-
-        else:
-            # form isn't valid
-# ---------------------------------DO SOMETHING --------------------------
-
     else:
         # User hasn't submitted info, so just display empty subscribe form.
         form = SubscribeForm()
-        c = {'form' : form}
+    c = {'form' : form}
 
-        # For pages with POST methods, a Cross Site Request Forgery protection
-        # key is added to block attacking sites.
-        c.update(csrf(request))
+    # For pages with POST methods, a Cross Site Request Forgery protection
+    # key is added to block attacking sites.
+    c.update(csrf(request))
 
-        # TO DO ---------------------------------------------- EXTRA FEATURE
-        return render_to_response(Templates.subscribe, c)
+    return render_to_response(Templates.subscribe, c)
 
 def pending(request, confirm_auth):
     """The user views the pending page after submitting a registration form.
@@ -179,8 +174,7 @@ def preferences(request, pref_auth):
         form = PreferencesForm(request.POST)
         if form.is_valid():
             grace_pd = form.cleaned_data['grace_pd']
-            user = get_object_or_404(Subscriber, pref_auth = 
-                                     pref_auth)
+            user = get_object_or_404(Subscriber, pref_auth =pref_auth)
 
             # Get the node down subscription so we can update grace_pd.
             node_down_sub = get_object_or_404(NodeDownSub, subscriber = user)
@@ -254,37 +248,19 @@ def fingerprint_error(request, fingerprint):
     #display the page
     return render_to_response(template, {'fingerprint' : fingerprint})
 
-def error(request, error_type, confirm_auth):
+def error(request, error_type, key):
     """The generic error page, which displays a message based on the error
     type passed to this controller.
     
     @type error_type: str
     @param error_type: A description of the type of error encountered."""
     
-    __ALREADY_SUBSCRIBED = "You are already subscribed to receive email" +\
-        "alerts about the node you specified. If you'd like, you can" +\
-        " <a href = '%s'>change your preferences here</a>" % pref_url
-    __FINGERPRINT_NOT_FOUND = "We could not locate a Tor node with"
-        + "fingerprint %s.</p><p>Here are some potential problems:"
-        + "<ul><li>The fingerprint was entered incorrectly</li>"
-        + "<li>The node with the given fingerprint was set up within the last"
-        + "hour, in which case you should try to register again a bit later"
-        + "</li><li>The node with the given fingerprint has been down for over"
-        + "a year"
-
-    # get the Subscriber object for this user
-    user = get_object_or_404(Subscriber, confirm_auth=confirm_auth)
-
-    # get the preferences url
-    pref_url = Urls.get_preferences_url(user.pref_auth)
-
-    message = ''
-    
-    if error_type == 'already_subscribed':
-        message = __ALREADY_SUBSCRIBED
+    # get the appropriate error message
+    message = ErrorMessage.get_error_message(error_type, key)
 
     # get the error template
     template = Templates.error
+
     # display the page
     return render_to_response(template, {'error_message' : message})
 

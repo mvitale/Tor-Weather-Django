@@ -4,7 +4,10 @@ error messages. The purpose of putting them all in a separate directory was for 
 if the error messages need to be modified, the changes need only be made in
 one place (here).
 """
+from weather.weatherapp.models import Subscriber
+
 base_url = 'http://localhost:8000'
+
 # --------------------------------------------------------------------------
 # CHANGE ONCE WE KNOW THE BASE URL
 # --------------------------------------------------------------------------
@@ -24,14 +27,31 @@ class ErrorMessages:
         + "hour, in which case you should try to register again a bit later"
         + "</li><li>The node with the given fingerprint has been down for over"
         + "a year"
+    __DEFAULT = "Tor Weather has encountered an error."
 
-    def get_error_message(error_type, confirm_auth):
-        """"""
+    def get_error_message(error_type, key):
+        """Returns an error message based on the error type and user-specific
+        key. The error message contains HTML formatting and should be
+        incorporated into the template for the error page.
+
+        @type error_type: str
+        @param error_type: The type of error.
+        """
         message = ""
         if error_type == 'already_subscribed':
-           message = "" 
+            # the key represents the user's pref_auth key
+            pref_auth = key
+            pref_url = Urls.get_preferences_url(pref_auth)
+            message = ErrorMessages.__ALREADY_SUBSCRIBED % pref_url
+            return message
         else if error_type == 'fingerprint_not_found':
-
+            # the key represents the fingerprint the user tried to enter
+            fingerprint = key
+            message = ErrorMessages.__FINGERPRINT_NOT_FOUND % fingerprint
+            return message
+        else:
+            message = ErrorMessages.__DEFAULT
+            return message
 
 class Templates:
     """ The Templates class maps all of the html template files, which are
@@ -125,7 +145,7 @@ class Urls:
 
     @staticmethod
     def get_error_ext(error_type, 
-                      confirm_auth,
+                      key,
                       path = __ERROR):
         """Returns the url extension for the error page specified by the 
         error_type 
@@ -134,15 +154,17 @@ class Urls:
         @type error_type: str
         @param error_type: The type of error message to be displayed to the 
             user.
-        @type confirm_auth: str
-        @param confirm_auth: The user's unique confirmation authorization key, 
-            which is used to block inappropirate access to this error page and 
-            to access specific information about the user from the database to 
-            display it on the error page. The key is incorporated into the url.
+        @type key: str
+        @param key: A user-specific key, the meaning of which depends on the 
+            type of error encountered. For a fingerprint not found error, the
+            key represents the fingerprint the user tried to enter. For an 
+            already subscribed error, the key is the user's preferences 
+            authorization key, which is utilized in page rendering. The key is
+            incorporated into the url extension.
         @rtype: str
         @return: The url extension for the user-specific error page.
         """
-        extension = path % (error_type, confirm_auth)
+        extension = path % (error_type, key)
         return extension 
 
     @staticmethod
