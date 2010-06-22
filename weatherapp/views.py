@@ -13,7 +13,7 @@ from emails import Emailer
 from django.core.context_processors import csrf
 from django.http import HttpResponseRedirect, HttpRequest, Http404
 from django.http import HttpResponse
-from weather.config.web_directory import Templates, Urls
+from weather.config.web_directory import ErrorMessages, Templates, Urls
 
 # TO DO --------------------------------------------------------- EXTRA FEATURE
 # MOVE THIS TO A MORE GENERAL LOCATION ----------------------------------------
@@ -256,7 +256,7 @@ def error(request, error_type, key):
     @param error_type: A description of the type of error encountered."""
     
     # get the appropriate error message
-    message = ErrorMessage.get_error_message(error_type, key)
+    message = ErrorMessages.get_error_message(error_type, key)
 
     # get the error template
     template = Templates.error
