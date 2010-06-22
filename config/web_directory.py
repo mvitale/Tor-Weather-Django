@@ -4,7 +4,6 @@ error messages. The purpose of putting them all in a separate directory was for 
 if the error messages need to be modified, the changes need only be made in
 one place (here).
 """
-from weather.weatherapp.models import Subscriber
 
 base_url = 'http://localhost:8000'
 
@@ -44,7 +43,7 @@ class ErrorMessages:
             pref_url = Urls.get_preferences_url(pref_auth)
             message = ErrorMessages.__ALREADY_SUBSCRIBED % pref_url
             return message
-        else if error_type == 'fingerprint_not_found':
+        elif error_type == 'fingerprint_not_found':
             # the key represents the fingerprint the user tried to enter
             fingerprint = key
             message = ErrorMessages.__FINGERPRINT_NOT_FOUND % fingerprint

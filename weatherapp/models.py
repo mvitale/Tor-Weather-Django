@@ -254,7 +254,7 @@ class SubscribeForm(forms.Form):
         grace_pd = self.cleaned_data.get('grace_pd')
         if grace_pd < 1:
             grace_pd = 1
-        if grace_pd > 8760
+        if grace_pd > 8760:
             grace_pd = 8760
         return grace_pd
 
