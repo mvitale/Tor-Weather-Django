@@ -2,13 +2,18 @@ div.center {
 	max-width: 760px;
 }
 
-form div { 
+div.main-column {
+	padding-right: 10px;
+}
+
+form div {
 	margin-bottom: 5px;
 }
 
 .form-heading {
 	border-bottom: 1px solid black;
 	margin-bottom: 15px;
+	margin-top: 20px;
 }
 
 .form-heading span {
@@ -17,6 +22,11 @@ form div {
 	padding-right: 5px;
 	float: left;
 	background-color: white;
+}
+
+input#subscribe-submit {
+	font-size: 18px;
+	float:right;
 }
 
 .form-heading div {
@@ -31,20 +41,12 @@ div.form-heading strong {
 	margin-right: 5px;
 }
 
-input {
-	width: 175px;
-}
-
-label {
+.form-section {
 	font-size: 14px;
 }
 
-div.has-extra-text {
-	float: left;
-}
-
-em.has-extra-text {
-	float: left;
+.form-section em {
+	color: rgb(75, 75, 75);
 }
 
 div.email-block {

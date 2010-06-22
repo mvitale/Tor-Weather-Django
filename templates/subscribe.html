@@ -3,12 +3,11 @@
 {% block content %}
 <h2> Neo Sign Up! </h2>
 
-<br />
-<form method="post" action="/subscribe/">{% csrf_token %}
-You can use this form to request status updates to tell you when a particular
-Tor node has become unreachable for a sustained period of time.
-<br /><br />
 
+<form method="post" action="/subscribe/">{% csrf_token %}
+<p>
+	You can use this form to request status updates to tell you when a particular Tor node has become unreachable for a sustained period of time.
+</p>
 <h3 class="form-heading">
 	<span>
 		Subscriber Info
@@ -23,62 +22,84 @@ Tor node has become unreachable for a sustained period of time.
 		{{ form.email_1 }}
 	</div>
 	<div class="email-block">
-		{{ form.email_2.errors }}
 		<label for="id_email_2">{{ form.email_2.help_text }}</label><br />
+		{% for error in form.email_2.errors %}<span class="error">{{ error }}</span>{% endfor %}
 		{{ form.email_2 }}
 	</div>
 	<div class="long-input">
-		{{ form.fingerprint.errors }}
 		<label for="id_fingerprint">{{ form.fingerprint.help_text }}</label><br />
+		{% for error in form.fingerprint.errors %}<span class="error">{{ error }}</span>{% endfor %}
 		{{ form.fingerprint }}
 	</div>
 </div>
 
 <h3 class="form-heading">
 	<span>
-		Node Down Options
+		Node Down Notification Options
 	</span>
 	<div></div>
 </h3>
 
 <div class="form-section">
-	<div class="short-input" class="has-extra-text">
+	<div class="short-input">
 		{{ form.node_down_grace_pd.errors }}
 		<label for="node_down_grace_pd_id">{{ form.node_down_grace_pd.help_text }}</label><br />
 		{{ form.node_down_grace_pd }}
-		<label><em>Enter a value betwen 1 and 4500 (roughly six months)</em></label>
+		<em>Enter a value betwen 1 and 4500 (roughly six months)</em>
 	</div>
 </div>
 
 <h3 class="form-heading">
 	<span>
-		Node Out of Date Options
+		Out of Date Notification Options
 	</span>
 	<div></div>
 </h3>
 
 <div class="form-section">
-	<div class="short-input" class="has-extra-text">
+	<div>
+		{{ form.out_of_date_threshold.errors }}
+		<label for="out_of_date_threshold">{{ form.out_of_date_threshold.help_text }}</label><br />
+		{{ form.out_of_date_threshold }}
+	</div>
+	<div class="short-input">
 		{{ form.out_of_date_grace_pd.errors }}
 		<label for="out_of_date_grace_pd">{{ form.out_of_date_grace_pd.help_text }}</label><br />
 		{{ form.out_of_date_grace_pd }}
-		<label><em>Enter a value between 1 and 200 (roughly six months)</em></label>
+		<em>Enter a value between 1 and 200 (roughly six months)</em>
 	</div>
 </div>
 
 <h3 class="form-heading">
 	<span>
-		Node Has Low Bandwidth
+		Low Bandwidth Notification Options
 	</span>
 	<div></div>
 </h3>
-{{ form.as_p }}
 
+<div class="form-section">
+	<div class="short-input">
+		{{ form.band_low_threshold.erors }}
+		<label for="band_low_threshold">{{ form.band_low_threshold.help_text }}</label><br />
+		{{ form.band_low_threshold }}
+	</div>
+	<div class="short-input">
+		{{ form.band_low_grace_pd.errors }}
+		<label for="band_low_grace_pd">{{ form.band_low_grace_pd.help_text }}</label><br />
+		{{ form.band_low_grace_pd }}
+		<em>Enter a value between 1 and 4500 (roughly six months)</em>
+	</div>
+</div>
 
+<h3 class="form-heading">
+	<span>		
+		T-Shirt Notification Options
+	</span>
+	<div></div>
+</h3>
 
-<p>
-<input type="submit" class="submit" value="Subscribe to Tor Weather" name="sa"/>
-</p>
+<input type="submit" id="subscribe-submit" value="Subscribe to Tor Weather!" name="sa" />
+<br />
 </form>
 
 {% endblock content %}
