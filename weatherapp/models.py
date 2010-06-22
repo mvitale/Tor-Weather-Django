@@ -95,7 +95,7 @@ class Subscriber(models.Model):
     email = models.EmailField(max_length=75)
     router = models.ForeignKey(Router)
     confirmed = models.BooleanField(default = False)
-
+# --------------------- IS THIS OK?? (default = ...) ----------------------
     confirm_auth = models.CharField(max_length=250, 
                     default=SubscriberManager.get_rand_string()) 
     unsubs_auth = models.CharField(max_length=250, 
@@ -141,8 +141,6 @@ class Subscription(models.Model):
     
     @ivar subscriber: A link to the subscriber model representing the owner
         of this subscription.
-    @type name: str
-    @ivar name: The type of subscription.
     @type emailed: bool
     @ivar emailed: True if the user has been emailed about the subscription
         (trigger must also be True), False if the user has not been emailed. 

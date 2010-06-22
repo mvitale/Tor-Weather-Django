@@ -1,14 +1,20 @@
 """
-This module contains the constants for urls and html templates as well as
-the methods for accessing them. The purpose of putting them all in a 
-directory was for convenience of development. If the templates should ever
-be renamed, or if the url structure is ever changed, it need only be 
-updated in one place (here). 
+This module contains classes for accessing urls, html templates, and specific
+error messages. The purpose of putting them all in a separate directory was for convenience of development. If the file/url extensions are ever changed, or
+if the error messages need to be modified, the changes need only be made in
+one place (here).
 """
 base_url = 'http://localhost:8000'
 # --------------------------------------------------------------------------
 # CHANGE ONCE WE KNOW THE BASE URL
 # --------------------------------------------------------------------------
+
+class ErrorMessages:
+    """The ErrorMessages class contains the different error messages that 
+    may be displayed to the user via the web pages.
+    """
+
+
 
 class Templates:
     """ The Templates class maps all of the html template files, which are
