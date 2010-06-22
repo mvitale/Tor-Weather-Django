@@ -4,7 +4,10 @@ error messages. The purpose of putting them all in a separate directory was for 
 if the error messages need to be modified, the changes need only be made in
 one place (here).
 """
+from weather.weatherapp.models import Subscriber
+
 base_url = 'http://localhost:8000'
+
 # --------------------------------------------------------------------------
 # CHANGE ONCE WE KNOW THE BASE URL
 # --------------------------------------------------------------------------
@@ -14,7 +17,41 @@ class ErrorMessages:
     may be displayed to the user via the web pages.
     """
 
+    __ALREADY_SUBSCRIBED = "You are already subscribed to receive email" +\
+        "alerts about the node you specified. If you'd like, you can" +\
+        " <a href = '%s'>change your preferences here</a>" 
+    __FINGERPRINT_NOT_FOUND = "We could not locate a Tor node with" +\
+        "fingerprint %s.</p><p>Here are some potential problems:" +\
+        "<ul><li>The fingerprint was entered incorrectly</li>" +\
+        "<li>The node with the given fingerprint was set up within the last" +\
+        "hour, in which case you should try to register again a bit later" +\
+        "</li><li>The node with the given fingerprint has been down for over"+\
+        "a year"
+    __DEFAULT = "Tor Weather has encountered an error."
 
+    def get_error_message(error_type, key):
+        """Returns an error message based on the error type and user-specific
+        key. The error message contains HTML formatting and should be
+        incorporated into the template for the error page.
+
+        @type error_type: str
+        @param error_type: The type of error.
+        """
+        message = ""
+        if error_type == 'already_subscribed':
+            # the key represents the user's pref_auth key
+            pref_auth = key
+            pref_url = Urls.get_preferences_url(pref_auth)
+            message = ErrorMessages.__ALREADY_SUBSCRIBED % pref_url
+            return message
+        else if error_type == 'fingerprint_not_found':
+            # the key represents the fingerprint the user tried to enter
+            fingerprint = key
+            message = ErrorMessages.__FINGERPRINT_NOT_FOUND % fingerprint
+            return message
+        else:
+            message = ErrorMessages.__DEFAULT
+            return message
 
 class Templates:
     """ The Templates class maps all of the html template files, which are
@@ -79,7 +116,7 @@ class Urls:
         @param confirm_auth: The user's unique confirmation authorization key, 
             which is used to prevent inappropriate access of this page and to 
             access specific information about the user from the database 
-            (email, unsub_auth, and pref_auth) to be displayed on the 
+            (email, unsubs_auth, and pref_auth) to be displayed on the 
             confirmation page. The key is incorporated into the url.
         @rtype: str
         @return: The user-specific confirmation url. 
@@ -97,7 +134,7 @@ class Urls:
         @param pref_auth: The user's unique preferences authorization key,
             which is used to prevent inappropriate access of this page and to 
             access specific information about the user from the database 
-            (pref_auth, unsub_auth) to be displayed on the page. The key is 
+            (pref_auth, unsubs_auth) to be displayed on the page. The key is 
             incorporated into the url.
         @rtype: str
         @return: The url extension for the user-specific preferences changed 
@@ -108,7 +145,7 @@ class Urls:
 
     @staticmethod
     def get_error_ext(error_type, 
-                      confirm_auth,
+                      key,
                       path = __ERROR):
         """Returns the url extension for the error page specified by the 
         error_type 
@@ -117,15 +154,17 @@ class Urls:
         @type error_type: str
         @param error_type: The type of error message to be displayed to the 
             user.
-        @type confirm_auth: str
-        @param confirm_auth: The user's unique confirmation authorization key, 
-            which is used to block inappropirate access to this error page and 
-            to access specific information about the user from the database to 
-            display it on the error page. The key is incorporated into the url.
+        @type key: str
+        @param key: A user-specific key, the meaning of which depends on the 
+            type of error encountered. For a fingerprint not found error, the
+            key represents the fingerprint the user tried to enter. For an 
+            already subscribed error, the key is the user's preferences 
+            authorization key, which is utilized in page rendering. The key is
+            incorporated into the url extension.
         @rtype: str
         @return: The url extension for the user-specific error page.
         """
-        extension = path % (error_type, confirm_auth)
+        extension = path % (error_type, key)
         return extension 
 
     @staticmethod
@@ -198,17 +237,17 @@ class Urls:
         return extension
 
     @staticmethod
-    def get_unsubscribe_url(unsub_auth,
+    def get_unsubscribe_url(unsubs_auth,
                             path = __UNSUBSCRIBE):
         """Returns the complete url for the user's unsubscribe page. The url is
         displayed to the user in the email reports and on some of the Tor 
         Weather pages.
 
-        @type unsub_auth: str
-        @param unsub_auth: The user's unique unsubscribe authorization key, 
+        @type unsubs_auth: str
+        @param unsubs_auth: The user's unique unsubscribe authorization key, 
             which is incorporated into the url.
         @rtype: str
         @return: The complete url for the user's unique unsubscribe page.
         """
-        url = base_url + path % unsub_auth
+        url = base_url + path % unsubs_auth
         return url
