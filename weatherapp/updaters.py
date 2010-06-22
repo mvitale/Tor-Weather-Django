@@ -2,7 +2,6 @@ import socket
 from TorCtl import TorCtl
 import ctlutil
 import config
-from models import ModelAdder
 from django.db import models
 from emails import Emailer
 

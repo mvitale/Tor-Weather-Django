@@ -3,19 +3,27 @@ from django.conf.urls.defaults import *
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
 # admin.autodiscover()
-
-urlpatterns = patterns('weather.weatherapp.views',
-    (r'^$', 'home'),
-    (r'^subscribe/$', 'subscribe'),
-    (r'^pending/(?P<confirm_auth>.+)/$', 'pending'),
-    (r'^confirm/(?P<confirm_auth>.+)/$', 'confirm'),
-    (r'^unsubscribe/(?P<unsubscribe_auth>.+)/$','unsubscribe'),
-    (r'^preferences/(?P<pref_auth>.+)/$','preferences'),
-    (r'^confirm_pref/(?P<pref_auth>.+)/$','confirm_pref'),
+urlpatterns = patterns('',
+    (r'^$', 'weather.weatherapp.views.home'),
+    (r'^subscribe/$', 'weather.weatherapp.views.subscribe'),
+    (r'^pending/(?P<confirm_auth>.+)/$', 'weather.weatherapp.views.pending'),
+    (r'^confirm/(?P<confirm_auth>.+)/$', 'weather.weatherapp.views.confirm'),
+    (r'^unsubscribe/(?P<unsubscribe_auth>.+)/$',
+                        'weather.weatherapp.views.unsubscribe'),
+    (r'^preferences/(?P<pref_auth>.+)/$',
+                        'weather.weatherapp.views.preferences'),
+    (r'^confirm_pref/(?P<pref_auth>.+)/$',
+                        'weather.weatherapp.views.confirm_pref'),
     (r'^fingerprint_error/(?P<fingerprint>.+)/$', 
-                                                'fingerprint_error'),
-    (r'^error/(?P<error_type>[a-z_]+)/(?P<subscriber_id>\d+)/$', 'error'),
-    (r'^run_updaters$', 'run_updaters'),
+                        'weather.weatherapp.views.fingerprint_error'),
+    (r'^error/(?P<error_type>[a-z_]+)/(?P<subscriber_id>\d+)/$', 
+                        'weather.weatherapp.views.error'),
+    (r'^run_updaters$', 'weather.weatherapp.views.run_updaters'),
+
+    # This is for serving static files for the development server, mainly for
+    # getting the CSS file.
+    (r'^media/(?P<path>.*)$', 'django.views.static.serve',
+        {'document_root': '/home/jruberg/code/weather/media'}),
 
     # Uncomment the admin/doc line below and add 'django.contrib.admindocs' 
     # to INSTALLED_APPS to enable admin documentation:

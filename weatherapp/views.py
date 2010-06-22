@@ -10,6 +10,7 @@ from models import Subscriber, Subscription, Router, \
 from django.db import models
 from django.shortcuts import render_to_response, get_object_or_404
 from emails import Emailer
+import django.views.static
 from django.core.context_processors import csrf
 from django.http import HttpResponseRedirect, HttpRequest, Http404
 from django.http import HttpResponse

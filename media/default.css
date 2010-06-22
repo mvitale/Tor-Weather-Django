@@ -1,0 +1,53 @@
+div.center {
+	max-width: 760px;
+}
+
+form div { 
+	margin-bottom: 5px;
+}
+
+.form-heading {
+	border-bottom: 1px solid black;
+	margin-bottom: 15px;
+}
+
+.form-heading span {
+	display: block;
+	margin-bottom: -15px;
+	padding-right: 5px;
+	float: left;
+	background-color: white;
+}
+
+.form-heading div {
+	clear: both;
+}
+
+div.form-section {
+	clear: both;
+}
+
+div.form-heading strong {
+	margin-right: 5px;
+}
+
+input {
+	width: 175px;
+}
+
+label {
+	font-size: 14px;
+}
+
+div.form-email {
+	float: left;
+	margin-right: 15px;
+}
+
+div.form-long-text {
+	clear: both;
+}
+
+div.form-long-text input {
+	width: 300px;
+}

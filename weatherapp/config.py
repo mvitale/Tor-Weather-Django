@@ -3,10 +3,10 @@
 # Copyright (c) 2009, 2010 The Tor Project
 # See LICENSE for licensing information
 
-URLbase = "https://weather.torproject.org"
+URLbase = "localhost:8000"
 
 # XXX: Make bulletproof
-authenticator = open("auth_token").read().strip()
+authenticator = open("auth_token", "r").read().strip()
 
 mailFrom = "tor-ops@torproject.org"
 
