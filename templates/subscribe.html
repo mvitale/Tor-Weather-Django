@@ -18,8 +18,8 @@ Tor node has become unreachable for a sustained period of time.
 
 <div class="form-section">
 	<div class="email-block">
-		{{ form.email_1.errors }}
 		<label for="id_email_1">{{form.email_1.help_text}}</label><br />
+		{% for error in form.email_1.errors %}<span class="error">{{ error }}</span>{% endfor %}
 		{{ form.email_1 }}
 	</div>
 	<div class="email-block">
@@ -46,7 +46,7 @@ Tor node has become unreachable for a sustained period of time.
 		{{ form.node_down_grace_pd.errors }}
 		<label for="node_down_grace_pd_id">{{ form.node_down_grace_pd.help_text }}</label><br />
 		{{ form.node_down_grace_pd }}
-		<label><em>Enter a value betwen 1 and 4500 (roughly six months){{ form.node_down_grace_pd.help_text_2 }}</em></label>
+		<label><em>Enter a value betwen 1 and 4500 (roughly six months)</em></label>
 	</div>
 </div>
 
@@ -63,7 +63,12 @@ Tor node has become unreachable for a sustained period of time.
 		<label for="out_of_date_grace_pd">{{ form.out_of_date_grace_pd.help_text }}</label><br />
 		{{ form.out_of_date_grace_pd }}
 		<label><em>Enter a value between 1 and 200 (roughly six months)</em></label>
+	</div>
 </div>
+
+<h3 class=class="form-heading">
+	<span>
+		Node Has Low Bandwidth
 
 {{ form.as_p }}
 
