@@ -156,8 +156,6 @@ class Emailer:
 
     @staticmethod
     def send_welcome(recipient):
-                     sender = _SENDER,
-                     subj_header = _SUBJECT_HEADER):
         """"""
         subj = Emailer._SUBJECT_HEADER + Emailer._WELCOME_SUBJ
         sender = Emailer._SENDER
