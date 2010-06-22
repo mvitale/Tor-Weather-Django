@@ -69,6 +69,7 @@ class SubscriptionChecker:
 class RouterUpdater:
     """
     A class for updating the Router table and sending 'welcome' emails
+    (welcome email feature not yet implemented)
   
     @type ctl_util: CtlUtil
     @ivar ctl_util: A CtlUtil object for handling interactions with
@@ -99,8 +100,6 @@ class RouterUpdater:
 
         #Get a list of fingerprint/name tuples in the current descriptor file
         finger_name = self.ctl_util.get_finger_name_list()
-        for pair in finger_name:
-            print pair
 
         for router in finger_name:
 
