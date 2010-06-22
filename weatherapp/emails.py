@@ -25,10 +25,10 @@ _SUBS_CONFIRMED_MAIL ="Dear human,\n\nThis is the Tor Weather Report system."+\
 _NODE_DOWN_SUBJ = 'Node Down!'
 _NODE_DOWN_MAIL = "This is a Tor Weather Report.\n\n" +\
 "It appears that a Tor node you elected to monitor (node id: %s) " +\
-"has been uncontactable through the Tor network for at least %s. You may " +\
-"wish to look at it to see why.\n\n You can unsubscribe from these reports "+\
-"at any time by visiting the following url:\n\n%s\n\n or change your Tor "+\
-"Weather notification preferences here:\n\n%s.\n"
+"has been uncontactable through the Tor network for at least %s hour(s). "+\
+"You may wish to look at it to see why.\n\n You can unsubscribe from these "+\
+"reports at any time by visiting the following url:\n\n%s\n\n or change your "+\
+"Tor Weather notification preferences here:\n\n%s.\n"
 # ------------------------------------------------------------------
 # CONFIGURE THIS!
 # ------------------------------------------------------------------
@@ -43,7 +43,6 @@ _OUT_OF_DATE_MAIL = "This is a Tor Weather Report.\n\n"+\
 _T_SHIRT_SUBJ = 'Congratulations! Have a t-shirt!'
 _T_SHIRT_MAIL = "This is a Tor Weather Report.\n\n"+\
 "Congratulations! The node you are observing has been stable for %s, "+\
-# -------------------------- TIME UNIT!! -------------------------------
 "which makes the operator eligible to receive an official Tor T-shirt! "+\
 "If you're interested in claiming your shirt, please visit the following "+\
 "link for more information.\n\n"+\
@@ -82,14 +81,34 @@ Legal mumbo jumbo
 """
 
 class Emailer:
-    """"""
+    """The Emailer class contains methods to send Weather Report emails to Tor 
+    Weather users."""
+
     @staticmethod
     def send_confirmation(recipient,
                           fingerprint,
                           confirm_auth,
                           sender = _SENDER,
                           subj_header = _SUBJECT_HEADER):
-        """"""
+        """This method sends a confirmation email to the user. The email 
+        contains a complete link to the confirmation page, which the user 
+        must follow in order to subscribe. The Django method send_mail is
+        called with fail_silently=True so that an error is not thrown if the
+        mail isn't successfully delivered.
+        
+        @type recipient: str
+        @param recipient: The user's email address
+        @type fingerprint: str
+        @param fingerprint: The fingerprint of the node this user wishes to
+            monitor.
+        @type confirm_auth: str
+        @param confirm_auth: The user's unique confirmation authorization key.
+        @type sender: str
+        @param sender: The sender's email address. Default = the stored 
+            email address for the Tor Weather Notification System.
+        @type subj_header: str
+        @param subj_header: The subj
+        """
         subj = subj_header + _CONFIRMATION_SUBJ
         confirm_url = Urls.get_confirm_url(confirm_auth)
         msg = _CONFIRMATION_MAIL % (fingerprint, confirm_url)

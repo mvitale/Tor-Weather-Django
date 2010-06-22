@@ -233,20 +233,24 @@ def confirm_pref(request, pref_auth):
     return render_to_response(template, {'prefURL' : prefURL,
                                          'unsubURL' : unsubURL})
 
-def fingerprint_error(request, fingerprint):
-    """The page that is displayed when a user tries to subscribe to a node
-    that isn't stored in the database. The page includes information
-    regarding potential problems and references the fingerprint the user
-    entered into the form.
-    
-    @type fingerprint: str
-    @param fingerprint: The fingerprint the user entered in the subscribe form.
-    """
-    # get the template
-    template = Templates.fingerprint_error
+# ------------------- REMOVE? --------------------------------------------
 
-    #display the page
-    return render_to_response(template, {'fingerprint' : fingerprint})
+#def fingerprint_error(request, fingerprint):
+#    """The page that is displayed when a user tries to subscribe to a node
+#    that isn't stored in the database. The page includes information
+#    regarding potential problems and references the fingerprint the user
+#    entered into the form.
+#    
+#    @type fingerprint: str
+#    @param fingerprint: The fingerprint the user entered in the subscribe form.
+#    """
+#    # get the template
+#    template = Templates.fingerprint_error
+#
+#    #display the page
+#    return render_to_response(template, {'fingerprint' : fingerprint})
+
+# --------------------------------------------------------------------------
 
 def error(request, error_type, key):
     """The generic error page, which displays a message based on the error
