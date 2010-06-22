@@ -260,12 +260,12 @@ def error(request, error_type, confirm_auth):
     __ALREADY_SUBSCRIBED = "You are already subscribed to receive email" +\
         "alerts about the node you specified. If you'd like, you can" +\
         " <a href = '%s'>change your preferences here</a>" % pref_url
-    __FINGERPRINT_NOT_FOUND = "We could not locate a Tor node with"
-        + "fingerprint %s.</p><p>Here are some potential problems:"
-        + "<ul><li>The fingerprint was entered incorrectly</li>"
-        + "<li>The node with the given fingerprint was set up within the last"
-        + "hour, in which case you should try to register again a bit later"
-        + "</li><li>The node with the given fingerprint has been down for over"
+    __FINGERPRINT_NOT_FOUND = "We could not locate a Tor node with"\
+        + "fingerprint %s.</p><p>Here are some potential problems:"\
+        + "<ul><li>The fingerprint was entered incorrectly</li>"\
+        + "<li>The node with the given fingerprint was set up within the last"\
+        + "hour, in which case you should try to register again a bit later"\
+        + "</li><li>The node with the given fingerprint has been down for over"\
         + "a year"
 
     # get the Subscriber object for this user
