@@ -14,6 +14,23 @@ class ErrorMessages:
     may be displayed to the user via the web pages.
     """
 
+    __ALREADY_SUBSCRIBED = "You are already subscribed to receive email" +\
+        "alerts about the node you specified. If you'd like, you can" +\
+        " <a href = '%s'>change your preferences here</a>" 
+    __FINGERPRINT_NOT_FOUND = "We could not locate a Tor node with"
+        + "fingerprint %s.</p><p>Here are some potential problems:"
+        + "<ul><li>The fingerprint was entered incorrectly</li>"
+        + "<li>The node with the given fingerprint was set up within the last"
+        + "hour, in which case you should try to register again a bit later"
+        + "</li><li>The node with the given fingerprint has been down for over"
+        + "a year"
+
+    def get_error_message(error_type, confirm_auth):
+        """"""
+        message = ""
+        if error_type == 'already_subscribed':
+           message = "" 
+        else if error_type == 'fingerprint_not_found':
 
 
 class Templates:
@@ -79,7 +96,7 @@ class Urls:
         @param confirm_auth: The user's unique confirmation authorization key, 
             which is used to prevent inappropriate access of this page and to 
             access specific information about the user from the database 
-            (email, unsub_auth, and pref_auth) to be displayed on the 
+            (email, unsubs_auth, and pref_auth) to be displayed on the 
             confirmation page. The key is incorporated into the url.
         @rtype: str
         @return: The user-specific confirmation url. 
@@ -97,7 +114,7 @@ class Urls:
         @param pref_auth: The user's unique preferences authorization key,
             which is used to prevent inappropriate access of this page and to 
             access specific information about the user from the database 
-            (pref_auth, unsub_auth) to be displayed on the page. The key is 
+            (pref_auth, unsubs_auth) to be displayed on the page. The key is 
             incorporated into the url.
         @rtype: str
         @return: The url extension for the user-specific preferences changed 
@@ -198,17 +215,17 @@ class Urls:
         return extension
 
     @staticmethod
-    def get_unsubscribe_url(unsub_auth,
+    def get_unsubscribe_url(unsubs_auth,
                             path = __UNSUBSCRIBE):
         """Returns the complete url for the user's unsubscribe page. The url is
         displayed to the user in the email reports and on some of the Tor 
         Weather pages.
 
-        @type unsub_auth: str
-        @param unsub_auth: The user's unique unsubscribe authorization key, 
+        @type unsubs_auth: str
+        @param unsubs_auth: The user's unique unsubscribe authorization key, 
             which is incorporated into the url.
         @rtype: str
         @return: The complete url for the user's unique unsubscribe page.
         """
-        url = base_url + path % unsub_auth
+        url = base_url + path % unsubs_auth
         return url

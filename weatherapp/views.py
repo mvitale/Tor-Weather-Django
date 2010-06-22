@@ -92,6 +92,10 @@ def subscribe(request):
             url_extension = Urls.get_pending_ext(confirm_auth)
             return HttpResponseRedirect(url_extension)
 
+        else:
+            # form isn't valid
+# ---------------------------------DO SOMETHING --------------------------
+
     else:
         # User hasn't submitted info, so just display empty subscribe form.
         form = SubscribeForm()
@@ -101,9 +105,8 @@ def subscribe(request):
         # key is added to block attacking sites.
         c.update(csrf(request))
 
-    # TO DO ----------------------------------------------------- EXTRA FEATURE
-    # MOVE THE URLS TO A GENERAL LOCATION -------------------------------------
-    return render_to_response(Templates.subscribe, c)
+        # TO DO ---------------------------------------------- EXTRA FEATURE
+        return render_to_response(Templates.subscribe, c)
 
 def pending(request, confirm_auth):
     """The user views the pending page after submitting a registration form.
@@ -113,7 +116,6 @@ def pending(request, confirm_auth):
 
     if not user.confirmed:
         # TO DO ------------------------------------------------- EXTRA FEATURE
-        # MOVE THE URLS TO A GENERAL LOCATION ---------------------------------
         return render_to_response(Templates.pending, {'email': user.email})
 
     # Returns the user to the home page if the subscriber has already confirmed
