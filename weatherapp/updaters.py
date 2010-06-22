@@ -23,21 +23,32 @@ class SubscriptionChecker:
         send emails and update subscription data as necessary."""
 
         #All node down subscriptions
-        subscriptions = NodeDownSub.objects.filter(name = "node_down")
+        subscriptions = NodeDownSub.objects.all()
 
         for subscription in subscriptions:
+            print str(subscription)
             is_up = subscription.subscriber.router.up 
+            print is_up
             if is_up:
                 if subscription.triggered:
                    subscription.triggered = False
                    subscription.last_changed = datetime.now()
             else:
                 if subscription.triggered:
+                    print "should send email"
                     #if subscription.should_email():
                     recipient = subscription.subscriber.email
-                    Emailer.send_node_down(recipient)
+                    fingerprint = subscription.subscriber.router.fingerprint
+                    grace_pd = subscription.grace_pd
+                    unsubs_auth = subscription.subscriber.unsubs_auth
+                    pref_auth = subscription.subscriber.pref_auth
+                    
+                    Emailer.send_node_down(recipient, fingerprint, grace_pd,
+                                            unsubs_auth, pref_auth)
                     subscription.emailed = True 
+                    print 'sent email'
                 else:
+                    print 'setting triggered to True'
                     subscription.triggered = True
                     subscription.last_changed = datetime.now()
             subscription.save()
@@ -96,7 +107,9 @@ class RouterUpdater:
         #set the 'up' flag to False for every router in the DB
         router_set = Router.objects.all()
         for router in router_set:
+            print str(router)
             router.up = False
+            router.save()
 
         #Get a list of fingerprint/name tuples in the current descriptor file
         finger_name = self.ctl_util.get_finger_name_list()
@@ -121,10 +134,15 @@ class RouterUpdater:
 def run_all():
     """Run all updaters/checkers in proper sequence"""
     ctl_util = ctlutil.CtlUtil()
+    print "got ctlutil"
     router_updater = RouterUpdater(ctl_util)
+    print "made router updater"
     subscription_checker = SubscriptionChecker(ctl_util)
+    print "made sub checker"
     router_updater.update_all()
+    print "updated routers"
     subscription_checker.check_all()
+    print "checked subs"
 
 if __name__ == "__main__":
     run_all()

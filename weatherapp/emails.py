@@ -175,15 +175,15 @@ class Emailer:
     def send_node_down(recipient,
                        fingerprint,
                        grace_pd,
-                       unsub_auth,
+                       unsubs_auth,
                        pref_auth,
                        sender = _SENDER,
                        subj_header = _SUBJECT_HEADER):
         """"""
         subj = subj_header + _NODE_DOWN_SUBJ
-        unsubURL = baseURL + '/unsubscribe/'+ unsub_auth + '/'
+        unsubURL = baseURL + '/unsubscribe/'+ unsubs_auth + '/'
         prefURL = baseURL + '/preferences/' + pref_auth + '/'
-        msg = _NODE_DOWN_MAIL % fingerprint, grace_pd, unsubURL, prefURL
+        msg = _NODE_DOWN_MAIL % (fingerprint, grace_pd, unsubURL, prefURL)
         send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
     @staticmethod

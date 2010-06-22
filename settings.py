@@ -87,6 +87,10 @@ TEMPLATE_DIRS = (
     os.path.join(PROJECT_PATH, 'templates'),
 )
 
+OPTIONS = {
+    "timeout": 60,
+}
+
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -109,3 +113,4 @@ EMAIL_HOST_PASSWORD = 'torisawesome'
 EMAIL_HOST_USER = 'torweathertester@gmail.com'
 EMAIL_PORT = '587'
 EMAIL_USE_TLS = True
+

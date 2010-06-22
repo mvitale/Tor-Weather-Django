@@ -84,8 +84,7 @@ def subscribe(request):
             # Create the node_down subscription and save to db.
             # TO DO --------------------------------------------- EXTRA FEATURE
             # MOVE THE SUBSCRIPTION NAMES TO A GENERAL LOCATION ---------------
-            subscription = NodeDownSub(subscriber=user, name='node_down', 
-                grace_pd=grace_pd)
+            subscription = NodeDownSub(subscriber=user, grace_pd=grace_pd)
             subscription.save()
 
             # Send the user to the pending page.
@@ -181,8 +180,8 @@ def preferences(request, pref_auth):
                                      pref_auth)
 
             # Get the node_down subscription so we can update grace_pd.
-            node_down_sub = get_object_or_404(NodeDownSub, subscriber = user,
-                name = 'node_down')
+            node_down_sub = get_object_or_404(NodeDownSub, subscriber = user)
+                
             
             node_down_sub.grace_pd = grace_pd
             node_down_sub.save()
@@ -204,8 +203,8 @@ def preferences(request, pref_auth):
     fingerprint = user.router.fingerprint
 
     # get the node down subscription 
-    node_down_sub = get_object_or_404(NodeDownSub, subscriber = user, 
-                name = 'node_down')
+    node_down_sub = get_object_or_404(NodeDownSub, subscriber = user)
+                
 
     # the data is used to fill in the form on the preferences page
     # with the user's existing preferences.    
@@ -226,7 +225,7 @@ def confirm_pref(request, pref_auth):
     """The page confirming that preferences have been changed."""
     user = get_object_or_404(Subscriber, pref_auth = pref_auth)
     prefURL = Urls.get_preferences_url(pref_auth)
-    unsubURL = Urls.get_unsubscribe_url(unsubs_auth)
+    unsubURL = Urls.get_unsubscribe_url(user.unsubs_auth)
 
     # get the template
     template = Templates.confirm_pref

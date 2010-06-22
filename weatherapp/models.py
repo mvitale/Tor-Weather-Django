@@ -156,7 +156,6 @@ class Subscription(models.Model):
         was changed. Default upon creation is C{datetime.now()}.
     """
     subscriber = models.ForeignKey(Subscriber)
-    name = models.CharField(max_length=200)
     emailed = models.BooleanField(default=False)
     triggered = models.BooleanField(default=False)
     last_changed = models.DateTimeField('date of last change', 
@@ -166,7 +165,7 @@ class Subscription(models.Model):
     objects = SubscriptionManager()
     
     def __unicode__(self):
-        return self.name
+        return self.subscriber.email
 
 
 class NodeDownSub(Subscription):
