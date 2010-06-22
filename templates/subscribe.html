@@ -17,19 +17,19 @@ Tor node has become unreachable for a sustained period of time.
 </h3>
 
 <div class="form-section">
-	<div class="form-email">
+	<div class="email-block">
 		{{ form.email_1.errors }}
 		<label for="id_email_1">{{form.email_1.help_text}}</label><br />
 		{{ form.email_1 }}
 	</div>
-	<div class="form-email">
+	<div class="email-block">
 		{{ form.email_2.errors }}
-		<label for="id_email_2">{{form.email_2.help_text}}</label><br />
+		<label for="id_email_2">{{ form.email_2.help_text }}</label><br />
 		{{ form.email_2 }}
 	</div>
-	<div class="form-long-text">
+	<div class="long-input">
 		{{ form.fingerprint.errors }}
-		<label for="id_fingerprint">{{form.fingerprint.help_text}}</label><br />
+		<label for="id_fingerprint">{{ form.fingerprint.help_text }}</label><br />
 		{{ form.fingerprint }}
 	</div>
 </div>
@@ -42,31 +42,32 @@ Tor node has become unreachable for a sustained period of time.
 </h3>
 
 <div class="form-section">
-	<div class="form-short-text">
+	<div class="short-input" class="has-extra-text">
+		{{ form.node_down_grace_pd.errors }}
+		<label for="node_down_grace_pd_id">{{ form.node_down_grace_pd.help_text }}</label><br />
+		{{ form.node_down_grace_pd }}
+		<label><em>Enter a value betwen 1 and 4500 (roughly six months){{ form.node_down_grace_pd.help_text_2 }}</em></label>
 	</div>
 </div>
 
-
-
-<div class="form-section">
-<p>
-</p>
-</div>
-
-<div class="form-section">
-<p>
-</p>
-</div>
+<h3 class="form-heading">
+	<span>
+		Node Out of Date Options
+	</span>
+	<div></div>
+</h3>
 
 <div class="form-section">
-<p>
-</p>
+	<div class="short-input" class="has-extra-text">
+		{{ form.out_of_date_grace_pd.errors }}
+		<label for="out_of_date_grace_pd">{{ form.out_of_date_grace_pd.help_text }}</label><br />
+		{{ form.out_of_date_grace_pd }}
+		<label><em>Enter a value between 1 and 200 (roughly six months)</em></label>
 </div>
 
-<div class="form-section">
-<p>
-</p>
-</div>
+{{ form.as_p }}
+
+
 
 <p>
 <input type="submit" class="submit" value="Subscribe to Tor Weather" name="sa"/>

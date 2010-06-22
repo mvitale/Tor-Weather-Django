@@ -188,6 +188,7 @@ class OldSubscribeForm(forms.Form):
         'if (this.value=="Default is 1 hour, enter up to 8760 (1 year)") '+\
         '{this.value=""}'}))
 
+
 class SubscribeForm(forms.Form):
     """For full feature list. NOWHERE NEAR READY. """
 
@@ -197,11 +198,11 @@ class SubscribeForm(forms.Form):
 
     get_node_down = forms.BooleanField(
             help_text='Receive notifications when node is down')
-    node_down_grace_pd = forms.IntegerField( 
-            help_text='How many hours of downtime before we send'
-                       + 'a notifcation?')
-    node_down_grace_pd.help_text_2 = \
-            'Enter a value between 1 and 4500 (roughly six months)'
+    node_down_grace_pd = forms.IntegerField(max_value=4500, min_value=1)
+    node_down_grace_pd.help_text = 'How many hours of downtime before we send \
+                        a notifcation?'
+    node_down_grace_pd.help_text_2 = 'Enter a value between 1 and \
+            4500 (roughly six months)'
     
     get_out_of_date = forms.BooleanField(
             help_text='Receive notifications when node is out of date')

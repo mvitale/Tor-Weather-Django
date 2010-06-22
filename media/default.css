@@ -39,15 +39,27 @@ label {
 	font-size: 14px;
 }
 
-div.form-email {
+div.has-extra-text {
+	float: left;
+}
+
+em.has-extra-text {
+	float: left;
+}
+
+div.email-block {
 	float: left;
 	margin-right: 15px;
 }
 
-div.form-long-text {
+div.long-input {
 	clear: both;
 }
 
-div.form-long-text input {
+div.long-input input {
 	width: 300px;
+}
+
+div.short-input input {
+	width: 100px;
 }
