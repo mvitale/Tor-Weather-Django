@@ -10,21 +10,21 @@ Tor node has become unreachable for a sustained period of time.
 <br /><br />
 
 <p>
-	{{ form.email.errors }}
-	<label for="id_email">Your e-mail address:<br /></label>
+	<label for="id_email">Your e-mail address:</label><br />
+	{% for error in form.email.errors %}<span style="color:red;display:block;">{{ error }}</span>{% endfor %}
 	{{ form.email }}
 </p>
 
 <p>
-	{{ form.fingerprint.errors }}
 	<label for="id_fingerprint">Node fingerprint:<br /></label>
+	{% for error in form.fingerprint.errors %}<span style="color:red;display:block;">{{ error }}</span>{% endfor %}
 	{{ form.fingerprint }}
 </p>
 
 <p>
-	{{ form.grace_pd.errors }}
 	<label for="id_grace_pd">How many hours of downtime until we send a
-	notification:<br /></label>
+		notification:<br /></label>
+	{% for error in form.grace_pd.errors %}<span style="color:red;display:block;">{{ error }}</span>{% endfor %}
 	{{ form.grace_pd }}
 </p>
 
