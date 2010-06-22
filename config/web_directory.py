@@ -20,13 +20,13 @@ class ErrorMessages:
     __ALREADY_SUBSCRIBED = "You are already subscribed to receive email" +\
         "alerts about the node you specified. If you'd like, you can" +\
         " <a href = '%s'>change your preferences here</a>" 
-    __FINGERPRINT_NOT_FOUND = "We could not locate a Tor node with"
-        + "fingerprint %s.</p><p>Here are some potential problems:"
-        + "<ul><li>The fingerprint was entered incorrectly</li>"
-        + "<li>The node with the given fingerprint was set up within the last"
-        + "hour, in which case you should try to register again a bit later"
-        + "</li><li>The node with the given fingerprint has been down for over"
-        + "a year"
+    __FINGERPRINT_NOT_FOUND = "We could not locate a Tor node with" +\
+        "fingerprint %s.</p><p>Here are some potential problems:" +\
+        "<ul><li>The fingerprint was entered incorrectly</li>" +\
+        "<li>The node with the given fingerprint was set up within the last" +\
+        "hour, in which case you should try to register again a bit later" +\
+        "</li><li>The node with the given fingerprint has been down for over"+\
+        "a year"
     __DEFAULT = "Tor Weather has encountered an error."
 
     def get_error_message(error_type, key):

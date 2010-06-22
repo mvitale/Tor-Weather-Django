@@ -251,7 +251,7 @@ class SubscribeForm(forms.Form):
         enters an integer less than 1 for the node down grace period, the 
         grace period is stored as 1. If the user enters an integer greater 
         than 8760, the grace period is stored as 8760."""
-        grace_pd = self.cleaned_data['grace_pd']
+        grace_pd = self.cleaned_data.get('grace_pd')
         if grace_pd < 1:
             grace_pd = 1
         if grace_pd > 8760
