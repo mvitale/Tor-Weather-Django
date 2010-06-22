@@ -81,11 +81,11 @@ def subscribe(request):
             confirm_auth = user.confirm_auth
             Emailer.send_confirmation(addr, fingerprint, confirm_auth)
              
-            # Create the node_down subscription and save to db.
+            # Create the node down subscription and save to db.
             # TO DO --------------------------------------------- EXTRA FEATURE
             # MOVE THE SUBSCRIPTION NAMES TO A GENERAL LOCATION ---------------
-            subscription = NodeDownSub(subscriber=user, name='node_down', 
-                grace_pd=grace_pd)
+            subscription = NodeDownSub(subscriber=user,         
+                                       grace_pd=grace_pd)
             subscription.save()
 
             # Send the user to the pending page.
@@ -180,9 +180,8 @@ def preferences(request, pref_auth):
             user = get_object_or_404(Subscriber, pref_auth = 
                                      pref_auth)
 
-            # Get the node_down subscription so we can update grace_pd.
-            node_down_sub = get_object_or_404(NodeDownSub, subscriber = user,
-                name = 'node_down')
+            # Get the node down subscription so we can update grace_pd.
+            node_down_sub = get_object_or_404(NodeDownSub, subscriber = user)
             
             node_down_sub.grace_pd = grace_pd
             node_down_sub.save()
@@ -204,8 +203,7 @@ def preferences(request, pref_auth):
     fingerprint = user.router.fingerprint
 
     # get the node down subscription 
-    node_down_sub = get_object_or_404(NodeDownSub, subscriber = user, 
-                name = 'node_down')
+    node_down_sub = get_object_or_404(NodeDownSub, subscriber = user)
 
     # the data is used to fill in the form on the preferences page
     # with the user's existing preferences.    
@@ -264,6 +262,13 @@ def error(request, error_type, confirm_auth):
     __ALREADY_SUBSCRIBED = "You are already subscribed to receive email" +\
         "alerts about the node you specified. If you'd like, you can" +\
         " <a href = '%s'>change your preferences here</a>" % pref_url
+    __FINGERPRINT_NOT_FOUND = "We could not locate a Tor node with"
+        + "fingerprint %s.</p><p>Here are some potential problems:"
+        + "<ul><li>The fingerprint was entered incorrectly</li>"
+        + "<li>The node with the given fingerprint was set up within the last"
+        + "hour, in which case you should try to register again a bit later"
+        + "</li><li>The node with the given fingerprint has been down for over"
+        + "a year"
 
     # get the Subscriber object for this user
     user = get_object_or_404(Subscriber, confirm_auth=confirm_auth)

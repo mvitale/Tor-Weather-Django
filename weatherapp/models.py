@@ -141,8 +141,6 @@ class Subscription(models.Model):
     
     @ivar subscriber: A link to the subscriber model representing the owner
         of this subscription.
-    @type name: str
-    @ivar name: The type of subscription.
     @type emailed: bool
     @ivar emailed: True if the user has been emailed about the subscription
         (trigger must also be True), False if the user has not been emailed. 
@@ -156,7 +154,6 @@ class Subscription(models.Model):
         was changed. Default upon creation is C{datetime.now()}.
     """
     subscriber = models.ForeignKey(Subscriber)
-    name = models.CharField(max_length=200)
     emailed = models.BooleanField(default=False)
     triggered = models.BooleanField(default=False)
     last_changed = models.DateTimeField('date of last change', 
