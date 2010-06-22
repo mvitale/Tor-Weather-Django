@@ -1,6 +1,7 @@
 import socket
 from TorCtl import TorCtl
 import config
+import logging
 
 debugfile = open("debug", "w")
 
@@ -42,11 +43,11 @@ class CtlUtil:
         try:
             self.sock.connect((self.control_host, self.control_port))
         except:
-            #errormsg = "Could not connect to Tor control port.\n" + \
-                       #"Is Tor running on %s with its control port" + \
-                       #"opened on %s?" % (control_host, control_port)
-            #logging.error(errormsg)
-            #print >> sys.stderr, errormsg
+            errormsg = "Could not connect to Tor control port.\n" + \
+                       "Is Tor running on %s with its control port" + \
+                       "opened on %s?" % (control_host, control_port)
+            logging.error(errormsg)
+            print >> sys.stderr, errormsg
             raise
 
         # Create connection to TorCtl
@@ -145,14 +146,12 @@ class CtlUtil:
         try:
            info = self.get_single_consensus(node_id)
         except TorCtl.ErrorReply, e:
-            # If we're getting here, we're likely seeing:
+            #If we're getting here, we're likely seeing:
             # ErrorReply: 552 Unrecognized key "ns/id/46D9..."
-            # ^ This was from the original Tor Weather. This probably
-            # means simply that a consensus file wasn't found.
-            #logging.error("ErrorReply: %s" % str(e))
+            logging.error("ErrorReply: %s" % str(e))
             return False
         except:
-            #logging.error("Unknown exception in ctlutil.is_up()")
+            logging.error("Unknown exception in ctlutil.is_up()")
             return False
 
         # If we're here, we were able to fetch information about the router

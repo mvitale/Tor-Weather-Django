@@ -28,6 +28,7 @@ class ErrorMessages:
         "a year"
     __DEFAULT = "Tor Weather has encountered an error."
 
+    @staticmethod
     def get_error_message(error_type, key):
         """Returns an error message based on the error type and user-specific
         key. The error message contains HTML formatting and should be
