@@ -29,6 +29,10 @@ input#subscribe-submit {
 	float:right;
 }
 
+label.block {
+	display: block;
+}
+
 .form-heading div {
 	clear: both;
 }
