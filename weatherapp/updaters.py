@@ -19,7 +19,12 @@ class SubscriptionChecker:
         subscriptions = NodeDownSub.objects.all()
 
         for subscription in subscriptions:
+            #only check subscriptions of confirmed subscribers
+            print 'checking if confirmed'
             if subscription.subscriber.confirmed:
+                print 'subscription confirmed'
+                
+
                 is_up = subscription.subscriber.router.up 
                 if is_up:
                     if subscription.triggered:
