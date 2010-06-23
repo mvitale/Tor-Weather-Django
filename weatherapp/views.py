@@ -13,7 +13,8 @@ from emails import Emailer
 from django.core.context_processors import csrf
 from django.http import HttpResponseRedirect, HttpRequest, Http404
 from django.http import HttpResponse
-from weather.config.web_directory import ErrorMessages, Templates, Urls
+from weather.config.web_directory import Templates, Urls
+from weather.weatherapp.error_messages import ErrorMessages
 import threading
 
 # TO DO --------------------------------------------------------- EXTRA FEATURE
