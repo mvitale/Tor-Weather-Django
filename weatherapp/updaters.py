@@ -1,16 +1,9 @@
 import socket, sys, os
 import ctlutil
 import config
-from emails import Emailer
+from weather.weatherapp.emails import Emailer
 import datetime 
-
-sys.path.append(os.path.abspath('../..'))
-os.environ['DJANGO_SETTINGS_MODULE'] = 'weather.settings'
-
-from django.core.management import setup_environ
-from weather import settings
 from weather.weatherapp.models import *
-setup_environ(settings)
 
 class SubscriptionChecker:
     """A class for checking and updating the various subscription types"""
@@ -33,7 +26,7 @@ class SubscriptionChecker:
                    subscription.last_changed = datetime.now()
             else:
                 if subscription.triggered:
-                    #if subscription.should_email():
+                    #if subscription.should_email():------enable after debugging---
                     recipient = subscription.subscriber.email
                     fingerprint = subscription.subscriber.router.fingerprint
                     grace_pd = subscription.grace_pd
@@ -60,7 +53,7 @@ class SubscriptionChecker:
 
     def check_earn_tshirt(self):
         # TO DO ------------------------------------------------- EXTRA FEATURE
-        # IMPLEMENT THIS ------------------------------------------------------
+       # IMPLEMENT THIS ------------------------------------------------------
         pass
 
     def check_all(self):

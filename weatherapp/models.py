@@ -97,11 +97,11 @@ class Subscriber(models.Model):
     confirmed = models.BooleanField(default = False)
 # --------------------- IS THIS OK?? (default = ...) ----------------------
     confirm_auth = models.CharField(max_length=250, 
-                    default=SubscriberManager.get_rand_string()) 
+                    default=SubscriberManager.get_rand_string) 
     unsubs_auth = models.CharField(max_length=250, 
-                    default=SubscriberManager.get_rand_string())
+                    default=SubscriberManager.get_rand_string)
     pref_auth = models.CharField(max_length=250, 
-                    default=SubscriberManager.get_rand_string())
+                    default=SubscriberManager.get_rand_string)
 
     sub_date = models.DateTimeField(default=datetime.now())
 
