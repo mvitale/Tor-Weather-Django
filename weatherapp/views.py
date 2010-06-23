@@ -14,6 +14,7 @@ from django.core.context_processors import csrf
 from django.http import HttpResponseRedirect, HttpRequest, Http404
 from django.http import HttpResponse
 from weather.config.web_directory import ErrorMessages, Templates, Urls
+import threading
 
 # TO DO --------------------------------------------------------- EXTRA FEATURE
 # MOVE THIS TO A MORE GENERAL LOCATION ----------------------------------------
@@ -89,14 +90,18 @@ def subscribe(request):
             # Create the node down subscription and save to db.
             subscription = NodeDownSub(subscriber=user, grace_pd=grace_pd)
             subscription.save()
-            
-            # send the confirmation email
+
+            # spawn a daemon to send the confirmation email
             confirm_auth = user.confirm_auth
-            Emailer.send_confirmation(addr, fingerprint, confirm_auth)
+            email_thread = threading.Thread(target=Emailer.send_confirmation,
+                                        args=[addr, fingerprint, confirm_auth])
+            email_thread.setDaemon(True)
+            email_thread.start()
 
             # Send the user to the pending page.
             url_extension = Urls.get_pending_ext(confirm_auth)
             return HttpResponseRedirect(url_extension)
+
     else:
         # User hasn't submitted info, so just display empty subscribe form.
         form = SubscribeForm()
@@ -140,9 +145,13 @@ def confirm(request, confirm_auth):
     unsubURL = Urls.get_unsubscribe_url(user.unsubs_auth)
     prefURL = Urls.get_preferences_url(user.pref_auth)
 
-    # send an email confirming subscription and providing the links
-    Emailer.send_confirmed(user.email, router.fingerprint, unsubs_auth, 
-                           pref_auth)
+    # spawn a daemon to send an email confirming subscription and 
+    #providing the links
+    email_thread=threading.Thread(target=Emailer.send_confirmed
+                            args=[user.email, router.fingerprint, unsubs_auth,
+                                pref_auth])
+    email_thread.setDaemon(True)
+    email_thread.start()
 
     # get the template for the confirm page
     template = Templates.confirm
