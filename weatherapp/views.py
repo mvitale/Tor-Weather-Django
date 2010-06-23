@@ -68,9 +68,15 @@ def subscribe(request):
             # to this router, so we redirect them.
             if len(user_query_set) > 0:
                 user = user_query_set[0]
-                url_extension = Urls.get_error_ext('already_subscribed',
-                                                   user.pref_auth)
-                return HttpResponseRedirect(url_extension)
+
+                if user.confirmed:
+                    url_extension = Urls.get_error_ext('already_subscribed',
+                                                       user.pref_auth)
+                    return HttpResponseRedirect(url_extension)
+                else:
+                    url_extension = Urls.get_error_ext('need_confirmation',
+                                                       user.conf_auth)
+                    return HttpResponseRedirect(url_extension)
             
             # Create the subscriber model for the user.
             user = Subscriber(email=addr, router=router)
@@ -120,7 +126,15 @@ def confirm(request, confirm_auth):
     """The confirmation page, which is displayed when the user follows the
         link sent to them in the confirmation email"""
     user = get_object_or_404(Subscriber, confirm_auth=confirm_auth)
-    router = user.router 
+    router = user.router
+
+    if not user.confirmed:
+        # confirm the user's subscription
+        user.confirmed = True
+    else:
+        # the user is already confirmed, send to an error page
+        error_url_ext = Urls.get_error_ext('already_confirmed', confirm_auth)
+        return HttpResponseRedirect(error_url_ext)
 
     # get the urls for the user's unsubscribe and prefs pages to add links
     unsubURL = Urls.get_unsubscribe_url(user.unsubs_auth)
@@ -174,6 +188,7 @@ def unsubscribe(request, unsubscribe_auth):
 def preferences(request, pref_auth):
     """The preferences page, which contains the preferences form initially
         populated by user-specific data"""
+# -------------- MAKE SURE THE USER IS CONFIRMED FIRST! --------------------
     if request.method == "POST":
         # The user submitted the preferences form and is redirected to the 
         # confirmation page.
@@ -262,7 +277,10 @@ def error(request, error_type, key):
     type passed to this controller.
     
     @type error_type: str
-    @param error_type: A description of the type of error encountered."""
+    @param error_type: A description of the type of error encountered.
+    @type key: str
+    @param key: A key interpreted by the L{ErrorMessages} class to render
+        a user-specific error message."""
     
     # get the appropriate error message
     message = ErrorMessages.get_error_message(error_type, key)
