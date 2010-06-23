@@ -133,9 +133,9 @@ def confirm(request, confirm_auth):
 
     # spawn a daemon to send an email confirming subscription and 
     #providing the links
-    email_thread=threading.Thread(target=Emailer.send_confirmed
-                            args=[user.email, router.fingerprint, unsubs_auth,
-                                pref_auth])
+    email_thread=threading.Thread(target=Emailer.send_confirmed,
+                            args=[user.email, router.fingerprint, 
+                                user.unsubs_auth, user.pref_auth])
     email_thread.setDaemon(True)
     email_thread.start()
 

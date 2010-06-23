@@ -19,27 +19,28 @@ class SubscriptionChecker:
         subscriptions = NodeDownSub.objects.all()
 
         for subscription in subscriptions:
-            is_up = subscription.subscriber.router.up 
-            if is_up:
-                if subscription.triggered:
-                   subscription.triggered = False
-                   subscription.last_changed = datetime.now()
-            else:
-                if subscription.triggered:
-                    #if subscription.should_email():------enable after debugging---
-                    recipient = subscription.subscriber.email
-                    fingerprint = subscription.subscriber.router.fingerprint
-                    grace_pd = subscription.grace_pd
-                    unsubs_auth = subscription.subscriber.unsubs_auth
-                    pref_auth = subscription.subscriber.pref_auth
-                    
-                    Emailer.send_node_down(recipient, fingerprint, grace_pd,
-                                            unsubs_auth, pref_auth)
-                    subscription.emailed = True 
+            if subscription.subscriber.confirmed:
+                is_up = subscription.subscriber.router.up 
+                if is_up:
+                    if subscription.triggered:
+                       subscription.triggered = False
+                       subscription.last_changed = datetime.now()
                 else:
-                    subscription.triggered = True
-                    subscription.last_changed = datetime.now()
-            subscription.save()
+                    if subscription.triggered:
+                        #if subscription.should_email():------enable after debugging---
+                        recipient = subscription.subscriber.email
+                        fingerprint = subscription.subscriber.router.fingerprint
+                        grace_pd = subscription.grace_pd
+                        unsubs_auth = subscription.subscriber.unsubs_auth
+                        pref_auth = subscription.subscriber.pref_auth
+                        
+                        Emailer.send_node_down(recipient, fingerprint, grace_pd,
+                                                unsubs_auth, pref_auth)
+                        subscription.emailed = True 
+                    else:
+                        subscription.triggered = True
+                        subscription.last_changed = datetime.now()
+                subscription.save()
 
     def check_out_of_date(self):
         # TO DO ------------------------------------------------- EXTRA FEATURE 
