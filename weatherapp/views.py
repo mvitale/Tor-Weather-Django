@@ -136,6 +136,7 @@ def confirm(request, confirm_auth):
     if not user.confirmed:
         # confirm the user's subscription
         user.confirmed = True
+        user.save()
     else:
         # the user is already confirmed, send to an error page
         error_url_ext = Urls.get_error_ext('already_confirmed', confirm_auth)

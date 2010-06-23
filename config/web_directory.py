@@ -43,6 +43,9 @@ class ErrorMessages:
 
         @type error_type: str
         @param error_type: The type of error.
+        @type key: str
+        @param key: A key that provides user-specific or error-specific
+            information for error message generation.
         """
         message = ""
         if error_type == 'already_confirmed':
@@ -63,6 +66,9 @@ class ErrorMessages:
             # the key represents the fingerprint the user tried to enter
             fingerprint = key
             message = ErrorMessages._FINGERPRINT_NOT_FOUND % fingerprint
+            return message
+        elif error_type == 'need_confirmation':
+            message = ErrorMessages._NEED_CONFIRMATION
             return message
         else:
             # the error type wasn't recognized, just return a default msg
