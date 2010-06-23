@@ -53,7 +53,7 @@ class SubscriptionChecker:
 
     def check_earn_tshirt(self):
         # TO DO ------------------------------------------------- EXTRA FEATURE
-        # IMPLEMENT THIS ------------------------------------------------------
+       # IMPLEMENT THIS ------------------------------------------------------
         pass
 
     def check_all(self):
