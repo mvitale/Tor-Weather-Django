@@ -78,15 +78,15 @@ def subscribe(request):
             # Save the subscriber data to the database.
             user.save()
             
-            # send the confirmation email
-            confirm_auth = user.confirm_auth
-            Emailer.send_confirmation(addr, fingerprint, confirm_auth)
-
 # ---------------- Do this for every subscription --------------------------
 
             # Create the node down subscription and save to db.
             subscription = NodeDownSub(subscriber=user, grace_pd=grace_pd)
             subscription.save()
+            
+            # send the confirmation email
+            confirm_auth = user.confirm_auth
+            Emailer.send_confirmation(addr, fingerprint, confirm_auth)
 
             # Send the user to the pending page.
             url_extension = Urls.get_pending_ext(confirm_auth)
@@ -125,8 +125,14 @@ def confirm(request, confirm_auth):
     # get the urls for the user's unsubscribe and prefs pages to add links
     unsubURL = Urls.get_unsubscribe_url(user.unsubs_auth)
     prefURL = Urls.get_preferences_url(user.pref_auth)
+
+    # send an email confirming subscription and providing the links
+    Emailer.send_confirmed(user.email, router.fingerprint, unsubs_auth, 
+                           pref_auth)
+
     # get the template for the confirm page
     template = Templates.confirm
+
     return render_to_response(template, {'email': user.email, 
                                          'fingerprint' : router.fingerprint, 
                                          'nodeName' : router.name, 
@@ -146,7 +152,8 @@ def unsubscribe(request, unsubscribe_auth):
     router_name = router.name
     fingerprint = router.fingerprint 
     
-    # We know the router has a fingerprint, but it might not have a name.
+    # We know the router has a fingerprint, but it might not have a name,
+    # format the string.
     name = ""
     if router.name != "Unnamed":
         name += " " + router_name + ","

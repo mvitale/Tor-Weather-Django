@@ -15,15 +15,15 @@ class ErrorMessages:
     may be displayed to the user via the web pages.
     """
 
-    _ALREADY_SUBSCRIBED = "You are already subscribed to receive email" +\
-        "alerts about the node you specified. If you'd like, you can" +\
-        " <a href = '%s'>change your preferences here</a>" 
-    _FINGERPRINT_NOT_FOUND = "We could not locate a Tor node with" +\
+    _ALREADY_SUBSCRIBED = "You are already subscribed to receive email " +\
+        "alerts about the node you specified. If you'd like, you can " +\
+        " <a href = '%s'>change your preferences here</a>." 
+    _FINGERPRINT_NOT_FOUND = "We could not locate a Tor node with " +\
         "fingerprint %s.</p><p>Here are some potential problems:" +\
         "<ul><li>The fingerprint was entered incorrectly</li>" +\
-        "<li>The node with the given fingerprint was set up within the last" +\
+        "<li>The node with the given fingerprint was set up within the last "+\
         "hour, in which case you should try to register again a bit later" +\
-        "</li><li>The node with the given fingerprint has been down for over"+\
+        "</li><li>The node with the given fingerprint has been down for over "+\
         "a year"
     _DEFAULT = "Tor Weather has encountered an error."
 
@@ -49,6 +49,7 @@ class ErrorMessages:
             message = ErrorMessages._FINGERPRINT_NOT_FOUND % fingerprint
             return message
         else:
+            # the error type wasn't recognized, just return a default msg
             message = ErrorMessages._DEFAULT
             return message
 

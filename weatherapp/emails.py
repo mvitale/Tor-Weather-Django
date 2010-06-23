@@ -106,8 +106,6 @@ class Emailer:
         @type sender: str
         @param sender: The sender's email address. Default = the stored 
             email address for the Tor Weather Notification System.
-        @type subj_header: str
-        @param subj_header: The subj
         """
         confirm_url = Urls.get_confirm_url(confirm_auth)
         msg = Emailer._CONFIRMATION_MAIL % (fingerprint, confirm_url)
@@ -120,7 +118,20 @@ class Emailer:
                        fingerprint,
                        unsubs_auth,
                        pref_auth):
-        """"""
+        """Sends an email to the user after their subscription is successfully
+        confirmed. The email contains links to change preferences and 
+        unsubscribe.
+        
+        @type recipient: str
+        @param recipient: The user's email address
+        @type fingerprint: str
+        @param fingerprint: The fingerprint of the node this user wishes to
+            monitor.
+        @type unsub_auth: str
+        @param unsub_auth: The user's unique unsubscribe auth key
+        @type pref_auth: str
+        @param pref_auth: The user's unique preferences auth key
+        """
         subj = Emailer._SUBJECT_HEADER + Emailer._CONFIRMED_SUBJ
         unsubURL = Urls.get_unsubscribe_url(unsubs_auth)
         prefURL = Urls.get_preferences_url(pref_auth)
@@ -133,8 +144,21 @@ class Emailer:
                        grace_pd,
                        unsubs_auth,
                        pref_auth):
-        """"""
-        subj = Emailer._SUBJECT_HEADER + Emailer._T_SHIRT_SUBJ
+        """Sends an email to the user about their node being down.
+        
+        @type recipient: str
+        @param recipient: The user's email address
+        @type fingerprint: str
+        @param fingerprint: The fingerprint of the node this user wishes to
+            monitor.
+        @type grace_pd: int
+        @param grace_pd: The amount of downtime specified by the user
+        @type unsub_auth: str
+        @param unsub_auth: The user's unique unsubscribe auth key
+        @type pref_auth: str
+        @param pref_auth: The user's unique preferences auth key
+        """
+        subj = Emailer._SUBJECT_HEADER + Emailer._NODE_DOWN_SUBJ
         sender = Emailer._SENDER
         unsubURL = Urls.get_unsubscribe_url(unsubs_auth)
         prefURL = Urls.get_preferences_url(pref_auth)
@@ -146,8 +170,16 @@ class Emailer:
     def send_t_shirt(recipient,
                      unsubs_auth,
                      pref_auth):
-        """"""
-        subj = Emailer._SUBJECT_HEADER + Emailer._NODE_DOWN_SUBJ
+        """Sends an email to the user notifying them that their node has
+        earned them a T-shirt.
+        
+        @type recipient: str
+        @param recipient: The user's email address
+        @param unsub_auth: The user's unique unsubscribe auth key
+        @type pref_auth: str
+        @param pref_auth: The user's unique preferences auth key
+        """
+        subj = Emailer._SUBJECT_HEADER + Emailer._T_SHIRT_SUBJ
         sender = Emailer._SENDER
         unsubURL = Urls.get_unsubscribe_url(unsubs_auth)
         prefURL = Urls.get_preferences_url(pref_auth)
@@ -156,7 +188,13 @@ class Emailer:
 
     @staticmethod
     def send_welcome(recipient):
-        """"""
+        """Sends a welcome email to a stable node operator. The email 
+        alerts the operator about Tor Weather and the or-announce mailing 
+        list.
+
+        @type recipient: str
+        @param recipient: The user's email address.
+        """
         subj = Emailer._SUBJECT_HEADER + Emailer._WELCOME_SUBJ
         sender = Emailer._SENDER
         msg = Emailer._WELCOME_MAIL
