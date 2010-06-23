@@ -14,6 +14,7 @@ from django.core.context_processors import csrf
 from django.http import HttpResponseRedirect, HttpRequest, Http404
 from django.http import HttpResponse
 from weather.config.web_directory import ErrorMessages, Templates, Urls
+import threading
 
 # TO DO --------------------------------------------------------- EXTRA FEATURE
 # MOVE THIS TO A MORE GENERAL LOCATION ----------------------------------------
@@ -78,9 +79,12 @@ def subscribe(request):
             # Save the subscriber data to the database.
             user.save()
             
-            # send the confirmation email
+            # spawn a daemon to send the confirmation email
             confirm_auth = user.confirm_auth
-            Emailer.send_confirmation(addr, fingerprint, confirm_auth)
+            email_thread = threading.Thread(target=Emailer.send_confirmation,
+                                        args=[addr, fingerprint, confirm_auth])
+            email_thread.setDaemon(True)
+            email_thread.start()
 
 # ---------------- Do this for every subscription --------------------------
 
