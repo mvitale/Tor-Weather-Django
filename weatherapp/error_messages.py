@@ -1,4 +1,5 @@
 from weather.weatherapp.models import Subscriber
+from weather.config.web_directory import Urls
 
 class ErrorMessages:
     """The ErrorMessages class contains the different error messages that 
