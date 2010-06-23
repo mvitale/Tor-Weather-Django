@@ -15,6 +15,10 @@ class ErrorMessages:
     may be displayed to the user via the web pages.
     """
 
+    _ALREADY_CONFIRMED = "You have already confirmed your Tor Weather " +\
+        "subscription. The link you followed is no longer functional. " +\
+        "</p><p>You can change your preferences by following this link: " +\
+        "<br>%s</p><p>You can unsubscribe at any time here:<br>%s</p>"
     _ALREADY_SUBSCRIBED = "You are already subscribed to receive email " +\
         "alerts about the node you specified. If you'd like, you can " +\
         " <a href = '%s'>change your preferences here</a>." 
@@ -25,6 +29,10 @@ class ErrorMessages:
         "hour, in which case you should try to register again a bit later" +\
         "</li><li>The node with the given fingerprint has been down for over "+\
         "a year"
+    _NEED_CONFIRMATION ="You have not yet confirmed your subscription to Tor "+\
+        "Weather. You should have received an email from Tor Weather with "+\
+        "a link to your confirmation page."
+# ---------------- BUTTON TO SEND THE EMAIL AGAIN!! -------------------
     _DEFAULT = "Tor Weather has encountered an error."
 
     @staticmethod
@@ -37,7 +45,15 @@ class ErrorMessages:
         @param error_type: The type of error.
         """
         message = ""
-        if error_type == 'already_subscribed':
+        if error_type == 'already_confirmed':
+            confirm_auth = key
+            user = Subscriber.objects.get(confirm_auth = confirm_auth)
+            pref_url = Urls.get_preferences_url(user.pref_auth)
+            unsubscribe_url = Urls.get_unsubscribe_url(user.unsubs_auth)
+            message = ErrorMessages._ALREADY_CONFIRMED % (pref_url, 
+                                                          unsubscribe_url)
+            return message
+        elif error_type == 'already_subscribed':
             # the key represents the user's pref_auth key
             pref_auth = key
             pref_url = Urls.get_preferences_url(pref_auth)
