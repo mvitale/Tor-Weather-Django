@@ -79,6 +79,12 @@ def subscribe(request):
             # Save the subscriber data to the database.
             user.save()
             
+# ---------------- Do this for every subscription --------------------------
+
+            # Create the node down subscription and save to db.
+            subscription = NodeDownSub(subscriber=user, grace_pd=grace_pd)
+            subscription.save()
+
             # spawn a daemon to send the confirmation email
             confirm_auth = user.confirm_auth
             email_thread = threading.Thread(target=Emailer.send_confirmation,
@@ -86,15 +92,10 @@ def subscribe(request):
             email_thread.setDaemon(True)
             email_thread.start()
 
-# ---------------- Do this for every subscription --------------------------
-
-            # Create the node down subscription and save to db.
-            subscription = NodeDownSub(subscriber=user, grace_pd=grace_pd)
-            subscription.save()
-
             # Send the user to the pending page.
             url_extension = Urls.get_pending_ext(confirm_auth)
             return HttpResponseRedirect(url_extension)
+
     else:
         # User hasn't submitted info, so just display empty subscribe form.
         form = SubscribeForm()
@@ -129,8 +130,18 @@ def confirm(request, confirm_auth):
     # get the urls for the user's unsubscribe and prefs pages to add links
     unsubURL = Urls.get_unsubscribe_url(user.unsubs_auth)
     prefURL = Urls.get_preferences_url(user.pref_auth)
+
+    # spawn a daemon to send an email confirming subscription and 
+    #providing the links
+    email_thread=threading.Thread(target=Emailer.send_confirmed
+                            args=[user.email, router.fingerprint, unsubs_auth,
+                                pref_auth])
+    email_thread.setDaemon(True)
+    email_thread.start()
+
     # get the template for the confirm page
     template = Templates.confirm
+
     return render_to_response(template, {'email': user.email, 
                                          'fingerprint' : router.fingerprint, 
                                          'nodeName' : router.name, 
@@ -150,7 +161,8 @@ def unsubscribe(request, unsubscribe_auth):
     router_name = router.name
     fingerprint = router.fingerprint 
     
-    # We know the router has a fingerprint, but it might not have a name.
+    # We know the router has a fingerprint, but it might not have a name,
+    # format the string.
     name = ""
     if router.name != "Unnamed":
         name += " " + router_name + ","
@@ -235,20 +247,24 @@ def confirm_pref(request, pref_auth):
     return render_to_response(template, {'prefURL' : prefURL,
                                          'unsubURL' : unsubURL})
 
-def fingerprint_error(request, fingerprint):
-    """The page that is displayed when a user tries to subscribe to a node
-    that isn't stored in the database. The page includes information
-    regarding potential problems and references the fingerprint the user
-    entered into the form.
-    
-    @type fingerprint: str
-    @param fingerprint: The fingerprint the user entered in the subscribe form.
-    """
-    # get the template
-    template = Templates.fingerprint_error
+# ------------------- REMOVE? --------------------------------------------
 
-    #display the page
-    return render_to_response(template, {'fingerprint' : fingerprint})
+#def fingerprint_error(request, fingerprint):
+#    """The page that is displayed when a user tries to subscribe to a node
+#    that isn't stored in the database. The page includes information
+#    regarding potential problems and references the fingerprint the user
+#    entered into the form.
+#    
+#    @type fingerprint: str
+#    @param fingerprint: The fingerprint the user entered in the subscribe form.
+#    """
+#    # get the template
+#    template = Templates.fingerprint_error
+#
+#    #display the page
+#    return render_to_response(template, {'fingerprint' : fingerprint})
+
+# --------------------------------------------------------------------------
 
 def error(request, error_type, key):
     """The generic error page, which displays a message based on the error

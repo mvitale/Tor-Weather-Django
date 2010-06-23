@@ -4,7 +4,6 @@ error messages. The purpose of putting them all in a separate directory was for 
 if the error messages need to be modified, the changes need only be made in
 one place (here).
 """
-
 base_url = 'http://localhost:8000'
 
 # --------------------------------------------------------------------------
@@ -16,17 +15,17 @@ class ErrorMessages:
     may be displayed to the user via the web pages.
     """
 
-    __ALREADY_SUBSCRIBED = "You are already subscribed to receive email" +\
-        "alerts about the node you specified. If you'd like, you can" +\
-        " <a href = '%s'>change your preferences here</a>" 
-    __FINGERPRINT_NOT_FOUND = "We could not locate a Tor node with" +\
+    _ALREADY_SUBSCRIBED = "You are already subscribed to receive email " +\
+        "alerts about the node you specified. If you'd like, you can " +\
+        " <a href = '%s'>change your preferences here</a>." 
+    _FINGERPRINT_NOT_FOUND = "We could not locate a Tor node with " +\
         "fingerprint %s.</p><p>Here are some potential problems:" +\
         "<ul><li>The fingerprint was entered incorrectly</li>" +\
-        "<li>The node with the given fingerprint was set up within the last" +\
+        "<li>The node with the given fingerprint was set up within the last "+\
         "hour, in which case you should try to register again a bit later" +\
-        "</li><li>The node with the given fingerprint has been down for over"+\
+        "</li><li>The node with the given fingerprint has been down for over "+\
         "a year"
-    __DEFAULT = "Tor Weather has encountered an error."
+    _DEFAULT = "Tor Weather has encountered an error."
 
     @staticmethod
     def get_error_message(error_type, key):
@@ -42,15 +41,16 @@ class ErrorMessages:
             # the key represents the user's pref_auth key
             pref_auth = key
             pref_url = Urls.get_preferences_url(pref_auth)
-            message = ErrorMessages.__ALREADY_SUBSCRIBED % pref_url
+            message = ErrorMessages._ALREADY_SUBSCRIBED % pref_url
             return message
         elif error_type == 'fingerprint_not_found':
             # the key represents the fingerprint the user tried to enter
             fingerprint = key
-            message = ErrorMessages.__FINGERPRINT_NOT_FOUND % fingerprint
+            message = ErrorMessages._FINGERPRINT_NOT_FOUND % fingerprint
             return message
         else:
-            message = ErrorMessages.__DEFAULT
+            # the error type wasn't recognized, just return a default msg
+            message = ErrorMessages._DEFAULT
             return message
 
 class Templates:
@@ -96,19 +96,18 @@ class Urls:
     url extensions.
     """
 
-    __CONFIRM = '/confirm/%s/'
-    __CONFIRM_PREF = '/confirm_pref/%s/'
-    __ERROR = '/error/%s/%s/'
-    __FINGERPRINT_ERROR = '/fingerprint_error/%s/'
-    __HOME = '/'
-    __PENDING = '/pending/%s/'
-    __PREFERENCES = '/preferences/%s/'
-    __SUBSCRIBE = '/subscribe/'
-    __UNSUBSCRIBE = '/unsubscribe/%s/'
+    _CONFIRM = '/confirm/%s/'
+    _CONFIRM_PREF = '/confirm_pref/%s/'
+    _ERROR = '/error/%s/%s/'
+    _FINGERPRINT_ERROR = '/fingerprint_error/%s/'
+    _HOME = '/'
+    _PENDING = '/pending/%s/'
+    _PREFERENCES = '/preferences/%s/'
+    _SUBSCRIBE = '/subscribe/'
+    _UNSUBSCRIBE = '/unsubscribe/%s/'
 
     @staticmethod
-    def get_confirm_url(confirm_auth,
-                        path = __CONFIRM):
+    def get_confirm_url(confirm_auth):
         """Returns a string representation of the full url for the confirmation 
         page, which is sent to the user in an email after they subscribe.
     
@@ -121,12 +120,11 @@ class Urls:
         @rtype: str
         @return: The user-specific confirmation url. 
         """
-        url = base_url + path % confirm_auth
+        url = base_url + Urls._CONFIRM % confirm_auth
         return url
 
     @staticmethod
-    def get_confirm_pref_ext(pref_auth,
-                             path = __CONFIRM_PREF):
+    def get_confirm_pref_ext(pref_auth):
         """Returns the url extension for the page confirming the user's 
         submitted changes to their Tor Weather preferences.
 
@@ -140,13 +138,11 @@ class Urls:
         @return: The url extension for the user-specific preferences changed 
             page.
         """
-        extension = path % pref_auth
+        extension = Urls._CONFIRM_PREF % pref_auth
         return extension
 
     @staticmethod
-    def get_error_ext(error_type, 
-                      key,
-                      path = __ERROR):
+    def get_error_ext(error_type, key):
         """Returns the url extension for the error page specified by the 
         error_type 
         parameter.
@@ -164,12 +160,11 @@ class Urls:
         @rtype: str
         @return: The url extension for the user-specific error page.
         """
-        extension = path % (error_type, key)
+        extension = Urls._ERROR % (error_type, key)
         return extension 
 
     @staticmethod
-    def get_fingerprint_error_ext(fingerprint,
-                                  path = __FINGERPRINT_ERROR):
+    def get_fingerprint_error_ext(fingerprint):
         """Returns the url extension for the page alerting the user that the 
         fingerprint they are trying to monitor doesn't exist in the database.
 
@@ -180,22 +175,21 @@ class Urls:
         @return: The url extension for the user-specific fingerprint error 
             page. 
         """
-        extension = path % fingerprint
+        extension = Urls._FINGERPRINT_ERROR % fingerprint
         return extension
 
     @staticmethod
-    def get_home_ext(path = __HOME):
+    def get_home_ext():
         """Returns the url extension for the Tor Weather home page.
 
         @rtype: str
         @return: The url extension for the Tor Weather home page.
         """
-        extension = path
+        extension = Urls._HOME
         return extension
     
     @staticmethod
-    def get_pending_ext(confirm_auth,
-                        path = __PENDING):
+    def get_pending_ext(confirm_auth):
         """Returns the url extension for the pending page, displayed when the
         user submits an acceptable subscribe form.
 
@@ -207,12 +201,11 @@ class Urls:
         @rtype: str
         @return: The url extension for the user-specific pending page.
         """
-        extension = path % confirm_auth
+        extension = Urls._PENDING % confirm_auth
         return extension
 
     @staticmethod
-    def get_preferences_url(pref_auth,
-                            path = __PREFERENCES):
+    def get_preferences_url(pref_auth):
         """Returns the complete url for the preferences page, which is displayed
         to the user in the email reports and on some of the Tor Weather pages.
 
@@ -223,22 +216,21 @@ class Urls:
         @return: The complete url that links to the page allowing the user to 
             change his or her Tor Weather preferences.
         """
-        url = base_url + path % pref_auth
+        url = base_url + Urls._PREFERENCES % pref_auth
         return url
 
     @staticmethod
-    def get_subscribe_ext(path = __SUBSCRIBE):
+    def get_subscribe_ext():
         """Returns the url extension for the Tor Weather subscribe page. 
         
         @rtype: str
         @return: The url extension for the subscribe page.
         """
-        extension = path
+        extension = Urls._SUBSCRIBE
         return extension
 
     @staticmethod
-    def get_unsubscribe_url(unsubs_auth,
-                            path = __UNSUBSCRIBE):
+    def get_unsubscribe_url(unsubs_auth):
         """Returns the complete url for the user's unsubscribe page. The url is
         displayed to the user in the email reports and on some of the Tor 
         Weather pages.
@@ -249,5 +241,5 @@ class Urls:
         @rtype: str
         @return: The complete url for the user's unique unsubscribe page.
         """
-        url = base_url + path % unsubs_auth
+        url = base_url + Urls._UNSUBSCRIBE % unsubs_auth
         return url
