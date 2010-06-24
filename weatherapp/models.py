@@ -217,10 +217,9 @@ class LowBandwidthSub(Subscription):
     def should_email():
         """
         """
-        time_since_changed
+        pass
 
-
-class NewSubscribeForm(forms.Form):
+class SubscribeForm(forms.Form):
     """For full feature list. """
 
     _MAX_NODE_DOWN_GRACE_PD = 4500
@@ -232,16 +231,22 @@ class NewSubscribeForm(forms.Form):
     _MAX_BAND_LOW_GRACE_PD = 4500
     _MIN_BAND_LOW_GRACE_PD = 1
 
-    email_1 = forms.EmailField(max_length=75, help_text='Email:')
-    email_2 = forms.EmailField(max_length=75, help_text='Re-enter Email:')
-    fingerprint = forms.CharField(max_length=40, help_text='Node Fingerprint:')
+    email_1 = forms.EmailField(name='Enter Email:',
+            max_length=75)
+    email_2 = forms.EmailField(name='Re-enter Email:',
+            max_length=75,
+            validator_list=[
+            validators.AlwaysMatchesOtherField('email_1',
+                                               'Email addresses must match.')])
+    fingerprint = forms.CharField(name='Node Fingerprint:',
+            max_length=50)
 
     get_node_down = forms.BooleanField(
-            help_text='Receive notifications when node is down')
+            name='Receive notifications when node is down')
     node_down_grace_pd = forms.IntegerField(
             max_value=_MAX_NODE_DOWN_GRACE_PD,
             min_value=_MIN_NODE_DOWN_GRACE_PD,
-            help_text='How many hours of downtime before \
+            name='How many hours of downtime before \
                        we send a notifcation?')
     
     get_out_of_date = forms.BooleanField(
@@ -251,26 +256,33 @@ class NewSubscribeForm(forms.Form):
                      (u'c2', u'out of date lvl 2'),
                      (u'c3', u'out of date lvl 3'),
                      (u'c4', u'out of date lvl 4')),
-                help_text='How current would you like your version of Tor?')
+                name='How current would you like your version of Tor?')
     out_of_date_grace_pd = forms.IntegerField(
             max_value=_MAX_OUT_OF_DATE_GRACE_PD,
             min_value=_MIN_OUT_OF_DATE_GRACE_PD, 
-            help_text='How quickly, in days, would you like to be notified?')
+            name='How quickly, in days, would you like to be notified?')
     
     get_band_low = forms.BooleanField(
-            help_text='Receive notifications when node has low bandwidth')
+            name='Receive notifications when node has low bandwidth')
     band_low_threshold = forms.IntegerField(
             max_value=_MAX_BAND_LOW_THRESHOLD,
             min_value=_MIN_BAND_LOW_THRESHOLD,
-            help_text='Critical bandwidth measured in kilobits per second:')
+            name='Critical bandwidth measured in kilobits per second:')
     band_low_grace_pd = forms.IntegerField(
             max_value=_MAX_BAND_LOW_GRACE_PD,
             min_value=_MIN_BAND_LOW_GRACE_PD,
-            help_text='How many hours of low bandwidth before \
+            name='How many hours of low bandwidth before \
                        we send a notification?')
     
     get_t_shirt = forms.BooleanField(
-            help_text='Receive notification when node has earned a t-shirt')
+            name='Receive notification when node has earned a t-shirt')    
+    
+    
+    # PUT IN THE CHECK IF ROUTER EXISTS CODE HERE
+
+    # PUT IN THE SAVE/CREATE USER CODE HERE
+
+    # IMPLEMENT THE FACT THAT TEXT IS IN NAMES, NOT HELP_TEXT AND ADD HELP_TEXT_2
 
 class PreferencesForm(forms.Form):
     """For full feature list."""
