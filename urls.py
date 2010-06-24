@@ -14,10 +14,10 @@ urlpatterns = patterns('',
                         'weather.weatherapp.views.preferences'),
     (r'^confirm_pref/(?P<pref_auth>.+)/$',
                         'weather.weatherapp.views.confirm_pref'),
-    (r'^fingerprint_error/(?P<fingerprint>.+)/$', 
-                        'weather.weatherapp.views.fingerprint_error'),
-    (r'^error/(?P<error_type>[a-z_]+)/(?P<subscriber_id>\d+)/$', 
+    (r'^error/(?P<error_type>[a-z_]+)/(?P<key>.+)/$', 
                         'weather.weatherapp.views.error'),
+    (r'^resend_conf/(?P<confirm_auth>.+)/$', 
+                        'weather.weatheapp.views.resend_conf'),
     (r'^run_updaters$', 'weather.weatherapp.views.run_updaters'),
 
     # This is for serving static files for the development server, mainly for

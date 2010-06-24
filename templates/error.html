@@ -1,9 +1,8 @@
 {% extends 'base.html' %}
-
 {% block content %}
-<h3>Error</h3>
-
-<!--: |safe will cause any html in error_message to be rendered as such >
-<p>{{ error_message|safe }}</p>
-
+	<h3>Error: </h3>
+	<p>
+	{{ error_message|safe }}
+	<!-- |safe will cause any html in error_message to be rendered as such -->
+	</p>
 {% endblock content %}

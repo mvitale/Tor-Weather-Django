@@ -14,7 +14,7 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'WeatherDB',                      # Or path to database file if using sqlite3.
+        'NAME': PROJECT_PATH + "/WeatherDB",                      # Or path to database file if using sqlite3.
         'USER': '',                      # Not used with sqlite3.
         'PASSWORD': '',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
@@ -87,6 +87,10 @@ TEMPLATE_DIRS = (
     os.path.join(PROJECT_PATH, 'templates'),
 )
 
+OPTIONS = {
+    "timeout": 60,
+}
+
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -109,3 +113,4 @@ EMAIL_HOST_PASSWORD = 'torisawesome'
 EMAIL_HOST_USER = 'torweathertester@gmail.com'
 EMAIL_PORT = '587'
 EMAIL_USE_TLS = True
+

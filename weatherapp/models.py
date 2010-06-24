@@ -13,10 +13,6 @@ from datetime import datetime
 import base64
 import os
 
-class RouterManager(models.Manager):
-    def get_query_set(self):
-        return super(RouterManager, self).get_query_set()
-
 class Router(models.Model):
     """A model that stores information about every router on the Tor network.
     If a router hasn't been seen on the network for at least one year, it is
@@ -43,22 +39,28 @@ class Router(models.Model):
     last_seen = models.DateTimeField('date last seen', default=datetime.now())
     up = models.BooleanField(default=True)
 
-    objects = RouterManager()
-    
     def __unicode__(self):
         return self.fingerprint
 
+
 class SubscriberManager(models.Manager):
-    def get_query_set(self):
-        return super(SubscriberManager, self).get_query_set()
+    """In Django, each model class has at least one Manager (by default,
+    there is one named 'objects' for each model). The Manager acts as the
+    interface through which database query operations are provided to the 
+    models. The SubscriberManager class is a custom Manager for the Subscriber
+    model, which contains the method get_rand_string to generate a random
+    string for user authentication keys."""
 
     @staticmethod
-    def get_rand_string(length = 24):
-        cut_off = length - 24
-        if cut_off == 0:
-            cut_off = 24
+    def get_rand_string():
+        """Returns a random, url-safe string of 24 characters (no '+' or '/'
+        characters). The generated string does not end in '-'.
+        
+        @rtype: str
+        @return: A randomly generated, 24 character string (url-safe).
+        """
 
-        r = base64.urlsafe_b64encode(os.urandom(18))[:cut_off]
+        r = base64.urlsafe_b64encode(os.urandom(18))
 
         # some email clients don't like URLs ending in -
         if r.endswith("-"):
@@ -93,13 +95,13 @@ class Subscriber(models.Model):
     email = models.EmailField(max_length=75)
     router = models.ForeignKey(Router)
     confirmed = models.BooleanField(default = False)
-
+# --------------------- IS THIS OK?? (default = ...) ----------------------
     confirm_auth = models.CharField(max_length=250, 
-                    default=SubscriberManager.get_rand_string()) 
+                    default=SubscriberManager.get_rand_string) 
     unsubs_auth = models.CharField(max_length=250, 
-                    default=SubscriberManager.get_rand_string())
+                    default=SubscriberManager.get_rand_string)
     pref_auth = models.CharField(max_length=250, 
-                    default=SubscriberManager.get_rand_string())
+                    default=SubscriberManager.get_rand_string)
 
     sub_date = models.DateTimeField(default=datetime.now())
 
@@ -108,28 +110,37 @@ class Subscriber(models.Model):
     def __unicode__(self):
         return self.email
 
+
 class SubscriptionManager(models.Manager):
-    def get_query_set(self):
-        return super(SubscriptionManager, self).get_query_set()
+    """The custom Manager for the Subscription class. The Manager contains
+    a method to get the number of hours since the time stored in the
+    'last_changed' field in a Subscription object.
+    """
+
+    @staticmethod
+    def get_hours_since_changed(last_changed):
+        """Returns the time that has passed since the datetime parameter
+        last_changed in hours.
+
+        @type last_changed: datetime.datetime
+        @param last_changed: The date and time of the most recent change
+            for some flag.
+        @rtype: int
+        @return: The number of hours since last_changed.
+        """
+        time_since_changed = datetime.now() - last_changed
+        hours_since_changed = time_since_changed.seconds / 3600
+        return hours_since_changed
     
+
 class Subscription(models.Model):
     """The model storing information about a specific subscription. Each type
     of email notification that a user selects generates a new subscription. 
     For instance, each subscriber who elects to be notified about low bandwidth
     will have a low_bandwidth subscription.
     
-    @type subscriber: ######### (foreign key)
     @ivar subscriber: A link to the subscriber model representing the owner
         of this subscription.
-    @type name: str
-    @ivar name: The type of subscription.
-    @type threshold: str
-    @ivar threshold: The threshold for sending a notification (i.e. send a 
-        notification if the version is obsolete vs. out of date; depends on 
-        subscription type)
-    @type grace_pd: int
-    @ivar grace_pd: The amount of time (hours) before a notification is sent
-        after a subscription type is triggered.
     @type emailed: bool
     @ivar emailed: True if the user has been emailed about the subscription
         (trigger must also be True), False if the user has not been emailed. 
@@ -143,54 +154,99 @@ class Subscription(models.Model):
         was changed. Default upon creation is C{datetime.now()}.
     """
     subscriber = models.ForeignKey(Subscriber)
-    name = models.CharField(max_length=200)
-    threshold = models.CharField(max_length=200)
-    grace_pd = models.IntegerField()
     emailed = models.BooleanField(default=False)
     triggered = models.BooleanField(default=False)
     last_changed = models.DateTimeField('date of last change', 
                                         default=datetime.now())
 
+    # In Django, Manager objects handle table-wide methods (i.e filtering)
     objects = SubscriptionManager()
     
     def __unicode__(self):
-        return self.name
+        return self.subscriber.email
+
+
+class NodeDownSub(Subscription):
+    """
+
+    @type grace_pd: int
+    @ivar grace_pd: The amount of time (hours) before a notification is sent
+        after a node is seen down.
+    """
+    grace_pd = models.IntegerField()
 
     def should_email():
-        time_since_changed = datetime.now() - last_changed
-        hours_since_changed = time_since_changed.seconds / 3600
+        """Returns a bool representing whether or not the Subscriber should
+        be emailed about their node being down.
+
+        @rtype: bool
+        @return: True if the Subscriber should be emailed because their node
+            is down and the grace period has passed, False otherwise.
+        """
+        hours_since_changed = \
+            SubscriptionManager.get_hours_since_changed(last_changed)
         if triggered and not emailed and \
-                (hours_since_changed > grace_pd):
+                     (hours_since_changed > grace_pd):
             return True
         else:
             return False
 
-class OldSubscribeForm(forms.Form):
-    """The form for a new subscriber. The form includes an email field, 
-    a node fingerprint field, and a field to specify the hours of downtime 
-    before receiving a notification.
+class VersionSub(Subscription):
+    """
 
-    @ivar email: A field for the user's email address
-    @ivar fingerprint: A field for the fingerprint (node ID) corresponding 
-        to the node the user wants to monitor
-    @ivar grace_pd: A field for the hours of downtime the user specifies
-        before being notified via email"""
+    @type threshold: str
+    @ivar threshold: The threshold for sending a notification (i.e. send a 
+        notification if the version is obsolete vs. out of date)
+    """
+# -----------------------------------------------------------------------
+# FILL IN LATER, FIX DOCUMENTATION
+# -----------------------------------------------------------------------
+    threshold = models.CharField(max_length=250)
 
-    # widget attributes are modified here to customize the form
-    email = forms.EmailField(widget=forms.TextInput(attrs={'size':'50', 
-        'value' : 'Enter a valid email address', 'onClick' : 'if (this.value'+\
-        '=="Enter a valid email address") {this.value=""}'}))
-    fingerprint = forms.CharField(widget=forms.TextInput(attrs={'size':'50',
-        'value' : 'Enter one Tor node ID', 'onClick' : 'if (this.value' +\
-        '=="Enter one Tor node ID") {this.value=""}'}))
-    grace_pd = forms.IntegerField(widget=forms.TextInput(attrs={'size':'50',
-        'value' : 'Default is 1 hour, enter up to 8760 (1 year)', 'onClick' :
-        'if (this.value=="Default is 1 hour, enter up to 8760 (1 year)") '+\
-        '{this.value=""}'}))
+    def should_email():
+        """
+        """
+
+
+class LowBandwidthSub(Subscription):    
+    """
+    """
+    threshold = models.IntegerField(default = 0)
+    grace_pd = models.IntegerField(default = 1)
+
+    def should_email():
+        """
+        """
+        time_since_changed
 
 
 class SubscribeForm(forms.Form):
-    """For full feature list. NOWHERE NEAR READY. """
+    def clean_grace_pd(self):
+        """Django lets you specify how to 'clean' form data for specific
+        fields by adding clean methods to the form classes. This method
+        ensures the grace period is between 1 and 8760 hours. If the user
+        enters an integer less than 1 for the node down grace period, the 
+        grace period is stored as 1. If the user enters an integer greater 
+        than 8760, the grace period is stored as 8760."""
+        grace_pd = self.cleaned_data.get('grace_pd')
+        if grace_pd < 1:
+            grace_pd = 1
+        if grace_pd > 8760:
+            grace_pd = 8760
+        return grace_pd
+
+
+class NewSubscribeForm(forms.Form):
+    """For full feature list. """
+
+    _MAX_NODE_DOWN_GRACE_PD = 4500
+    _MIN_NODE_DOWN_GRACE_PD = 1
+    _MAX_OUT_OF_DATE_GRACE_PD = 200
+    _MIN_OUT_OF_DATE_GRACE_PD = 1
+    _MAX_BAND_LOW_THRESHOLD = 5000
+    _MIN_BAND_LOW_THRESHOLD = 1
+    _MAX_BAND_LOW_GRACE_PD = 4500
+    _MIN_BAND_LOW_GRACE_PD = 1
 
     email_1 = forms.EmailField(max_length=75, help_text='Email:')
     email_2 = forms.EmailField(max_length=75, help_text='Re-enter Email:')
@@ -198,11 +254,11 @@ class SubscribeForm(forms.Form):
 
     get_node_down = forms.BooleanField(
             help_text='Receive notifications when node is down')
-    node_down_grace_pd = forms.IntegerField(max_value=4500, min_value=1,
+    node_down_grace_pd = forms.IntegerField(
+            max_value=_MAX_NODE_DOWN_GRACE_PD,
+            min_value=_MIN_NODE_DOWN_GRACE_PD,
             help_text='How many hours of downtime before \
                        we send a notifcation?')
-    node_down_grace_pd.help_text_2 = 'Enter a value between 1 and \
-            4500 (roughly six months)'
     
     get_out_of_date = forms.BooleanField(
             help_text='Receive notifications when node is out of date')
@@ -213,27 +269,69 @@ class SubscribeForm(forms.Form):
                      (u'c4', u'out of date lvl 4')),
                 help_text='How current would you like your version of Tor?')
     out_of_date_grace_pd = forms.IntegerField(
+            max_value=_MAX_OUT_OF_DATE_GRACE_PD,
+            min_value=_MIN_OUT_OF_DATE_GRACE_PD, 
             help_text='How quickly, in days, would you like to be notified?')
-    out_of_date_grace_pd.help_text_2 = \
-            'Enter a value between 1 and 200 (roughly six months)'
     
     get_band_low = forms.BooleanField(
             help_text='Receive notifications when node has low bandwidth')
     band_low_threshold = forms.IntegerField(
+            max_value=_MAX_BAND_LOW_THRESHOLD,
+            min_value=_MIN_BAND_LOW_THRESHOLD,
             help_text='Critical bandwidth measured in kilobits per second:')
     band_low_grace_pd = forms.IntegerField(
+            max_value=_MAX_BAND_LOW_GRACE_PD,
+            min_value=_MIN_BAND_LOW_GRACE_PD,
             help_text='How many hours of low bandwidth before \
                        we send a notification?')
-    band_low_grace_pd.help_text_2 = \
-            'Enter a value between 1 and 4500 (roughly six months)'
-
+    
     get_t_shirt = forms.BooleanField(
             help_text='Receive notification when node has earned a t-shirt')
 
 class PreferencesForm(forms.Form):
-    """The form for changing preferences.
+    """For full feature list."""
 
-    @ivar grace_pd: A fiend for the user to specify the hours of 
-        downtime before an email notification is sent"""
+    _MAX_NODE_DOWN_GRACE_PD = 4500
+    _MIN_NODE_DOWN_GRACE_PD = 1
+    _MAX_OUT_OF_DATE_GRACE_PD = 200
+    _MIN_OUT_OF_DATE_GRACE_PD = 1
+    _MAX_BAND_LOW_THRESHOLD = 5000
+    _MIN_BAND_LOW_THRESHOLD = 1
+    _MAX_BAND_LOW_GRACE_PD = 4500
+    _MIN_BAND_LOW_GRACE_PD = 1
 
-    grace_pd = forms.IntegerField(widget=forms.TextInput(attrs={'size':'50'}))
+    get_node_down = forms.BooleanField(
+            help_text='Receive notifications when node is down')
+    node_down_grace_pd = forms.IntegerField(
+            max_value=_MAX_NODE_DOWN_GRACE_PD,
+            min_value=_MIN_NODE_DOWN_GRACE_PD,
+            help_text='How many hours of downtime before \
+                       we send a notifcation?')
+    
+    get_out_of_date = forms.BooleanField(
+            help_text='Receive notifications when node is out of date')
+    out_of_date_threshold = forms.ChoiceField(
+            choices=((u'c1', u'out of date lvl 1'),
+                     (u'c2', u'out of date lvl 2'),
+                     (u'c3', u'out of date lvl 3'),
+                     (u'c4', u'out of date lvl 4')),
+                help_text='How current would you like your version of Tor?')
+    out_of_date_grace_pd = forms.IntegerField(
+            max_value=_MAX_OUT_OF_DATE_GRACE_PD,
+            min_value=_MIN_OUT_OF_DATE_GRACE_PD, 
+            help_text='How quickly, in days, would you like to be notified?')
+    
+    get_band_low = forms.BooleanField(
+            help_text='Receive notifications when node has low bandwidth')
+    band_low_threshold = forms.IntegerField(
+            max_value=_MAX_BAND_LOW_THRESHOLD,
+            min_value=_MIN_BAND_LOW_THRESHOLD,
+            help_text='Critical bandwidth measured in kilobits per second:')
+    band_low_grace_pd = forms.IntegerField(
+            max_value=_MAX_BAND_LOW_GRACE_PD,
+            min_value=_MIN_BAND_LOW_GRACE_PD,
+            help_text='How many hours of low bandwidth before \
+                       we send a notification?')
+    
+    get_t_shirt = forms.BooleanField(
+            help_text='Receive notification when node has earned a t-shirt')
