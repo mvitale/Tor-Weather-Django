@@ -3,6 +3,19 @@
 {% block content %}
 <h2> Neo Sign Up! </h2>
 
+<script type="text/javascript">
+	<!--
+	function hideOrUnhide(checkbox, id) {
+		if (checkbox.checked) {
+			document.getElementById(id).style.display='block';
+		} else {
+			document.getElementById(id).style.display='none';
+		}
+		return true;
+	}
+	-->
+</script>
+
 
 <form method="post" action="/subscribe/">{% csrf_token %}
 <p>
@@ -41,15 +54,18 @@
 </h3>
 
 <div class="form-section">
+	
 	<div>
-		{{ form.get_node_down }}
+		<input id="id_get_node_down" type="checkbox" name="get_node_down" onclick="hideOrUnhide(this, 'node-down-section')" checked="checked" />
 		<label for="get_node_down_id">{{ form.get_node_down.help_text }}</label>
 	</div>
-	<div class="short-input">
-		{{ form.node_down_grace_pd.errors }}
-		<label for="node_down_grace_pd_id" class="block">{{ form.node_down_grace_pd.help_text }}</label>
-		{{ form.node_down_grace_pd }}
-		<em>Enter a value betwen 1 and 4500 (roughly six months)</em>
+	<div id="node-down-section">
+		<div class="short-input">
+			{{ form.node_down_grace_pd.errors }}
+			<label for="node_down_grace_pd_id" class="block">{{ form.node_down_grace_pd.help_text }}</label>
+			{{ form.node_down_grace_pd }}
+			<em>Enter a value betwen 1 and 4500 (roughly six months)</em>
+		</div>
 	</div>
 </div>
 
@@ -62,19 +78,21 @@
 
 <div class="form-section">
 	<div>
-		{{ form.get_out_of_date }}
+		<input id="id_get_of_date" type="checkbox" name="get_out_of_date" onclick="hideOrUnhide(this, 'out-of-date-section')" />
 		<label for="get_out_of_date_id">{{ form.get_out_of_date.help_text }}</label>
 	</div>
-	<div>
-		{{ form.out_of_date_threshold.errors }}
-		<label for="out_of_date_threshold" class="block">{{ form.out_of_date_threshold.help_text }}</label>
-		{{ form.out_of_date_threshold }}
-	</div>
-	<div class="short-input">
-		{{ form.out_of_date_grace_pd.errors }}
-		<label for="out_of_date_grace_pd" class="block">{{ form.out_of_date_grace_pd.help_text }}</label>
-		{{ form.out_of_date_grace_pd }}
-		<em>Enter a value between 1 and 200 (roughly six months)</em>
+	<div id="out-of-date-section" style="display:none;">
+		<div>
+			{{ form.out_of_date_threshold.errors }}
+			<label for="out_of_date_threshold" class="block">{{ form.out_of_date_threshold.help_text }}</label>
+			{{ form.out_of_date_threshold }}
+		</div>
+		<div class="short-input">
+			{{ form.out_of_date_grace_pd.errors }}
+			<label for="out_of_date_grace_pd" class="block">{{ form.out_of_date_grace_pd.help_text }}</label>
+			{{ form.out_of_date_grace_pd }}
+			<em>Enter a value between 1 and 200 (roughly six months); default value is 1 day.</em>
+		</div>
 	</div>
 </div>
 
@@ -88,20 +106,22 @@
 
 <div class="form-section">
 	<div>
-		{{ form.get_band_low }}
+		<input id="id_get_band_low" type="checkbox" name="get_out_of_date" onclick="hideOrUnhide(this, 'band-low-section')" />
 		<label for="get_band_low_id">{{ form.get_band_low.help_text }}</label>
 	</div>
-	<div class="short-input">
-		{{ form.band_low_threshold.erors }}
-		<label for="band_low_threshold" class="block">{{ form.band_low_threshold.help_text }}</label>
-		{{ form.band_low_threshold }}
-	</div>
-	<div class="short-input">
-		{{ form.band_low_grace_pd.errors }}
-		<label for="band_low_grace_pd" class="block">{{ form.band_low_grace_pd.help_text }}</label>
-		{{ form.band_low_grace_pd }}
-		<em>Enter a value between 1 and 4500 (roughly six months)</em>
-	</div>
+	<div id="band-low-section" style="display:none;">
+		<div class="short-input">
+			{{ form.band_low_threshold.erors }}
+			<label for="band_low_threshold" class="block">{{ form.band_low_threshold.help_text }}</label>
+			{{ form.band_low_threshold }}
+			<em>Default value is 50 kbps.</em>
+		</div>
+		<div class="short-input">
+			{{ form.band_low_grace_pd.errors }}
+			<label for="band_low_grace_pd" class="block">{{ form.band_low_grace_pd.help_text }}</label>
+			{{ form.band_low_grace_pd }}
+			<em>Enter a value between 1 and 4500 (roughly six months); default value is 1 hour.</em>
+		</div>
 </div>
 
 <h3 class="form-heading">

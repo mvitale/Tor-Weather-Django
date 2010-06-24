@@ -6,6 +6,10 @@ div.main-column {
 	padding-right: 10px;
 }
 
+.email-block input {
+	width: 143px;
+}
+
 form div {
 	margin-bottom: 5px;
 }
@@ -15,6 +19,12 @@ form div {
 	margin-bottom: 15px;
 	margin-top: 20px;
 }
+
+div#sign-up-link {
+	font-size: 20px;
+	font-weight: bold;
+	padding-bottom: 10px;
+}	
 
 .form-heading span {
 	display: block;

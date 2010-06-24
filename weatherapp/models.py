@@ -220,7 +220,7 @@ class SubscribeForm(forms.Form):
     get_band_low = forms.BooleanField(
             help_text='Receive notifications when node has low bandwidth')
     band_low_threshold = forms.IntegerField(
-            help_text='Critical bandwidth measured in kilobits:')
+            help_text='Critical bandwidth measured in kilobits per second:')
     band_low_grace_pd = forms.IntegerField(
             help_text='How many hours of low bandwidth before \
                        we send a notification?')
