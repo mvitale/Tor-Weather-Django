@@ -1,24 +1,24 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h3>Confirmation successful!</h3>
-<p>
-You are now able to receive Tor Weather reports at {{ email }}.
-</p>
-<p>
-You can unsubscribe anytime with the following link: <br/>
-<a href = "{{ unsubURL }}"> 
-{{ unsubURL }}
-</a>
-</p>
-<p>
-You can change your preferences here: <br/>
-<a href = "{{ prefURL }}"> 
-{{ prefURL }}
-</a>
-</p>
-<hr>
-<p><i>Please note that while we won't ever intentionally publish them, the address/node pairs sent to this server are not protected against SMTP eavesdropping, hacking, or lawyers.</i></p>
+	<h3>Confirmation successful!</h3>
+	<p>
+	You are now able to receive Tor Weather reports at {{ email }}.
+	</p>
+	<p>
+	You can unsubscribe anytime with the following link: <br/>
+	<a href = "{{ unsubURL }}">{{ unsubURL }}</a>
+	</p>
+	<p>
+	You can change your preferences here: <br/>
+	<a href = "{{ prefURL }}">{{ prefURL }}</a>
+	</p>
+	<hr>
+	<p>
+	<i>Please note that while we won't ever intentionally publish them, the	  
+	address/node pairs sent to this server are not protected against 
+	SMTP eavesdropping, hacking, or lawyers.</i>
+	</p>
 
 {% endblock content %}
 

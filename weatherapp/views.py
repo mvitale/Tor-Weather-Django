@@ -31,9 +31,8 @@ def subscribe(request):
     """Displays the subscription form (all fields empty or default) if the
     form hasn't been submitted. After the user hits the submit button,
     redirects to the pending page if all of the fields were acceptable.
-    If the user enters a fingerprint that isn't stored in our database,
-    we send them to an error page (see L{fingerprint_error}). If the user
-    is already subscribed to that Tor node, they are sent to an error page."""
+    If the user is already subscribed to that Tor node, they are sent to 
+    an error page."""
     
     if request.method == 'POST':
         # handle the submitted form:
@@ -46,7 +45,7 @@ def subscribe(request):
             # types specified in the SubscribeForm object
             addr = form.cleaned_data['email']
             # gets the fingerprint and removes any whitespace characters
-            fingerprint = form.cleaned_data['fingerprint'].replace(' ','')
+            fingerprint = form.cleaned_data['fingerprint']
             grace_pd = form.cleaned_data['grace_pd']
             
             # gets a query set of the routers with the given fingerprint
@@ -77,7 +76,7 @@ def subscribe(request):
                     return HttpResponseRedirect(url_extension)
                 else:
                     url_extension = Urls.get_error_ext('need_confirmation',
-                                                       user.conf_auth)
+                                                       user.confirm_auth)
                     return HttpResponseRedirect(url_extension)
             
             # Create the subscriber model for the user.
@@ -149,8 +148,8 @@ def confirm(request, confirm_auth):
     # spawn a daemon to send an email confirming subscription and 
     #providing the links
     email_thread=threading.Thread(target=Emailer.send_confirmed,
-                            args=[user.email, router.fingerprint, unsubs_auth,
-                                pref_auth])
+                            args=[user.email, router.fingerprint, 
+                                  user.unsubs_auth, user.pref_auth])
     email_thread.setDaemon(True)
     email_thread.start()
 
@@ -225,22 +224,23 @@ def preferences(request, pref_auth):
     # The user hasn't submitted the form yet or submitted it incorrectly, 
     # so the page with the preferences form is displayed.
 
-    # get the user's router's fingerprint
-    fingerprint = user.router.fingerprint
-
-    # get the node down subscription 
-    node_down_sub = get_object_or_404(NodeDownSub, subscriber = user)
+    else:
+    # the user hasn't submitted the form yet, display blank page
+        
+        # get the node down subscription 
+        node_down_sub = get_object_or_404(NodeDownSub, subscriber = user)
                 
-    # the data is used to fill in the form on the preferences page
-    # with the user's existing preferences.    
-    # this should be updated as the preferences are expanded
-    data = {'grace_pd' : node_down_sub.grace_pd}
+        # the data is used to fill in the form on the preferences page
+        # with the user's existing preferences.    
+        # this should be updated as the preferences are expanded
+        data = {'grace_pd' : node_down_sub.grace_pd}
 
-    # populates a PreferencesForm object with the user's existing prefs.
-    form = PreferencesForm(initial=data)    
+        # populates a PreferencesForm object with the user's existing prefs.
+        form = PreferencesForm(initial=data)    
     
     # maps the form to the template.
-    c = {'pref_auth': pref_auth, 'fingerprint': fingerprint, 'form' : form}
+    c = {'pref_auth': pref_auth, 'fingerprint': user.router.fingerprint,
+         'form' : form}
 
     # Creates a CSRF protection key.
     c.update(csrf(request))
@@ -278,24 +278,20 @@ def resend_conf(request, confirm_auth):
 
     return render_to_response(template, {'email' : user.email})
 
-# ------------------- REMOVE? --------------------------------------------
 
-#def fingerprint_error(request, fingerprint):
-#    """The page that is displayed when a user tries to subscribe to a node
-#    that isn't stored in the database. The page includes information
-#    regarding potential problems and references the fingerprint the user
-#    entered into the form.
-#    
-#    @type fingerprint: str
-#    @param fingerprint: The fingerprint the user entered in the subscribe form.
-#    """
-#    # get the template
-#    template = Templates.fingerprint_error
-#
-#    #display the page
-#    return render_to_response(template, {'fingerprint' : fingerprint})
+def fingerprint_not_found(request, fingerprint):
+    """The page that is displayed when a user gets more info about the 
+    'fingerprint not found' validation enter (if they try to subscribe to
+    a node that isn't in our database)
+    
+    @type fingerprint: str
+    @param fingerprint: The fingerprint the user entered in the subscribe form.
+    """
+    # get the template
+    template = Templates.fingerprint_not_found
 
-# --------------------------------------------------------------------------
+    #display the page
+    return render_to_response(template, {'fingerprint' : fingerprint})
 
 def error(request, error_type, key):
     """The generic error page, which displays a message based on the error
