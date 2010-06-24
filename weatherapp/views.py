@@ -70,14 +70,9 @@ def subscribe(request):
             if len(user_query_set) > 0:
                 user = user_query_set[0]
 
-                if user.confirmed:
-                    url_extension = Urls.get_error_ext('already_subscribed',
-                                                       user.pref_auth)
-                    return HttpResponseRedirect(url_extension)
-                else:
-                    url_extension = Urls.get_error_ext('need_confirmation',
-                                                       user.confirm_auth)
-                    return HttpResponseRedirect(url_extension)
+                url_extension = Urls.get_error_ext('already_subscribed',
+                                                   user.pref_auth)
+                return HttpResponseRedirect(url_extension)
             
             # Create the subscriber model for the user.
             user = Subscriber(email=addr, router=router)
@@ -200,8 +195,9 @@ def preferences(request, pref_auth):
     user = get_object_or_404(Subscriber, pref_auth=pref_auth)
     if not user.confirmed:
         # the user hasn't confirmed, send them to an error page
-        error_extension = Urls.get_error_ext('not_confirmed', user.confirm_auth)
-        return HttpRequestRedirect(error_extension)
+        error_extension = Urls.get_error_ext('need_confirmation', 
+                                             user.confirm_auth)
+        return HttpResponseRedirect(error_extension)
     if request.method == "POST":
         # The user submitted the preferences form and is redirected to the 
         # confirmation page.

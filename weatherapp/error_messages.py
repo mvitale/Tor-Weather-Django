@@ -15,7 +15,7 @@ class ErrorMessages:
         "<br><a href=%s>%s</a></p>"
     _ALREADY_SUBSCRIBED = "You are already subscribed to receive email " +\
         "alerts about the node you specified. If you'd like, you can " +\
-        " <a href = '%s'>change your preferences here</a>." 
+        " <a href = '%s'>change your preferences here</a>."
     _NEED_CONFIRMATION ="You have not yet confirmed your subscription to Tor "+\
         "Weather. You should have received an email at %s from Tor Weather "+\
         "with a link to your confirmation page.</p><p>If you would like us "+\
