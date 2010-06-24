@@ -1,6 +1,7 @@
 from weather.weatherapp.models import Subscriber
 from weather.config.web_directory import Urls
 
+# ----------------------- GET OBJ OR 404?? ---------------------------
 class ErrorMessages:
     """The ErrorMessages class contains the different error messages that 
     may be displayed to the user via the web pages.
@@ -21,10 +22,12 @@ class ErrorMessages:
         "</li><li>The node with the given fingerprint has been down for over "+\
         "a year"
     _NEED_CONFIRMATION ="You have not yet confirmed your subscription to Tor "+\
-        "Weather. You should have received an email from Tor Weather with "+\
-        "a link to your confirmation page."
-# ---------------- BUTTON TO SEND THE EMAIL AGAIN!! -------------------
-    _DEFAULT = "Tor Weather has encountered an error."
+        "Weather. You should have received an email at %s from Tor Weather "+\
+        "with a link to your confirmation page.</p><p>If you would like us "+\
+        "to resend the email with a link to your confirmation page, "+\
+        "<a href=%s>click here</a>."
+    _DEFAULT = "Tor Weather has encountered an error in trying to redirect "+\
+        "to this page."
 
     @staticmethod
     def get_error_message(error_type, key):
@@ -59,7 +62,12 @@ class ErrorMessages:
             message = ErrorMessages._FINGERPRINT_NOT_FOUND % fingerprint
             return message
         elif error_type == 'need_confirmation':
-            message = ErrorMessages._NEED_CONFIRMATION
+            # the key represents the user's confirm_auth key
+            confirm_auth = key
+            user = Subscriber.objects.get(confirm_auth = confirm_auth)
+            url_extension = Urls.get_resend_ext(confirm_auth)
+            message = ErrorMessages._NEED_CONFIRMATION % (user.email, 
+                                                          url_extension)
             return message
         else:
             # the error type wasn't recognized, just return a default msg

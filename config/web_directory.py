@@ -33,6 +33,9 @@ class Templates:
     @type preferences: str
     @ivar preferences: The template for the page displaying the form to change 
         preferences.
+    @type resend_conf: str
+    @ivar resend_conf: The template for the page displayed after the
+        confirmation email is resent upon user request.
     @type subscribe: str
     @ivar subscribe: The template for the page displaying the subscribe form.
     @type unsubscribe: str
@@ -46,6 +49,7 @@ class Templates:
     home = 'home.html'
     pending = 'pending.html'
     preferences = 'preferences.html'
+    resend_conf = 'resend_conf.html'
     subscribe = 'subscribe.html'
     unsubscribe = 'unsubscribe.html'
 
@@ -61,6 +65,7 @@ class Urls:
     _HOME = '/'
     _PENDING = '/pending/%s/'
     _PREFERENCES = '/preferences/%s/'
+    _RESEND_CONF = '/resend_conf/%s/'
     _SUBSCRIBE = '/subscribe/'
     _UNSUBSCRIBE = '/unsubscribe/%s/'
 
@@ -177,6 +182,20 @@ class Urls:
         url = base_url + Urls._PREFERENCES % pref_auth
         return url
 
+    @staticmethod
+    def get_resend_conf_ext(confirm_auth):
+        """Returns the url extension for the page displayed after the user
+        asks to be resent their confirmation email.
+        
+        @type confirm_auth: str
+        @param confirm_auth: The user's unique confirmation authorization key,
+            which is incorporated into the url extension.
+        @rtype: str
+        @return: The url extension for the resend confirmation page.
+        """
+        extension = _RESEND_CONF % confirm_auth
+        return extension
+    
     @staticmethod
     def get_subscribe_ext():
         """Returns the url extension for the Tor Weather subscribe page. 

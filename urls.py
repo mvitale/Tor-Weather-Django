@@ -15,6 +15,7 @@ urlpatterns = patterns('weather.weatherapp.views',
     (r'^fingerprint_error/(?P<fingerprint>.+)/$', 
                                                 'fingerprint_error'),
     (r'^error/(?P<error_type>[a-z_]+)/(?P<key>.+)/$', 'error'),
+    (r'^resend_conf/(?P<confirm_auth>.+)/$', 'resend_conf'),
     (r'^run_updaters$', 'run_updaters'),
 
     # Uncomment the admin/doc line below and add 'django.contrib.admindocs' 

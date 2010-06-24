@@ -121,10 +121,9 @@ def pending(request, confirm_auth):
     user = get_object_or_404(Subscriber, confirm_auth=confirm_auth)
 
     if not user.confirmed:
-        # TO DO ------------------------------------------------- EXTRA FEATURE
         return render_to_response(Templates.pending, {'email': user.email})
 
-    # Returns the user to the home page if the subscriber has already confirmed
+    # Redirects to the home page if the user has already confirmed
     url_extension = Urls.get_home_ext()
     return HttpResponseRedirect(url_extension)
 
@@ -199,14 +198,17 @@ def unsubscribe(request, unsubscribe_auth):
 def preferences(request, pref_auth):
     """The preferences page, which contains the preferences form initially
         populated by user-specific data"""
-# -------------- MAKE SURE THE USER IS CONFIRMED FIRST! --------------------
+    user = get_object_or_404(Subscriber, pref_auth=pref_auth)
+    if not user.confirmed:
+        # the user hasn't confirmed, send them to an error page
+        error_extension = Urls.get_error_ext('not_confirmed', user.confirm_auth)
+        return HttpRequestRedirect(error_extension)
     if request.method == "POST":
         # The user submitted the preferences form and is redirected to the 
         # confirmation page.
         form = PreferencesForm(request.POST)
         if form.is_valid():
             grace_pd = form.cleaned_data['grace_pd']
-            user = get_object_or_404(Subscriber, pref_auth =pref_auth)
 
             # Get the node_down subscription so we can update grace_pd.
             node_down_sub = get_object_or_404(NodeDownSub, subscriber = user)
@@ -222,9 +224,6 @@ def preferences(request, pref_auth):
 
     # The user hasn't submitted the form yet or submitted it incorrectly, 
     # so the page with the preferences form is displayed.
-
-    # get the user
-    user = get_object_or_404(Subscriber, pref_auth = pref_auth)
 
     # get the user's router's fingerprint
     fingerprint = user.router.fingerprint
@@ -263,6 +262,21 @@ def confirm_pref(request, pref_auth):
     # The page includes the unsubscribe and change prefs links
     return render_to_response(template, {'prefURL' : prefURL,
                                          'unsubURL' : unsubURL})
+
+def resend_conf(request, confirm_auth):
+    """The page informing the user that the confirmation email containing
+    the link to finalize the subscription has been resent."""
+    user = get_object_or_404(Subscriber, confirm_auth = confirm_auth)
+    router = user.router
+    template = Templates.resend_conf
+
+    # spawn a daemon to resend the confirmation email
+    email_thread=threading.Thread(target=Emailer.send_confirmation
+                            args=[user.email, router.fingerprint, confirm_auth])
+    email_thread.setDaemon(True)
+    email_thread.start()
+
+    return render_to_response(template, {'email' : user.email})
 
 # ------------------- REMOVE? --------------------------------------------
 
