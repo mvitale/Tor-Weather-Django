@@ -1,9 +1,9 @@
 import socket, sys, os
 import ctlutil
 import config
-from weather.weatherapp.emails import Emailer
+from emails import Emailer
 import datetime 
-from weather.weatherapp.models import *
+from models import *
 
 class SubscriptionChecker:
     """A class for checking and updating the various subscription types"""
@@ -20,10 +20,7 @@ class SubscriptionChecker:
 
         for subscription in subscriptions:
             #only check subscriptions of confirmed subscribers
-            print 'checking if confirmed'
             if subscription.subscriber.confirmed:
-                print 'subscription confirmed'
-                
 
                 is_up = subscription.subscriber.router.up 
                 if is_up:
@@ -123,6 +120,24 @@ class RouterUpdater:
                 except Router.DoesNotExist:
                     #let's add it
                     Router(fingerprint=finger, name=name).save()
+
+class Welcomer:
+    """A class for informing new relay operators about Weather"""
+    def __init__(self, ctl_util = None):
+        self.ctl_util = ctl_util
+        if ctl_util == None:
+            ctl_util = ctlutil.CtlUtil()
+
+    def welcome(self):
+        """Send welcome emails to new, stable relay operators"""
+        uninformed = Router.objects.filter(welcomed = False)
+        for router in uninformed:
+            if self.ctl_util.is_stable(router.fingerprint):
+                email = self.ctl_util.get_email(router.fingerprint)
+                if not email == "":
+                   Emailer.send_welcome(email)
+                   router.welcomed = True
+                   router.save()
 
 def run_all():
     """Run all updaters/checkers in proper sequence"""

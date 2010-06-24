@@ -2,6 +2,7 @@ import socket
 from TorCtl import TorCtl
 import config
 import logging
+import re
 
 debugfile = open("debug", "w")
 
@@ -19,7 +20,9 @@ class CtlUtil:
     @type control: TorCtl Connection
     @ivar control: Connection to TorCtl.
     """
-
+    _PARSER_RULES= {'rule1' : '[^ <]*@.*\.[^\n \)\(>]*',
+    'rule2' : 
+    '[^ <]*\s(?:@|at|.at.|\(at\))\s.*\s(?:\.|dot|.dot.|\(dot\))\s[^\n>\)\(]*'}
     _CONTROL_HOST = "127.0.0.1"
     _CONTROL_PORT = 9051
     _AUTHENTICATOR = config.authenticator
@@ -28,7 +31,9 @@ class CtlUtil:
                  control_host = _CONTROL_HOST,
                  control_port = _CONTROL_PORT,
                  sock = None,
-                 authenticator = _AUTHENTICATOR):
+                 authenticator = _AUTHENTICATOR,
+                 regex = _PARSER_RULES):
+                
 
         self.sock = sock
 
@@ -58,6 +63,8 @@ class CtlUtil:
 
         # Set up log file
         self.control.debug(debugfile)
+
+        self.regex = regex
 
     def __del__(self):
         # Probably cleanly closes the connection when the CtlUtil object is 
@@ -209,3 +216,53 @@ class CtlUtil:
             finger_list.append(pair[0])
         
         return finger_list
+
+    def get_email(self, fingerprint):
+        """Get the contact email address for a router operator.
+
+        @type fingerprint: str
+        @param fingerprint: The fingerprint of the router whose email will be
+                            returned.
+        @rtype: str
+        @return: The router operator's email address or the empty string if
+                the email address is unable to be parsed.
+        """
+        
+        desc = self.get_single_descriptor(fingerprint)
+        email = self._parse_email(desc)
+        return email
+
+    def is_stable(self, fingerprint):
+        """Check if a Tor node has the stable flag.
+
+        @type fingerprint: str
+        @param fingerprint: The fingerprint of the router to check
+
+        @rtype: bool
+        @return: True if this router has the stable flag, false otherwise.
+        """
+
+        info = self.get_single_consensus(fingerprint)
+        if re.search(' Stable ', info):
+            return True
+        else:
+            return False
+
+
+    def _parse_email(self, desc):
+        """Parse the email address from an individual router descriptor 
+        string.
+
+        @type desc: str
+        @param desc: The string representation of the descriptor file for a
+                    Tor router.
+        @rtype: str
+        @return: The email address in desc. If the email address cannot be
+                parsed, the empty string.
+        """
+        email = re.search(self.regex['rule1'], desc)
+        if email == None:
+            email = re.search(self.regex['rule2'], desc)
+            if email == None:
+                email = ""
+        return email.group()
