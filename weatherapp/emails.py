@@ -1,5 +1,5 @@
 from django.core.mail import send_mail
-from weather.config.web_directory import Urls
+from weather.config import url_helper
 
 class Emailer:
     """The Emailer class contains methods to send Weather Report emails to Tor 
@@ -109,7 +109,7 @@ class Emailer:
         @type confirm_auth: str
         @param confirm_auth: The user's unique confirmation authorization key.
         """
-        confirm_url = Urls.get_confirm_url(confirm_auth)
+        confirm_url = url_helper.get_confirm_url(confirm_auth)
         msg = Emailer._CONFIRMATION_MAIL % (fingerprint, confirm_url)
         sender = Emailer._SENDER
         subj = Emailer._SUBJECT_HEADER + Emailer._CONFIRMATION_SUBJ
@@ -136,8 +136,8 @@ class Emailer:
         """
         subj = Emailer._SUBJECT_HEADER + Emailer._CONFIRMED_SUBJ
         sender = Emailer._SENDER
-        unsubURL = Urls.get_unsubscribe_url(unsubs_auth)
-        prefURL = Urls.get_preferences_url(pref_auth)
+        unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
+        prefURL = url_helper.get_preferences_url(pref_auth)
         msg = Emailer._CONFIRMED_MAIL % (fingerprint, unsubURL, prefURL) 
         send_mail(subj, msg, sender, [recipient], fail_silently=False)
 
@@ -163,8 +163,8 @@ class Emailer:
         """
         subj = Emailer._SUBJECT_HEADER + Emailer._NODE_DOWN_SUBJ
         sender = Emailer._SENDER
-        unsubURL = Urls.get_unsubscribe_url(unsubs_auth)
-        prefURL = Urls.get_preferences_url(pref_auth)
+        unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
+        prefURL = url_helper.get_preferences_url(pref_auth)
         msg = Emailer._NODE_DOWN_MAIL % (fingerprint, grace_pd, unsubURL,   
                                          prefURL)
         send_mail(subj, msg, sender, [recipient], fail_silently=True)
@@ -201,8 +201,8 @@ class Emailer:
         avg_bandwidth = avg_bandwidth / 1000
         subj = Emailer._SUBJECT_HEADER + Emailer._T_SHIRT_SUBJ
         sender = Emailer._SENDER
-        unsubURL = Urls.get_unsubscribe_url(unsubs_auth)
-        prefURL = Urls.get_preferences_url(pref_auth)
+        unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
+        prefURL = url_helper.get_preferences_url(pref_auth)
         msg = Emailer._T_SHIRT_MAIL % (stable_message, days_running, 
                                        avg_bandwidth, unsubURL, prefURL)
         send_mail(subj, msg, sender, [recipient], fail_silently=True)

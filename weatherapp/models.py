@@ -12,7 +12,7 @@ import emails
 from datetime import datetime
 import base64
 import os
-from weather.config.web_directory import Urls
+from weather.config import url_helper
 
 class Router(models.Model):
     """A model that stores information about every router on the Tor network.
@@ -305,7 +305,7 @@ class SubscribeForm(forms.Form):
         fingerprint.replace(' ','')
         fingerprint_set = Router.objects.filter(fingerprint=fingerprint)
         if len(fingerprint_set) == 0:
-            info_ext = Urls.get_fingerprint_info_ext(fingerprint)
+            info_ext = url_helper.get_fingerprint_info_ext(fingerprint)
             message = "We could not locate a Tor node with that fingerprint. "+\
                       "(<a href=%s>More info</a>)" % info_ext
             raise forms.ValidationError(message)

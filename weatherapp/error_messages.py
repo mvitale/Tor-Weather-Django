@@ -1,5 +1,5 @@
 from weather.weatherapp.models import Subscriber
-from weather.config.web_directory import Urls
+from weather.config import url_helper
 
 # ----------------------- GET OBJ OR 404?? ---------------------------
 class ErrorMessages:
@@ -40,8 +40,8 @@ class ErrorMessages:
         if error_type == 'already_confirmed':
             confirm_auth = key
             user = Subscriber.objects.get(confirm_auth = confirm_auth)
-            pref_url = Urls.get_preferences_url(user.pref_auth)
-            unsubscribe_url = Urls.get_unsubscribe_url(user.unsubs_auth)
+            pref_url = url_helper.get_preferences_url(user.pref_auth)
+            unsubscribe_url = url_helper.get_unsubscribe_url(user.unsubs_auth)
             message = ErrorMessages._ALREADY_CONFIRMED % (pref_url, pref_url, 
                                                           unsubscribe_url,
                                                           unsubscribe_url)
@@ -49,14 +49,14 @@ class ErrorMessages:
         elif error_type == 'already_subscribed':
             # the key represents the user's pref_auth key
             pref_auth = key
-            pref_url = Urls.get_preferences_url(pref_auth)
+            pref_url = url_helper.get_preferences_url(pref_auth)
             message = ErrorMessages._ALREADY_SUBSCRIBED % pref_url
             return message
         elif error_type == 'need_confirmation':
             # the key represents the user's confirm_auth key
             confirm_auth = key
             user = Subscriber.objects.get(confirm_auth = confirm_auth)
-            url_extension = Urls.get_resend_ext(confirm_auth)
+            url_extension = url_helper.get_resend_ext(confirm_auth)
             message = ErrorMessages._NEED_CONFIRMATION % (user.email, 
                                                           url_extension)
             return message

@@ -13,7 +13,8 @@ from emails import Emailer
 from django.core.context_processors import csrf
 from django.http import HttpResponseRedirect, HttpRequest, Http404
 from django.http import HttpResponse
-from weather.config.web_directory import Templates, Urls
+from weather.config import url_helper
+from weather.config import templates
 from weather.weatherapp.error_messages import ErrorMessages
 import threading
 
@@ -24,8 +25,8 @@ baseURL = "http://localhost:8000"
 def home(request):
     """Displays a home page for Tor Weather with basic information about
         the application."""
-    url_extension = Urls.get_subscribe_ext()
-    return render_to_response(Templates.home, {'sub' : url_extension})
+    url_extension = url_helper.get_subscribe_ext()
+    return render_to_response(templates.home, {'sub' : url_extension})
 
 def subscribe(request):
     """Displays the subscription form (all fields empty or default) if the
@@ -59,7 +60,7 @@ def subscribe(request):
             if len(user_query_set) > 0:
                 user = user_query_set[0]
 
-                url_extension = Urls.get_error_ext('already_subscribed',
+                url_extension = url_helper.get_error_ext('already_subscribed',
                                                    user.pref_auth)
                 return HttpResponseRedirect(url_extension)
             
@@ -83,7 +84,7 @@ def subscribe(request):
             email_thread.start()
 
             # Send the user to the pending page.
-            url_extension = Urls.get_pending_ext(confirm_auth)
+            url_extension = url_helper.get_pending_ext(confirm_auth)
             return HttpResponseRedirect(url_extension)
 
     else:
@@ -95,7 +96,7 @@ def subscribe(request):
     # key is added to block attacking sites.
     c.update(csrf(request))
 
-    return render_to_response(Templates.subscribe, c)
+    return render_to_response(templates.subscribe, c)
 
 def pending(request, confirm_auth):
     """The user views the pending page after submitting a registration form.
@@ -104,10 +105,10 @@ def pending(request, confirm_auth):
     user = get_object_or_404(Subscriber, confirm_auth=confirm_auth)
 
     if not user.confirmed:
-        return render_to_response(Templates.pending, {'email': user.email})
+        return render_to_response(templates.pending, {'email': user.email})
 
     # Redirects to the home page if the user has already confirmed
-    url_extension = Urls.get_home_ext()
+    url_extension = url_helper.get_home_ext()
     return HttpResponseRedirect(url_extension)
 
 def confirm(request, confirm_auth):
@@ -122,12 +123,12 @@ def confirm(request, confirm_auth):
         user.save()
     else:
         # the user is already confirmed, send to an error page
-        error_url_ext = Urls.get_error_ext('already_confirmed', confirm_auth)
+        error_url_ext = url_helper.get_error_ext('already_confirmed', confirm_auth)
         return HttpResponseRedirect(error_url_ext)
 
     # get the urls for the user's unsubscribe and prefs pages to add links
-    unsubURL = Urls.get_unsubscribe_url(user.unsubs_auth)
-    prefURL = Urls.get_preferences_url(user.pref_auth)
+    unsubURL = url_helper.get_unsubscribe_url(user.unsubs_auth)
+    prefURL = url_helper.get_preferences_url(user.pref_auth)
 
     # spawn a daemon to send an email confirming subscription and 
     #providing the links
@@ -138,7 +139,7 @@ def confirm(request, confirm_auth):
     email_thread.start()
 
     # get the template for the confirm page
-    template = Templates.confirm
+    template = templates.confirm
 
     return render_to_response(template, {'email': user.email, 
                                          'fingerprint' : router.fingerprint, 
@@ -170,9 +171,9 @@ def unsubscribe(request, unsubscribe_auth):
     user.delete()
 
     # get the url extension for the subscribe page to add a link on the page
-    url_extension = Urls.get_subscribe_ext()
+    url_extension = url_helper.get_subscribe_ext()
     # get the unsubscribe template
-    template = Templates.unsubscribe
+    template = templates.unsubscribe
     return render_to_response(template, {'email' : email, 
                                          'name' : name,
                                          'fingerprint' :fingerprint, 
@@ -184,7 +185,7 @@ def preferences(request, pref_auth):
     user = get_object_or_404(Subscriber, pref_auth=pref_auth)
     if not user.confirmed:
         # the user hasn't confirmed, send them to an error page
-        error_extension = Urls.get_error_ext('need_confirmation', 
+        error_extension = url_helper.get_error_ext('need_confirmation', 
                                              user.confirm_auth)
         return HttpResponseRedirect(error_extension)
     if request.method == "POST":
@@ -199,7 +200,7 @@ def preferences(request, pref_auth):
             node_down_sub.grace_pd = grace_pd
             node_down_sub.save()
 
-            url_extension = Urls.get_confirm_pref_ext(pref_auth)
+            url_extension = url_helper.get_confirm_pref_ext(pref_auth)
             return HttpResponseRedirect(url_extension) 
 
     # TO DO ----------------------------------------------------- EXTRA FEATURE
@@ -231,18 +232,18 @@ def preferences(request, pref_auth):
     c.update(csrf(request))
 
     # get the template
-    template = Templates.preferences
+    template = templates.preferences
     # display the page
     return render_to_response(template, c)
 
 def confirm_pref(request, pref_auth):
     """The page confirming that preferences have been changed."""
     user = get_object_or_404(Subscriber, pref_auth = pref_auth)
-    prefURL = Urls.get_preferences_url(pref_auth)
-    unsubURL = Urls.get_unsubscribe_url(user.unsubs_auth)
+    prefURL = url_helper.get_preferences_url(pref_auth)
+    unsubURL = url_helper.get_unsubscribe_url(user.unsubs_auth)
 
     # get the template
-    template = Templates.confirm_pref
+    template = templates.confirm_pref
 
     # The page includes the unsubscribe and change prefs links
     return render_to_response(template, {'prefURL' : prefURL,
@@ -253,7 +254,7 @@ def resend_conf(request, confirm_auth):
     the link to finalize the subscription has been resent."""
     user = get_object_or_404(Subscriber, confirm_auth = confirm_auth)
     router = user.router
-    template = Templates.resend_conf
+    template = templates.resend_conf
 
     # spawn a daemon to resend the confirmation email
     email_thread=threading.Thread(target=Emailer.send_confirmation,
@@ -273,7 +274,7 @@ def fingerprint_not_found(request, fingerprint):
     @param fingerprint: The fingerprint the user entered in the subscribe form.
     """
     # get the template
-    template = Templates.fingerprint_not_found
+    template = templates.fingerprint_not_found
 
     #display the page
     return render_to_response(template, {'fingerprint' : fingerprint})
@@ -292,7 +293,7 @@ def error(request, error_type, key):
     message = ErrorMessages.get_error_message(error_type, key)
 
     # get the error template
-    template = Templates.error
+    template = templates.error
 
     # display the page
     return render_to_response(template, {'error_message' : message})

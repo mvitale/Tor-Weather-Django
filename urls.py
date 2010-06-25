@@ -1,8 +1,11 @@
-from django.conf.urls.defaults import *
+"""The urls.py module is standard to Django. It stores url patterns and their
+corresponding controllers (see views).
 
-# Uncomment the next two lines to enable the admin:
-# from django.contrib import admin
-# admin.autodiscover()
+@var urlpatterns: A set of tuples mapping url patterns to the controller they
+    should call.
+"""
+
+from django.conf.urls.defaults import *
 
 urlpatterns = patterns('weather.weatherapp.views',
     (r'^$', 'home'),
@@ -17,11 +20,4 @@ urlpatterns = patterns('weather.weatherapp.views',
     (r'^error/(?P<error_type>[a-z_]+)/(?P<key>.+)/$', 'error'),
     (r'^resend_conf/(?P<confirm_auth>.+)/$', 'resend_conf'),
     (r'^run_updaters$', 'run_updaters'),
-
-    # Uncomment the admin/doc line below and add 'django.contrib.admindocs' 
-    # to INSTALLED_APPS to enable admin documentation:
-    # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
-    # Uncomment the next line to enable the admin:
-    # (r'^admin/', include(admin.site.urls)),
 )
