@@ -215,10 +215,28 @@ class LowBandwidthSub(Subscription):
     threshold = models.IntegerField(default = 0)
     grace_pd = models.IntegerField(default = 1)
 
+    #def should_email():
+        #"""
+        #"""
+        #time_since_changed
+
+
+class TShirtSub(Subscription):
+    """"""
+    avg_bandwidth = models.IntegerField()
+    hours_since_triggered = models.IntegerField()
+    exit = models.BooleanField()
+
     def should_email():
-        """
-        """
-        time_since_changed
+        """"""
+        if triggered and hours_since_triggered > 1464:
+            if exit:
+                if avg_bandwidth > 100000:
+                    return True
+            else:
+                if avg_bandwidth > 500000:
+                    return True
+        return False
 
 
 class SubscribeForm(forms.Form):

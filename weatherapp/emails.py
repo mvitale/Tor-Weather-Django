@@ -46,7 +46,8 @@ class Emailer:
 
     _T_SHIRT_SUBJ = 'Congratulations! Have a t-shirt!'
     _T_SHIRT_MAIL = "This is a Tor Weather Report.\n\n"+\
-        "Congratulations! The node you are observing has been stable for %s, "+\
+        "Congratulations! The node you are observing has been stable for %s "+\
+        "days with an average bandwidth of %s," +\
         "which makes the operator eligible to receive an official Tor "+\
         "T-shirt! If you're interested in claiming your shirt, please visit "+\
         "the following link for more information.\n\n"+\
