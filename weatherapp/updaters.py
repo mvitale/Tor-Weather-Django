@@ -133,16 +133,20 @@ class Welcomer:
     def welcome(self):
         """Send welcome emails to new, stable relay operators"""
         uninformed = Router.objects.filter(welcomed = False)
+        write_file = open("welcome_test.log", "w")
         for router in uninformed:
             if self.ctl_util.is_stable(router.fingerprint):
                 email = self.ctl_util.get_email(router.fingerprint)
                 if not email == "":
-                   Emailer.send_welcome(email)
+                    write_file.write(email + "\n") 
+                    print "Would've emailed " + email
+                    #Emailer.send_welcome(email)
                 
                 #Even if we can't get a router's email, we set welcomed to true
                 #so that we don't keep trying to parse their email
-                router.welcomed = True
-                router.save()
+
+                #router.welcomed = True
+                #router.save()
 def main():
     """Run all updaters/checkers in proper sequence"""
     ctl_util = ctlutil.CtlUtil()
