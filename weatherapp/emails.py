@@ -107,9 +107,6 @@ class Emailer:
             monitor.
         @type confirm_auth: str
         @param confirm_auth: The user's unique confirmation authorization key.
-        @type sender: str
-        @param sender: The sender's email address. Default = the stored 
-            email address for the Tor Weather Notification System.
         """
         confirm_url = Urls.get_confirm_url(confirm_auth)
         msg = Emailer._CONFIRMATION_MAIL % (fingerprint, confirm_url)
@@ -131,8 +128,8 @@ class Emailer:
         @type fingerprint: str
         @param fingerprint: The fingerprint of the node this user wishes to
             monitor.
-        @type unsub_auth: str
-        @param unsub_auth: The user's unique unsubscribe auth key
+        @type unsubs_auth: str
+        @param unsubs_auth: The user's unique unsubscribe auth key
         @type pref_auth: str
         @param pref_auth: The user's unique preferences auth key
         """
@@ -158,8 +155,8 @@ class Emailer:
             monitor.
         @type grace_pd: int
         @param grace_pd: The amount of downtime specified by the user
-        @type unsub_auth: str
-        @param unsub_auth: The user's unique unsubscribe auth key
+        @type unsubs_auth: str
+        @param unsubs_auth: The user's unique unsubscribe auth key
         @type pref_auth: str
         @param pref_auth: The user's unique preferences auth key
         """
@@ -191,7 +188,8 @@ class Emailer:
             was first viewed as running.
         @type is_exit: bool
         @param is_exit: True if the router is an exit node, False if not.
-        @param unsub_auth: The user's unique unsubscribe auth key
+        @type unsubs_auth: str
+        @param unsubs_auth: The user's unique unsubscribe auth key
         @type pref_auth: str
         @param pref_auth: The user's unique preferences auth key
         """

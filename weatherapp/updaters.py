@@ -1,6 +1,7 @@
 import socket, sys, os
 import ctlutil
 import config
+import threading
 from emails import Emailer
 import datetime 
 from models import *
@@ -36,8 +37,15 @@ class SubscriptionChecker:
                         unsubs_auth = subscription.subscriber.unsubs_auth
                         pref_auth = subscription.subscriber.pref_auth
                         
-                        Emailer.send_node_down(recipient, fingerprint, grace_pd,
-                                                unsubs_auth, pref_auth)
+                        email_thread = threading.Thread(target=\
+                                Emailer.send_node_down, args=[recipient,
+                                                              fingerprint,
+                                                              grace_pd,
+                                                              unsubs_auth,    
+                                                              pref_auth])
+                        email_thread.setDaemon(True)
+                        email_thread.start()
+
                         subscription.emailed = True 
                     else:
                         subscription.triggered = True
@@ -82,17 +90,31 @@ class SubscriptionChecker:
                     subscription.hours_since_triggered = 1
                 else:
                 # update the avg bandwidth (arithmetic)
-                    subscription.avg_bandwidth = 
+                    subscription.avg_bandwidth = \
                        self.ctl_util.get_new_avg_bandwidth(
                                subscription.avg_bandwidth,
                                subscription.hours_since_triggered,
                                current_bandwidth)
-                    subscription.hours_since_triggered++
+                    subscription.hours_since_triggered+=1
+            subscription.save()
 
             # now send the email if it's needed
             if subscription.should_email():
-                #Emailer.send_
+                recipient = subscription.subscriber.email
+                avg_band = subscription.avg_bandwidth
+                time = subscription.hours_since_triggered
+                exit = subscription.subscriber.router.exit
+                unsubs_auth = subscription.subscriber.unsubs_auth
+                pref_auth = subscription.subscriber.pref_auth
+                
+                email_thread = threading.Thread(target = Emailer.send_t_shirt,
+                                                args=[recipient, avg_band,
+                                                      time, exit, unsubs_auth, 
+                                                      pref_auth])
+                email_thread.setDaemon(True)
+                email_thread.start()
 
+                subscription.emailed = True
                     
     def check_all(self):
         """Check/update all subscriptions"""
@@ -101,7 +123,7 @@ class SubscriptionChecker:
         #---Add when implemented---
         #self.check_out_of_date()
         #self.check_below_bandwidth()
-        #self.check_earn_tshirt()
+        self.check_earn_tshirt()
 
 class RouterUpdater:
     """

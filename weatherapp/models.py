@@ -78,7 +78,9 @@ class Subscriber(models.Model):
     A model to store information about Tor Weather subscribers, including their
     authorization keys.
 
+    @type email: str
     @ivar email: The subscriber's email.
+    @type router: Router
     @ivar router: A foreign key link to the router model corresponding to the
         node this subscriber is watching.
     @type confirmed: bool
@@ -171,7 +173,9 @@ class Subscription(models.Model):
 
 
 class NodeDownSub(Subscription):
-    """
+    """A subscription class for node-down subscriptions, which send 
+    notifications to the user if their node is down for the downtime grace
+    period they specify. 
 
     @type grace_pd: int
     @ivar grace_pd: The amount of time (hours) before a notification is sent
@@ -226,7 +230,16 @@ class LowBandwidthSub(Subscription):
 
 
 class TShirtSub(Subscription):
-    """"""
+    """A subscription class for T-shirt notifications. An email is sent
+    to the user if the router they're monitoring has earned them a T-shirt.
+    The router must be running for 61 days (2 months). If it's an exit node,
+    it's avg bandwidth must be at least 100 KB/s. Otherwise, it must be at 
+    least 500 KB/s.
+    
+    @type avg_bandwidth: int
+    @ivar avg_bandwidth: The router's average bandwidth
+    @type hours_since_triggered: int
+    @ivar hours_since_triggered: The hours this router has been up"""
     avg_bandwidth = models.IntegerField()
     hours_since_triggered = models.IntegerField()
 
@@ -237,7 +250,7 @@ class TShirtSub(Subscription):
         
         @rtype: bool
         @return: C{True} if the user earned a T-shirt, C{False} if not."""
-        if triggered and hours_since_triggered > 1464:
+        if not emailed and triggered and hours_since_triggered > 1464:
             if subscriber.router.exit:
                 if avg_bandwidth > 100000:
                     return True

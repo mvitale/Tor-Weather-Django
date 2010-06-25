@@ -180,8 +180,8 @@ class CtlUtil:
             descriptor = self.get_single_descriptor(node_id)
             desc_lines = descriptor.split('\n')
             for line in desc_lines:
-                if line.startswith('accept') and (line.endswith(':80')
-                                                  or line.endswith('*:*'))
+                if (line.startswith('accept') and (line.endswith(':80') 
+                                                   or line.endswith('*:*'))):
                     return True
             return False
         except TorCtl.ErrorReply, e:
@@ -244,7 +244,7 @@ class CtlUtil:
         
         return finger_list
 
-    def get_bandwidth(single_descriptor)
+    def get_bandwidth(single_descriptor):
         """Takes a descriptor for a single router and parses out the 
         bandwidth.
         
@@ -262,7 +262,7 @@ class CtlUtil:
                 bandwidth = int(word_list[3])
         return bandwidth
 
-    def get_new_avg_bandwidth(avg_bandwidth, hours_up, obs_bandwidth)
+    def get_new_avg_bandwidth(avg_bandwidth, hours_up, obs_bandwidth):
         """Calculates the new average bandwidth for a router.
         
         @param avg_bandwidth: The current average bandwidth for the router
