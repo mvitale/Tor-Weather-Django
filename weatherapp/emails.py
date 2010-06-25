@@ -44,14 +44,16 @@ class Emailer:
         "reports at any time by visiting the following url:\n\n%s\n\n"+\
         "or change your Tor Weather notification preferences here:\n\n%s\n"
 
-    _T_SHIRT_SUBJ = 'Congratulations! Have a t-shirt!'
+    _T_SHIRT_SUBJ = 'Congratulations! Have a T-shirt!'
     _T_SHIRT_MAIL = "This is a Tor Weather Report.\n\n"+\
-        "Congratulations! The node you are observing has been stable for %s, "+\
+        "Congratulations! The node you are observing has been %s for %s "+\
+        "days with an average bandwidth of %s KB/s," +\
         "which makes the operator eligible to receive an official Tor "+\
         "T-shirt! If you're interested in claiming your shirt, please visit "+\
         "the following link for more information.\n\n"+\
         "http://www.torproject.org/tshirt.html"+\
-        "Thank you for your contribution to the Tor network!"+\
+        "\n\nYou might want to include this message in your email. "+\
+        "\n\nThank you for your contribution to the Tor network!"+\
         "You can unsubscribe from these reports at any time by visiting the "+\
         "following url:\n\n%s\n\nor change your Tor Weather notification "+\
         "preferences here:\n\n%s\n"
@@ -80,6 +82,8 @@ class Emailer:
         "We won't send you any further emails unless you subscribe.\n\n"+\
         "Disclaimer: If you have no idea why you're receiving this email, we "+\
         "sincerely apologize! You shouldn't hear from us again.\n"
+
+# ------------ FORMAT LINK IN WELCOME MAIL --------------------------
 
     _LEGAL_SUBJ = 'Welcome to Tor! Thanks for agreeing to be an exit node!'
     _LEGAL_MAIL = """
@@ -169,6 +173,9 @@ class Emailer:
 
     @staticmethod
     def send_t_shirt(recipient,
+                     avg_bandwidth,
+                     hours_since_triggered,
+                     is_exit,
                      unsubs_auth,
                      pref_auth):
         """Sends an email to the user notifying them that their node has
@@ -176,15 +183,29 @@ class Emailer:
         
         @type recipient: str
         @param recipient: The user's email address
+        @type avg_bandwidth: int
+        @param avg_bandwidth: The user's average bandwidth over the
+            observed period.
+        @type hours_since_triggered: int
+        @param hours_since_triggered: The hours since the user's router
+            was first viewed as running.
+        @type is_exit: bool
+        @param is_exit: True if the router is an exit node, False if not.
         @param unsub_auth: The user's unique unsubscribe auth key
         @type pref_auth: str
         @param pref_auth: The user's unique preferences auth key
         """
+        stable_message = 'running'
+        if is_exit:
+            node_type += ' as an exit node'
+        days_running = hours_since_triggered / 24
+        avg_bandwidth = avg_bandwidth / 1000
         subj = Emailer._SUBJECT_HEADER + Emailer._T_SHIRT_SUBJ
         sender = Emailer._SENDER
         unsubURL = Urls.get_unsubscribe_url(unsubs_auth)
         prefURL = Urls.get_preferences_url(pref_auth)
-        msg = Emailer._T_SHIRT_MAIL % (unsubURL, prefURL)
+        msg = Emailer._T_SHIRT_MAIL % (stable_message, days_running, 
+                                       avg_bandwidth, unsubURL, prefURL)
         send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
     @staticmethod

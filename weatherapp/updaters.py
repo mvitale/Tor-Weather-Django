@@ -12,8 +12,8 @@ class SubscriptionChecker:
         self.ctl_util = ctl_util
     
     def check_node_down(self):
-        """Check if all nodes with node_down subscriptions are up or down, and
-        send emails and update subscription data as necessary."""
+        """Check if all nodes with L{NodeDownSub} subscriptions are up or down,
+        and send emails and update subscription data as necessary."""
 
         #All node down subscriptions
         subscriptions = NodeDownSub.objects.all()
@@ -55,10 +55,45 @@ class SubscriptionChecker:
         pass
 
     def check_earn_tshirt(self):
-        # TO DO ------------------------------------------------- EXTRA FEATURE
-       # IMPLEMENT THIS ------------------------------------------------------
-        pass
+        """Check all L{TShirtSub} subscriptions and send an email if necessary. 
+        If the node is down, the trigger flag set to False. The average 
+        bandwidth is calculated if triggered is True. This method uses the 
+        should_email method in the TShirtSub class."""
 
+        subscriptions = TShirtSub.objects.all()
+
+        for subscription in subscriptions:
+            # first, update the database 
+            router = subscription.subscriber.router
+            is_up = router.up
+            fingerprint = router.fingerprint
+            if not is_up:
+                # reset the data if the node goes down
+                subscription.triggered = False
+                subscription.avg_bandwidth = 0
+                subscription.hours_since_triggered = 0
+            else:
+                descriptor = self.ctl_ultil.get_single_descriptor(fingerprint)
+                current_bandwidth = self.ctl_util.get_bandwidth(descriptor)
+                if subscription.triggered == False:
+                # router just came back, reset values
+                    subscription.triggered = True
+                    subscription.avg_bandwidth = current_bandwidth
+                    subscription.hours_since_triggered = 1
+                else:
+                # update the avg bandwidth (arithmetic)
+                    subscription.avg_bandwidth = 
+                       self.ctl_util.get_new_avg_bandwidth(
+                               subscription.avg_bandwidth,
+                               subscription.hours_since_triggered,
+                               current_bandwidth)
+                    subscription.hours_since_triggered++
+
+            # now send the email if it's needed
+            if subscription.should_email():
+                #Emailer.send_
+
+                    
     def check_all(self):
         """Check/update all subscriptions"""
         self.check_node_down()

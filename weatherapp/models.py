@@ -30,8 +30,11 @@ class Router(models.Model):
     @ivar last_seen: The most recent time the router was listed on a consensus 
                      document. Default value is C{datetime.now()}.
     @type up: bool
-    @ivar up: True if this router was up last time a new network consensus
+    @ivar up: C{True} if this router was up last time a new network consensus
               was published, false otherwise. Default value is C{True}.
+    @type exit: bool
+    @ivar exit: C{True} if this router accepts exits to port 80, C{False} if
+        not.
     """
 
     fingerprint = models.CharField(max_length=40, unique=True)
@@ -39,6 +42,7 @@ class Router(models.Model):
     welcomed = models.BooleanField(default=False)
     last_seen = models.DateTimeField('date last seen', default=datetime.now())
     up = models.BooleanField(default=True)
+    exit = models.BooleanField()
 
     def __unicode__(self):
         return self.fingerprint
@@ -215,10 +219,32 @@ class LowBandwidthSub(Subscription):
     threshold = models.IntegerField(default = 0)
     grace_pd = models.IntegerField(default = 1)
 
+    #def should_email():
+        #"""
+        #"""
+        #time_since_changed
+
+
+class TShirtSub(Subscription):
+    """"""
+    avg_bandwidth = models.IntegerField()
+    hours_since_triggered = models.IntegerField()
+
     def should_email():
-        """
-        """
-        time_since_changed
+        """Returns true if the router being watched has been up for 1464 hours
+        (61 days, or approx 2 months). If it's an exit node, the avg bandwidth
+        must be above 100 KB/s. If not, it must be > 500 KB/s.
+        
+        @rtype: bool
+        @return: C{True} if the user earned a T-shirt, C{False} if not."""
+        if triggered and hours_since_triggered > 1464:
+            if subscriber.router.exit:
+                if avg_bandwidth > 100000:
+                    return True
+            else:
+                if avg_bandwidth > 500000:
+                    return True
+        return False
 
 
 class SubscribeForm(forms.Form):
