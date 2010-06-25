@@ -13,7 +13,8 @@ from emails import Emailer
 from django.core.context_processors import csrf
 from django.http import HttpResponseRedirect, HttpRequest, Http404
 from django.http import HttpResponse
-from weather.config.web_directory import ErrorMessages, Templates, Urls
+from weather.config.web_directory import Templates, Urls
+from weather.weatherapp.error_messages import ErrorMessages
 import threading
 
 # TO DO --------------------------------------------------------- EXTRA FEATURE
@@ -30,9 +31,8 @@ def subscribe(request):
     """Displays the subscription form (all fields empty or default) if the
     form hasn't been submitted. After the user hits the submit button,
     redirects to the pending page if all of the fields were acceptable.
-    If the user enters a fingerprint that isn't stored in our database,
-    we send them to an error page (see L{fingerprint_error}). If the user
-    is already subscribed to that Tor node, they are sent to an error page."""
+    If the user is already subscribed to that Tor node, they are sent to 
+    an error page."""
     
     if request.method == 'POST':
         # handle the submitted form:
@@ -45,7 +45,7 @@ def subscribe(request):
             # types specified in the SubscribeForm object
             addr = form.cleaned_data['email']
             # gets the fingerprint and removes any whitespace characters
-            fingerprint = form.cleaned_data['fingerprint'].replace(' ','')
+            fingerprint = form.cleaned_data['fingerprint']
             grace_pd = form.cleaned_data['grace_pd']
             
             # gets a query set of the routers with the given fingerprint
@@ -70,14 +70,9 @@ def subscribe(request):
             if len(user_query_set) > 0:
                 user = user_query_set[0]
 
-                if user.confirmed:
-                    url_extension = Urls.get_error_ext('already_subscribed',
-                                                       user.pref_auth)
-                    return HttpResponseRedirect(url_extension)
-                else:
-                    url_extension = Urls.get_error_ext('need_confirmation',
-                                                       user.conf_auth)
-                    return HttpResponseRedirect(url_extension)
+                url_extension = Urls.get_error_ext('already_subscribed',
+                                                   user.pref_auth)
+                return HttpResponseRedirect(url_extension)
             
             # Create the subscriber model for the user.
             user = Subscriber(email=addr, router=router)
@@ -120,10 +115,9 @@ def pending(request, confirm_auth):
     user = get_object_or_404(Subscriber, confirm_auth=confirm_auth)
 
     if not user.confirmed:
-        # TO DO ------------------------------------------------- EXTRA FEATURE
         return render_to_response(Templates.pending, {'email': user.email})
 
-    # Returns the user to the home page if the subscriber has already confirmed
+    # Redirects to the home page if the user has already confirmed
     url_extension = Urls.get_home_ext()
     return HttpResponseRedirect(url_extension)
 
@@ -150,7 +144,7 @@ def confirm(request, confirm_auth):
     #providing the links
     email_thread=threading.Thread(target=Emailer.send_confirmed,
                             args=[user.email, router.fingerprint, 
-                                user.unsubs_auth, user.pref_auth])
+                                  user.unsubs_auth, user.pref_auth])
     email_thread.setDaemon(True)
     email_thread.start()
 
@@ -198,14 +192,18 @@ def unsubscribe(request, unsubscribe_auth):
 def preferences(request, pref_auth):
     """The preferences page, which contains the preferences form initially
         populated by user-specific data"""
-# -------------- MAKE SURE THE USER IS CONFIRMED FIRST! --------------------
+    user = get_object_or_404(Subscriber, pref_auth=pref_auth)
+    if not user.confirmed:
+        # the user hasn't confirmed, send them to an error page
+        error_extension = Urls.get_error_ext('need_confirmation', 
+                                             user.confirm_auth)
+        return HttpResponseRedirect(error_extension)
     if request.method == "POST":
         # The user submitted the preferences form and is redirected to the 
         # confirmation page.
         form = PreferencesForm(request.POST)
         if form.is_valid():
             grace_pd = form.cleaned_data['grace_pd']
-            user = get_object_or_404(Subscriber, pref_auth =pref_auth)
 
             # Get the node_down subscription so we can update grace_pd.
             node_down_sub = get_object_or_404(NodeDownSub, subscriber = user)
@@ -222,25 +220,23 @@ def preferences(request, pref_auth):
     # The user hasn't submitted the form yet or submitted it incorrectly, 
     # so the page with the preferences form is displayed.
 
-    # get the user
-    user = get_object_or_404(Subscriber, pref_auth = pref_auth)
-
-    # get the user's router's fingerprint
-    fingerprint = user.router.fingerprint
-
-    # get the node down subscription 
-    node_down_sub = get_object_or_404(NodeDownSub, subscriber = user)
+    else:
+    # the user hasn't submitted the form yet, display blank page
+        
+        # get the node down subscription 
+        node_down_sub = get_object_or_404(NodeDownSub, subscriber = user)
                 
-    # the data is used to fill in the form on the preferences page
-    # with the user's existing preferences.    
-    # this should be updated as the preferences are expanded
-    data = {'grace_pd' : node_down_sub.grace_pd}
+        # the data is used to fill in the form on the preferences page
+        # with the user's existing preferences.    
+        # this should be updated as the preferences are expanded
+        data = {'grace_pd' : node_down_sub.grace_pd}
 
-    # populates a PreferencesForm object with the user's existing prefs.
-    form = PreferencesForm(initial=data)    
+        # populates a PreferencesForm object with the user's existing prefs.
+        form = PreferencesForm(initial=data)    
     
     # maps the form to the template.
-    c = {'pref_auth': pref_auth, 'fingerprint': fingerprint, 'form' : form}
+    c = {'pref_auth': pref_auth, 'fingerprint': user.router.fingerprint,
+         'form' : form}
 
     # Creates a CSRF protection key.
     c.update(csrf(request))
@@ -263,24 +259,35 @@ def confirm_pref(request, pref_auth):
     return render_to_response(template, {'prefURL' : prefURL,
                                          'unsubURL' : unsubURL})
 
-# ------------------- REMOVE? --------------------------------------------
+def resend_conf(request, confirm_auth):
+    """The page informing the user that the confirmation email containing
+    the link to finalize the subscription has been resent."""
+    user = get_object_or_404(Subscriber, confirm_auth = confirm_auth)
+    router = user.router
+    template = Templates.resend_conf
 
-#def fingerprint_error(request, fingerprint):
-#    """The page that is displayed when a user tries to subscribe to a node
-#    that isn't stored in the database. The page includes information
-#    regarding potential problems and references the fingerprint the user
-#    entered into the form.
-#    
-#    @type fingerprint: str
-#    @param fingerprint: The fingerprint the user entered in the subscribe form.
-#    """
-#    # get the template
-#    template = Templates.fingerprint_error
-#
-#    #display the page
-#    return render_to_response(template, {'fingerprint' : fingerprint})
+    # spawn a daemon to resend the confirmation email
+    email_thread=threading.Thread(target=Emailer.send_confirmation,
+                            args=[user.email, router.fingerprint, confirm_auth])
+    email_thread.setDaemon(True)
+    email_thread.start()
 
-# --------------------------------------------------------------------------
+    return render_to_response(template, {'email' : user.email})
+
+
+def fingerprint_not_found(request, fingerprint):
+    """The page that is displayed when a user gets more info about the 
+    'fingerprint not found' validation enter (if they try to subscribe to
+    a node that isn't in our database)
+    
+    @type fingerprint: str
+    @param fingerprint: The fingerprint the user entered in the subscribe form.
+    """
+    # get the template
+    template = Templates.fingerprint_not_found
+
+    #display the page
+    return render_to_response(template, {'fingerprint' : fingerprint})
 
 def error(request, error_type, key):
     """The generic error page, which displays a message based on the error

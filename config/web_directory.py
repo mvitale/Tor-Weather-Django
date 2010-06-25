@@ -10,64 +10,6 @@ base_url = 'http://localhost:8000'
 # CHANGE ONCE WE KNOW THE BASE URL
 # --------------------------------------------------------------------------
 
-class ErrorMessages:
-    """The ErrorMessages class contains the different error messages that 
-    may be displayed to the user via the web pages.
-    """
-
-    _ALREADY_CONFIRMED = "You have already confirmed your Tor Weather " +\
-        "subscription. The link you followed is no longer functional. " +\
-        "</p><p>You can change your preferences by following this link: " +\
-        "<br>%s</p><p>You can unsubscribe at any time here:<br>%s</p>"
-    _ALREADY_SUBSCRIBED = "You are already subscribed to receive email " +\
-        "alerts about the node you specified. If you'd like, you can " +\
-        " <a href = '%s'>change your preferences here</a>." 
-    _FINGERPRINT_NOT_FOUND = "We could not locate a Tor node with " +\
-        "fingerprint %s.</p><p>Here are some potential problems:" +\
-        "<ul><li>The fingerprint was entered incorrectly</li>" +\
-        "<li>The node with the given fingerprint was set up within the last "+\
-        "hour, in which case you should try to register again a bit later" +\
-        "</li><li>The node with the given fingerprint has been down for over "+\
-        "a year"
-    _NEED_CONFIRMATION ="You have not yet confirmed your subscription to Tor "+\
-        "Weather. You should have received an email from Tor Weather with "+\
-        "a link to your confirmation page."
-# ---------------- BUTTON TO SEND THE EMAIL AGAIN!! -------------------
-    _DEFAULT = "Tor Weather has encountered an error."
-
-    @staticmethod
-    def get_error_message(error_type, key):
-        """Returns an error message based on the error type and user-specific
-        key. The error message contains HTML formatting and should be
-        incorporated into the template for the error page.
-
-        @type error_type: str
-        @param error_type: The type of error.
-        """
-        message = ""
-        if error_type == 'already_confirmed':
-            confirm_auth = key
-            user = Subscriber.objects.get(confirm_auth = confirm_auth)
-            pref_url = Urls.get_preferences_url(user.pref_auth)
-            unsubscribe_url = Urls.get_unsubscribe_url(user.unsubs_auth)
-            message = ErrorMessages._ALREADY_CONFIRMED % (pref_url, 
-                                                          unsubscribe_url)
-            return message
-        elif error_type == 'already_subscribed':
-            # the key represents the user's pref_auth key
-            pref_auth = key
-            pref_url = Urls.get_preferences_url(pref_auth)
-            message = ErrorMessages._ALREADY_SUBSCRIBED % pref_url
-            return message
-        elif error_type == 'fingerprint_not_found':
-            # the key represents the fingerprint the user tried to enter
-            fingerprint = key
-            message = ErrorMessages._FINGERPRINT_NOT_FOUND % fingerprint
-            return message
-        else:
-            # the error type wasn't recognized, just return a default msg
-            message = ErrorMessages._DEFAULT
-            return message
 
 class Templates:
     """ The Templates class maps all of the html template files, which are
@@ -80,8 +22,8 @@ class Templates:
     @ivar confirm_pref: The template to confirm preferences have been changed.
     @type error: str
     @ivar error: The generic error template.
-    @type fingerprint_error: str
-    @ivar fingerprint_error: The template for the page displayed when a 
+    @type fingerprint_not_found: str
+    @ivar fingerprint_not_found: The template for the page displayed when a 
         fingerprint isn't found.
     @type home: str
     @ivar home: The template for the Tor Weather home page.
@@ -91,6 +33,9 @@ class Templates:
     @type preferences: str
     @ivar preferences: The template for the page displaying the form to change 
         preferences.
+    @type resend_conf: str
+    @ivar resend_conf: The template for the page displayed after the
+        confirmation email is resent upon user request.
     @type subscribe: str
     @ivar subscribe: The template for the page displaying the subscribe form.
     @type unsubscribe: str
@@ -100,10 +45,11 @@ class Templates:
     confirm = 'confirm.html'
     confirm_pref = 'confirm_pref.html'
     error = 'error.html'
-    fingerprint_error = 'fingerprint_error.html'
+    fingerprint_not_found = 'fingerprint_not_found.html'
     home = 'home.html'
     pending = 'pending.html'
     preferences = 'preferences.html'
+    resend_conf = 'resend_conf.html'
     subscribe = 'subscribe.html'
     unsubscribe = 'unsubscribe.html'
 
@@ -115,10 +61,11 @@ class Urls:
     _CONFIRM = '/confirm/%s/'
     _CONFIRM_PREF = '/confirm_pref/%s/'
     _ERROR = '/error/%s/%s/'
-    _FINGERPRINT_ERROR = '/fingerprint_error/%s/'
+    _FINGERPRINT_NOT_FOUND = '/fingerprint_not_found/%s/'
     _HOME = '/'
     _PENDING = '/pending/%s/'
     _PREFERENCES = '/preferences/%s/'
+    _RESEND_CONF = '/resend_conf/%s/'
     _SUBSCRIBE = '/subscribe/'
     _UNSUBSCRIBE = '/unsubscribe/%s/'
 
@@ -180,7 +127,7 @@ class Urls:
         return extension 
 
     @staticmethod
-    def get_fingerprint_error_ext(fingerprint):
+    def get_fingerprint_info_ext(fingerprint):
         """Returns the url extension for the page alerting the user that the 
         fingerprint they are trying to monitor doesn't exist in the database.
 
@@ -191,7 +138,7 @@ class Urls:
         @return: The url extension for the user-specific fingerprint error 
             page. 
         """
-        extension = Urls._FINGERPRINT_ERROR % fingerprint
+        extension = Urls._FINGERPRINT_NOT_FOUND % fingerprint
         return extension
 
     @staticmethod
@@ -235,6 +182,20 @@ class Urls:
         url = base_url + Urls._PREFERENCES % pref_auth
         return url
 
+    @staticmethod
+    def get_resend_ext(confirm_auth):
+        """Returns the url extension for the page displayed after the user
+        asks to be resent their confirmation email.
+        
+        @type confirm_auth: str
+        @param confirm_auth: The user's unique confirmation authorization key,
+            which is incorporated into the url extension.
+        @rtype: str
+        @return: The url extension for the resend confirmation page.
+        """
+        extension = Urls._RESEND_CONF % confirm_auth
+        return extension
+    
     @staticmethod
     def get_subscribe_ext():
         """Returns the url extension for the Tor Weather subscribe page. 

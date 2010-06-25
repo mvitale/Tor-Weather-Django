@@ -12,6 +12,7 @@ import emails
 from datetime import datetime
 import base64
 import os
+from weather.config.web_directory import Urls
 
 class Router(models.Model):
     """A model that stores information about every router on the Tor network.
@@ -95,7 +96,6 @@ class Subscriber(models.Model):
     email = models.EmailField(max_length=75)
     router = models.ForeignKey(Router)
     confirmed = models.BooleanField(default = False)
-# --------------------- IS THIS OK?? (default = ...) ----------------------
     confirm_auth = models.CharField(max_length=250, 
                     default=SubscriberManager.get_rand_string) 
     unsubs_auth = models.CharField(max_length=250, 
@@ -246,18 +246,31 @@ class SubscribeForm(forms.Form):
 
     def clean_grace_pd(self):
         """Django lets you specify how to 'clean' form data for specific
-        fields by adding clean methods to the form classes. This method
-        ensures the grace period is between 1 and 8760 hours. If the user
-        enters an integer less than 1 for the node down grace period, the 
-        grace period is stored as 1. If the user enters an integer greater 
-        than 8760, the grace period is stored as 8760."""
+        fields by adding clean methods to the form classes. The grace 
+        period for downtime must be between 1 and 8760, and this method
+        ensures that an error message is displayed to the user if they
+        try to submit a value outside that range.
+        """ 
         grace_pd = self.cleaned_data.get('grace_pd')
-        if grace_pd < 1:
-            grace_pd = 1
-        if grace_pd > 8760:
-            grace_pd = 8760
+        if grace_pd < 1 or grace_pd > 8760:
+            raise forms.ValidationError("You must enter a number between " 
+                                        + "1 and 8760")
         return grace_pd
 
+    def clean_fingerprint(self):
+        """Raises a validation error if the fingerprint the user entered
+        wasn't found in the database. The error message contains a link
+        to a page listing possible problems.
+        """
+        fingerprint = self.cleaned_data.get('fingerprint')
+        fingerprint.replace(' ','')
+        fingerprint_set = Router.objects.filter(fingerprint=fingerprint)
+        if len(fingerprint_set) == 0:
+            info_ext = Urls.get_fingerprint_info_ext(fingerprint)
+            message = "We could not locate a Tor node with that fingerprint. "+\
+                      "(<a href=%s>More info</a>)" % info_ext
+            raise forms.ValidationError(message)
+        return fingerprint
 
 class NewSubscribeForm(forms.Form):
     """For full feature list. NOWHERE NEAR READY. """
@@ -310,4 +323,14 @@ class PreferencesForm(forms.Form):
     @ivar grace_pd: A fiend for the user to specify the hours of 
         downtime before an email notification is sent"""
 
-    grace_pd = forms.IntegerField(widget=forms.TextInput(attrs={'size':'50'}))
+    grace_pd = forms.IntegerField(widget=forms.TextInput(attrs={'size':'25'}))
+
+    def clean_grace_pd(self):
+        """Ensures an error message is displayed to the user if they try to
+        enter a downtime grace period outside the range of 1-8760 hours."""
+        grace_pd = self.cleaned_data.get('grace_pd')
+        if grace_pd < 1 or grace_pd > 8760:
+            raise forms.ValidationError("You must enter a number between "
+                                        + "1 and 8760.")
+        return grace_pd
+

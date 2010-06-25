@@ -12,9 +12,10 @@ urlpatterns = patterns('weather.weatherapp.views',
     (r'^unsubscribe/(?P<unsubscribe_auth>.+)/$','unsubscribe'),
     (r'^preferences/(?P<pref_auth>.+)/$','preferences'),
     (r'^confirm_pref/(?P<pref_auth>.+)/$','confirm_pref'),
-    (r'^fingerprint_error/(?P<fingerprint>.+)/$', 
-                                                'fingerprint_error'),
+    (r'^fingerprint_not_found/(?P<fingerprint>.+)/$', 
+                                                'fingerprint_not_found'),
     (r'^error/(?P<error_type>[a-z_]+)/(?P<key>.+)/$', 'error'),
+    (r'^resend_conf/(?P<confirm_auth>.+)/$', 'resend_conf'),
     (r'^run_updaters$', 'run_updaters'),
 
     # Uncomment the admin/doc line below and add 'django.contrib.admindocs' 
