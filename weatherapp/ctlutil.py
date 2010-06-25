@@ -2,6 +2,8 @@ import socket
 from TorCtl import TorCtl
 import config
 import logging
+import re
+import string
 
 debugfile = open("debug", "w")
 
@@ -19,16 +21,14 @@ class CtlUtil:
     @type control: TorCtl Connection
     @ivar control: Connection to TorCtl.
     """
-
     _CONTROL_HOST = "127.0.0.1"
     _CONTROL_PORT = 9051
     _AUTHENTICATOR = config.authenticator
     
-    def __init__(self,
-                 control_host = _CONTROL_HOST,
-                 control_port = _CONTROL_PORT,
-                 sock = None,
-                 authenticator = _AUTHENTICATOR):
+    def __init__(self, control_host = _CONTROL_HOST, 
+                control_port = _CONTROL_PORT, sock = None, 
+                authenticator = _AUTHENTICATOR):
+                
 
         self.sock = sock
 
@@ -100,16 +100,26 @@ class CtlUtil:
 
     def get_single_descriptor(self, node_id):
         """Get a descriptor file for a specific router with fingerprint 
-        C{node_id}.
+        C{node_id}. If a descriptor cannot be retrieved, returns the 
+        empty string.
 
         @type node_id: str
         @param node_id: Fingerprint of the node requested with no spaces.
         @rtype: str
-        @return: String representation of the single descirptor file.
+        @return: String representation of the single descirptor file or
+        the empty string if no such descriptor file exists.
         """
         # get_info method returns a dictionary with single mapping, with
         # all the info stored as the single value, so this extracts the string
-        return self.control.get_info("desc/id/" + node_id).values()[0]
+        desc = ''
+        try:
+            desc = self.control.get_info("desc/id/" + node_id).values()[0]
+        except TorCtl.ErrorReply, e:
+            logging.error("ErrorReply: %s" % str(e))
+        except:
+            logging.error("Unknown exception in CtlUtil" +
+                          "get_single_descriptor()")
+        return desc
 
     def get_full_descriptor(self):
         """Get all current descriptor files for every router currently up.
@@ -263,3 +273,102 @@ class CtlUtil:
         new_avg = ((hours_up * avg_bandwidth) + obs_bandwidth) / (hours_up + 1)
         return new_avg
 
+    def get_email(self, fingerprint):
+        """Get the contact email address for a router operator.
+
+        @type fingerprint: str
+        @param fingerprint: The fingerprint of the router whose email will be
+                            returned.
+        @rtype: str
+        @return: The router operator's email address or the empty string if
+                the email address is unable to be parsed.
+        """
+        
+        desc = self.get_single_descriptor(fingerprint)
+        email = self._parse_email(desc)
+        return email
+
+    def is_stable(self, fingerprint):
+        """Check if a Tor node has the stable flag.
+
+        @type fingerprint: str
+        @param fingerprint: The fingerprint of the router to check
+
+        @rtype: bool
+        @return: True if this router has the stable flag, false otherwise.
+        """
+
+        info = self.get_single_consensus(fingerprint)
+        if re.search('\ns.* Stable ', info):
+            return True
+        else:
+            return False
+
+    def is_hibernating(self, fingerprint):
+        """Check if the Tor relay with fingerprint C{fingerprint} is
+        hibernating.
+        @type fingerprint: str
+        @param fingerprint: The fingerprint of the Tor relay to check.
+
+        @rtype: bool
+        @return: True if the Tor relay has a current descriptor file with
+        the hibernating flag, False otherwise."""
+
+        desc = self.get_single_descriptor(fingerprint)
+        if not desc == "":
+            hib_search = re.search('opt hibernating 1', desc)
+            if not hib_search == None:
+                return True
+            else:
+                return False
+
+    def is_up_or_hibernating(self, fingerprint):
+        """Check if the Tor relay with fingerprint C{fingerprint} is up or 
+        hibernating.
+
+        @type fingerprint: str
+        @param fingerprint: The fingerprint of the Tor relay to check.
+
+        @rtype: bool
+        @return: True if self.is_up(fingerprint or 
+        self.is_hibernating(fingerprint)."""
+        
+        return (self.is_up(fingerprint) or self.is_hibernating(fingerprint))
+
+    def _parse_email(self, desc):
+        """Parse the email address from an individual router descriptor 
+        string.
+
+        @type desc: str
+        @param desc: The string representation of the descriptor file for a
+                    Tor router.
+        @rtype: str
+        @return: The email address in desc. If the email address cannot be
+                parsed, the empty string.
+        """
+        split_desc = desc.split('\n')
+        contacts = []
+        punct = string.punctuation
+        for line in split_desc:
+            if line.startswith('contact '):
+                contacts.append(line)
+        for line in contacts:
+            clean_line = line.replace('<', ' ').replace('>', ' ') 
+            email = re.search('[^ <]*@.*\.[^\n \)\(>]*', clean_line)
+            if email == None:
+                email = re.search('[^\s]*\s(?:@|at|['+punct+']*at['+punct+']*' +
+                ')\s.*\s(?:\.|dot|d0t|['+punct+']*dot['+punct+']*)\s[^\n\)\(]*',
+                clean_line, re.IGNORECASE)
+                if email == None:
+                    email = re.search('[^\s]*\s(?:@|at|['+punct+']*at['+punct+
+                                    ']*)\s.*\.[^\n\)\(]*', clean_line, 
+                                                                re.IGNORECASE)
+        if email == None:
+            #----Learn how logging works and configure!------
+            #errormsg = ('Could not parse the following contact line:\n'+ line)
+            #logging.error(errormsg)
+            #print >> sys.stderr, errormsg
+            email = ""
+        else:
+            email = email.group()
+        return email

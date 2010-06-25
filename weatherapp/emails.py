@@ -19,7 +19,7 @@ class Emailer:
         "again.\n"
 
     _CONFIRMED_SUBJ = 'Confirmation Successful'
-    _SUBS_CONFIRMED_MAIL ="Dear human,\n\nThis is the Tor Weather Report "+\
+    _CONFIRMED_MAIL="Dear human,\n\nThis is the Tor Weather Report "+\
         "system.You successfully subscribed for Weather Reports about a Tor "+\
         "node (id: %s)\n\nYou can unsubscribe from these reports at any time "+\
         "by visiting the following url:\n\n%s\n\n or change your Tor Weather "+\
@@ -137,10 +137,11 @@ class Emailer:
         @param pref_auth: The user's unique preferences auth key
         """
         subj = Emailer._SUBJECT_HEADER + Emailer._CONFIRMED_SUBJ
+        sender = Emailer._SENDER
         unsubURL = Urls.get_unsubscribe_url(unsubs_auth)
         prefURL = Urls.get_preferences_url(pref_auth)
         msg = Emailer._CONFIRMED_MAIL % (fingerprint, unsubURL, prefURL) 
-        send_mail(subj, msg, sender, [recipient], fail_silently=True)
+        send_mail(subj, msg, sender, [recipient], fail_silently=False)
 
     @staticmethod
     def send_node_down(recipient,
