@@ -136,18 +136,22 @@ class Welcomer:
                 email = self.ctl_util.get_email(router.fingerprint)
                 if not email == "":
                    Emailer.send_welcome(email)
-                   router.welcomed = True
-                   router.save()
-
-def run_all():
+                
+                #Even if we can't get a router's email, we set welcomed to true
+                #so that we don't keep trying to parse their email
+                router.welcomed = True
+                router.save()
+def main():
     """Run all updaters/checkers in proper sequence"""
     ctl_util = ctlutil.CtlUtil()
     router_updater = RouterUpdater(ctl_util)
+    welcome = Welcomer(ctl_util)
     subscription_checker = SubscriptionChecker(ctl_util)
     router_updater.update_all()
+    welcome.welcome()
     subscription_checker.check_all()
 
 if __name__ == "__main__":
-    run_all()
+    main()
 
 

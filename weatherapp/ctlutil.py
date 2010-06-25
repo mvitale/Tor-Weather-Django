@@ -3,6 +3,7 @@ from TorCtl import TorCtl
 import config
 import logging
 import re
+import string
 
 debugfile = open("debug", "w")
 
@@ -20,19 +21,13 @@ class CtlUtil:
     @type control: TorCtl Connection
     @ivar control: Connection to TorCtl.
     """
-    _PARSER_RULES= {'rule1' : '[^ <]*@.*\.[^\n \)\(>]*',
-    'rule2' : 
-    '[^ <]*\s(?:@|at|.at.|\(at\))\s.*\s(?:\.|dot|.dot.|\(dot\))\s[^\n>\)\(]*'}
     _CONTROL_HOST = "127.0.0.1"
     _CONTROL_PORT = 9051
     _AUTHENTICATOR = config.authenticator
     
-    def __init__(self,
-                 control_host = _CONTROL_HOST,
-                 control_port = _CONTROL_PORT,
-                 sock = None,
-                 authenticator = _AUTHENTICATOR,
-                 regex = _PARSER_RULES):
+    def __init__(self, control_host = _CONTROL_HOST, 
+                control_port = _CONTROL_PORT, sock = None, 
+                authenticator = _AUTHENTICATOR):
                 
 
         self.sock = sock
@@ -63,8 +58,6 @@ class CtlUtil:
 
         # Set up log file
         self.control.debug(debugfile)
-
-        self.regex = regex
 
     def __del__(self):
         # Probably cleanly closes the connection when the CtlUtil object is 
@@ -243,7 +236,7 @@ class CtlUtil:
         """
 
         info = self.get_single_consensus(fingerprint)
-        if re.search(' Stable ', info):
+        if re.search('\ns.* Stable ', info):
             return True
         else:
             return False
@@ -260,9 +253,29 @@ class CtlUtil:
         @return: The email address in desc. If the email address cannot be
                 parsed, the empty string.
         """
-        email = re.search(self.regex['rule1'], desc)
-        if email == None:
-            email = re.search(self.regex['rule2'], desc)
+        split_desc = desc.split('\n')
+        contacts = []
+        punct = string.punctuation
+        for line in split_desc:
+            if line.startswith('contact '):
+                contacts.append(line)
+        for line in contacts:
+            clean_line = line.replace('<', ' ').replace('>', ' ') 
+            email = re.search('[^ <]*@.*\.[^\n \)\(>]*', clean_line)
             if email == None:
-                email = ""
-        return email.group()
+                email = re.search('[^\s]*\s(?:@|at|['+punct+']*at['+punct+']*' +
+                ')\s.*\s(?:\.|dot|d0t|['+punct+']*dot['+punct+']*)\s[^\n\)\(]*',
+                clean_line, re.IGNORECASE)
+                if email == None:
+                    email = re.search('[^\s]*\s(?:@|at|['+punct+']*at['+punct+
+                                    ']*)\s.*\.[^\n\)\(]*', clean_line, 
+                                                                re.IGNORECASE)
+        if email == None:
+            #----Learn how logging works and configure!------
+            #errormsg = ('Could not parse the following contact line:\n'+ line)
+            #logging.error(errormsg)
+            #print >> sys.stderr, errormsg
+            email = ""
+        else:
+            email = email.group()
+        return email
