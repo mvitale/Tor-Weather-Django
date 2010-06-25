@@ -5,14 +5,15 @@ L{Router}) as well as two form classes (L{SubscribeForm} and
 L{PreferencesForm}), which specify the fields to appear on the sign-up
 and change preferences pages.
 """
-
-from django.db import models
-from django import forms
-import emails
 from datetime import datetime
 import base64
 import os
+
+import emails
 from weather.config import url_helper
+
+from django.db import models
+from django import forms
 
 class Router(models.Model):
     """A model that stores information about every router on the Tor network.

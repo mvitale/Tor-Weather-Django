@@ -5,18 +5,20 @@ models and views are called templates). This module contains a single
 controller for each page type. The controllers handle form submission and
 page rendering/redirection.
 """
+import threading
+
 from models import Subscriber, NodeDownSub, Router, \
                    SubscribeForm, PreferencesForm
-from django.db import models
-from django.shortcuts import render_to_response, get_object_or_404
 from emails import Emailer
 from django.core.context_processors import csrf
-from django.http import HttpResponseRedirect, HttpRequest, Http404
-from django.http import HttpResponse
 from weather.config import url_helper
 from weather.config import templates
 from weather.weatherapp.error_messages import ErrorMessages
-import threading
+
+from django.db import models
+from django.shortcuts import render_to_response, get_object_or_404
+from django.http import HttpResponseRedirect, HttpRequest, Http404
+from django.http import HttpResponse
 
 # TO DO --------------------------------------------------------- EXTRA FEATURE
 # MOVE THIS TO A MORE GENERAL LOCATION ----------------------------------------
