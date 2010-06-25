@@ -291,7 +291,7 @@ class SubscribeForm(forms.Form):
             max_value=_MAX_OUT_OF_DATE_GRACE_PD,
             min_value=_MIN_OUT_OF_DATE_GRACE_PD, 
             label='How quickly, in days, would you like to be notified?',
-            help_text='Enter a value between 1 and 200 (roughyly six months)')
+            help_text='Enter a value between 1 and 200 (roughly six months)')
     
     get_band_low = forms.BooleanField(
             label='Receive notifications when node has low bandwidth')
@@ -313,28 +313,57 @@ class SubscribeForm(forms.Form):
 
     def clean(self):
         data = self.cleaned_data
+        errors = self._errors
         if not data.get('get_node_down'):
-            self.fields['node_down_grace_pd'].required = False
+            if 'node_down_grace_pd' in self._errors:
+                del self._errors['node_down_grace_pd']
         if not data.get('get_out_of_date'):
-            self.fields['out_of_date_threshold'].required = False
-            self.fields['out_of_date_grace_pd'].required = False
+            if 'out_of_date_threshold' in self._errors:
+                del self._errors['out_of_date_threshold']
+            if 'out_of_date_grace_pd' in self._errors:
+                del self._errors['out_of_date_grace_pd']
         if not data.get('get_band_low'):
-            self.fields['band_low_threshold'].required = False
-            self.fields['band_low_grace_pd'].required = False
+            if 'band_low_threshold' in self._errors:
+                del self._errors['band_low_threshold']
+            if 'band_low_grace_pd' in self._errors:
+                del self._errors['band_low_grace_pd']
+
+        email_1 = data.get('email_1')
+        email_2 = data.get('email_2')
+
+        if not email_1 == email_2:
+            msg = 'Email addresses must match.'
+            self._errors['email_1'] = self.error_class([msg])
+            self._errors['email_2'] = self.error_class([msg])
+# FIX THISSS
+            del self.cleaned_data['email_1']
+            del self.cleaned_data['email_2']
 
         return data
 
-    def clean_email_2(self):
-        """Uses Django's built-in 'clean' form processing functionality to
-        test whether the 2nd email field matches the 1st.
-        """
-        email_1 = self.cleaned_data.get('email_1')
-        email_2 = self.cleaned_data.get('email_2')
-
-        if email_1 == email_2:
-            return email_2
-        else:
-            raise forms.ValidationError('Email addresses must match')
+    #def clean_email_1(self):
+    #    """Uses Django's built-in 'clean' form processing functionality to
+    #    test whether the 1st email field matches the 1st.
+    #    """
+    #    email_1 = self.cleaned_data.get('email_1')
+    #    email_2 = self.cleaned_data.get('email_2')
+#
+#        if email_1 == email_2:
+#            return email_1
+#        else:
+#            raise forms.ValidationError('Email addresses must match.')
+#
+#    def clean_email_2(self):
+#        """Uses Django's built-in 'clean' form processing functionality to
+#        test whether the 2nd email field matches the 1st.
+#        """
+#        email_1 = self.cleaned_data.get('email_1')
+#        email_2 = self.cleaned_data.get('email_2')
+#
+#        if email_1 == email_2:
+#            return email_2
+#        else:
+#            raise forms.ValidationError('Email addresses must match.')
 
     def clean_fingerprint(self):
         """Uses Django's built-in 'clean' form processing functionality to
