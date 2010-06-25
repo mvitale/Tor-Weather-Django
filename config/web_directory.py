@@ -1,7 +1,7 @@
 """
-This module contains classes for accessing urls, html templates, and specific
-error messages. The purpose of putting them all in a separate directory was for convenience of development. If the file/url extensions are ever changed, or
-if the error messages need to be modified, the changes need only be made in
+This module contains classes for accessing urls and html templates. The purpose 
+of putting them all in a separate directory was for convenience of development. 
+If the file/url extensions are ever changed, the changes need only be made in 
 one place (here).
 """
 base_url = 'http://localhost:8000'

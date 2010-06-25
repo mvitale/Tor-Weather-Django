@@ -12,7 +12,7 @@ class Emailer:
     _CONFIRMATION_MAIL = "Dear human,\n\n" +\
         "This is the Tor Weather Report system.\n\n" +\
         "Someone (possibly you) has requested that status monitoring "+\
-        " information about a Tor node (id: %s) be sent to this email "+\
+        "information about a Tor node (id: %s) be sent to this email "+\
         "address.\n\nIf you wish to confirm this request, please visit the "+\
         "following url:\n\n%s\n\nIf you do not wish to receive Tor Weather "+\
         "Reports, you don't need to do anything. You shouldn't hear from us "+\
@@ -61,7 +61,8 @@ class Emailer:
 
     _WELCOME_SUBJ = 'Welcome to Tor!'
     _WELCOME_MAIL = "Hello and welcome to Tor!\n\n" +\
-        "We've noticed that your Tor node has been running long enough to be "+\
+        "We've noticed that your Tor node %s(id = %s) has been running long "+\
+        "enough to be "+\
         "flagged as \"stable\". First, we would like to thank you for your "+\
         "contribution to the Tor network! As Tor grows, we require ever more "+\
         "nodes to optomize browsing speed and reliability for our users. "+\
@@ -207,7 +208,7 @@ class Emailer:
         send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
     @staticmethod
-    def send_welcome(recipient):
+    def send_welcome(recipient, fingerprint):
         """Sends a welcome email to a stable node operator. The email 
         alerts the operator about Tor Weather and the or-announce mailing 
         list.
@@ -215,9 +216,14 @@ class Emailer:
         @type recipient: str
         @param recipient: The user's email address.
         """
+        router = Router.objects.get(fingerprint=fingerprint)
+        router_name = router.name
+        name = ''
+        if router_name != 'Unnamed':
+            name = router_name + ', ' 
         subj = Emailer._SUBJECT_HEADER + Emailer._WELCOME_SUBJ
         sender = Emailer._SENDER
-        msg = Emailer._WELCOME_MAIL
+        msg = Emailer._WELCOME_MAIL % (name, router.fingerprint)
         send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
     @staticmethod
