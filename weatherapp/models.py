@@ -30,8 +30,11 @@ class Router(models.Model):
     @ivar last_seen: The most recent time the router was listed on a consensus 
                      document. Default value is C{datetime.now()}.
     @type up: bool
-    @ivar up: True if this router was up last time a new network consensus
+    @ivar up: C{True} if this router was up last time a new network consensus
               was published, false otherwise. Default value is C{True}.
+    @type exit: bool
+    @ivar exit: C{True} if this router accepts exits to port 80, C{False} if
+        not.
     """
 
     fingerprint = models.CharField(max_length=40, unique=True)
@@ -39,6 +42,7 @@ class Router(models.Model):
     welcomed = models.BooleanField(default=False)
     last_seen = models.DateTimeField('date last seen', default=datetime.now())
     up = models.BooleanField(default=True)
+    exit = models.BooleanField()
 
     def __unicode__(self):
         return self.fingerprint
@@ -96,7 +100,6 @@ class Subscriber(models.Model):
     email = models.EmailField(max_length=75)
     router = models.ForeignKey(Router)
     confirmed = models.BooleanField(default = False)
-# --------------------- IS THIS OK?? (default = ...) ----------------------
     confirm_auth = models.CharField(max_length=250, 
                     default=SubscriberManager.get_rand_string) 
     unsubs_auth = models.CharField(max_length=250, 
@@ -215,10 +218,32 @@ class LowBandwidthSub(Subscription):
     threshold = models.IntegerField(default = 0)
     grace_pd = models.IntegerField(default = 1)
 
+    #def should_email():
+        #"""
+        #"""
+        #time_since_changed
+
+
+class TShirtSub(Subscription):
+    """"""
+    avg_bandwidth = models.IntegerField()
+    hours_since_triggered = models.IntegerField()
+
     def should_email():
-        """
-        """
-        pass
+        """Returns true if the router being watched has been up for 1464 hours
+        (61 days, or approx 2 months). If it's an exit node, the avg bandwidth
+        must be above 100 KB/s. If not, it must be > 500 KB/s.
+        
+        @rtype: bool
+        @return: C{True} if the user earned a T-shirt, C{False} if not."""
+        if triggered and hours_since_triggered > 1464:
+            if subscriber.router.exit:
+                if avg_bandwidth > 100000:
+                    return True
+            else:
+                if avg_bandwidth > 500000:
+                    return True
+        return False
 
 class SubscriberAlreadyExistsError(Exception):
     def __init__(self, url):
@@ -451,49 +476,52 @@ class SubscribeForm(forms.Form):
             t_shirt_sub.save()
 
 class PreferencesForm(forms.Form):
-    """For full feature list. This is nowhere near ready"""
+    """The form for a new subscriber. The form includes an email field, 
+    a node fingerprint field, and a field to specify the hours of downtime 
+    before receiving a notification.
 
-    _MAX_NODE_DOWN_GRACE_PD = 4500
-    _MIN_NODE_DOWN_GRACE_PD = 1
-    _MAX_OUT_OF_DATE_GRACE_PD = 200
-    _MIN_OUT_OF_DATE_GRACE_PD = 1
-    _MAX_BAND_LOW_THRESHOLD = 5000
-    _MIN_BAND_LOW_THRESHOLD = 1
-    _MAX_BAND_LOW_GRACE_PD = 4500
-    _MIN_BAND_LOW_GRACE_PD = 1
+    @ivar email: A field for the user's email address
+    @ivar fingerprint: A field for the fingerprint (node ID) corresponding 
+        to the node the user wants to monitor
+    @ivar grace_pd: A field for the hours of downtime the user specifies
+        before being notified via email"""
 
-    get_node_down = forms.BooleanField(
-            help_text='Receive notifications when node is down')
-    node_down_grace_pd = forms.IntegerField(
-            max_value=_MAX_NODE_DOWN_GRACE_PD,
-            min_value=_MIN_NODE_DOWN_GRACE_PD,
-            help_text='How many hours of downtime before \
-                       we send a notifcation?')
-    
-    get_out_of_date = forms.BooleanField(
-            help_text='Receive notifications when node is out of date')
-    out_of_date_threshold = forms.ChoiceField(
-            choices=((u'c1', u'out of date lvl 1'),
-                     (u'c2', u'out of date lvl 2'),
-                     (u'c3', u'out of date lvl 3'),
-                     (u'c4', u'out of date lvl 4')),
-                help_text='How current would you like your version of Tor?')
-    out_of_date_grace_pd = forms.IntegerField(
-            max_value=_MAX_OUT_OF_DATE_GRACE_PD,
-            min_value=_MIN_OUT_OF_DATE_GRACE_PD, 
-            help_text='How quickly, in days, would you like to be notified?')
-    
-    get_band_low = forms.BooleanField(
-            help_text='Receive notifications when node has low bandwidth')
-    band_low_threshold = forms.IntegerField(
-            max_value=_MAX_BAND_LOW_THRESHOLD,
-            min_value=_MIN_BAND_LOW_THRESHOLD,
-            help_text='Critical bandwidth measured in kilobits per second:')
-    band_low_grace_pd = forms.IntegerField(
-            max_value=_MAX_BAND_LOW_GRACE_PD,
-            min_value=_MIN_BAND_LOW_GRACE_PD,
-            help_text='How many hours of low bandwidth before \
-                       we send a notification?')
-    
-    get_t_shirt = forms.BooleanField(
-            help_text='Receive notification when node has earned a t-shirt')
+    # widget attributes are modified here to customize the form
+    email = forms.EmailField(widget=forms.TextInput(attrs={'size':'50', 
+        'value' : 'Enter a valid email address', 'onClick' : 'if (this.value'+\
+        '=="Enter a valid email address") {this.value=""}'}))
+    fingerprint = forms.CharField(widget=forms.TextInput(attrs={'size':'50',
+        'value' : 'Enter one Tor node ID', 'onClick' : 'if (this.value' +\
+        '=="Enter one Tor node ID") {this.value=""}'}))
+    grace_pd = forms.IntegerField(widget=forms.TextInput(attrs={'size':'50',
+        'value' : 'Default is 1 hour, enter up to 8760 (1 year)', 'onClick' :
+        'if (this.value=="Default is 1 hour, enter up to 8760 (1 year)") '+\
+        '{this.value=""}'}))
+
+    def clean_grace_pd(self):
+        """Django lets you specify how to 'clean' form data for specific
+        fields by adding clean methods to the form classes. The grace 
+        period for downtime must be between 1 and 8760, and this method
+        ensures that an error message is displayed to the user if they
+        try to submit a value outside that range.
+        """ 
+        grace_pd = self.cleaned_data.get('grace_pd')
+        if grace_pd < 1 or grace_pd > 8760:
+            raise forms.ValidationError("You must enter a number between " 
+                                        + "1 and 8760")
+        return grace_pd
+
+    def clean_fingerprint(self):
+        """Raises a validation error if the fingerprint the user entered
+        wasn't found in the database. The error message contains a link
+        to a page listing possible problems.
+        """
+        fingerprint = self.cleaned_data.get('fingerprint')
+        fingerprint.replace(' ','')
+        fingerprint_set = Router.objects.filter(fingerprint=fingerprint)
+        if len(fingerprint_set) == 0:
+            info_ext = Urls.get_fingerprint_info_ext(fingerprint)
+            message = "We could not locate a Tor node with that fingerprint. "+\
+                      "(<a href=%s>More info</a>)" % info_ext
+            raise forms.ValidationError(message)
+        return fingerprint

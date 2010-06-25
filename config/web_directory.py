@@ -22,8 +22,8 @@ class Templates:
     @ivar confirm_pref: The template to confirm preferences have been changed.
     @type error: str
     @ivar error: The generic error template.
-    @type fingerprint_error: str
-    @ivar fingerprint_error: The template for the page displayed when a 
+    @type fingerprint_not_found: str
+    @ivar fingerprint_not_found: The template for the page displayed when a 
         fingerprint isn't found.
     @type home: str
     @ivar home: The template for the Tor Weather home page.
@@ -45,7 +45,7 @@ class Templates:
     confirm = 'confirm.html'
     confirm_pref = 'confirm_pref.html'
     error = 'error.html'
-    fingerprint_error = 'fingerprint_error.html'
+    fingerprint_not_found = 'fingerprint_not_found.html'
     home = 'home.html'
     pending = 'pending.html'
     preferences = 'preferences.html'
@@ -61,7 +61,7 @@ class Urls:
     _CONFIRM = '/confirm/%s/'
     _CONFIRM_PREF = '/confirm_pref/%s/'
     _ERROR = '/error/%s/%s/'
-    _FINGERPRINT_ERROR = '/fingerprint_error/%s/'
+    _FINGERPRINT_NOT_FOUND = '/fingerprint_not_found/%s/'
     _HOME = '/'
     _PENDING = '/pending/%s/'
     _PREFERENCES = '/preferences/%s/'
@@ -127,7 +127,7 @@ class Urls:
         return extension 
 
     @staticmethod
-    def get_fingerprint_error_ext(fingerprint):
+    def get_fingerprint_info_ext(fingerprint):
         """Returns the url extension for the page alerting the user that the 
         fingerprint they are trying to monitor doesn't exist in the database.
 
@@ -138,7 +138,7 @@ class Urls:
         @return: The url extension for the user-specific fingerprint error 
             page. 
         """
-        extension = Urls._FINGERPRINT_ERROR % fingerprint
+        extension = Urls._FINGERPRINT_NOT_FOUND % fingerprint
         return extension
 
     @staticmethod
@@ -183,7 +183,7 @@ class Urls:
         return url
 
     @staticmethod
-    def get_resend_conf_ext(confirm_auth):
+    def get_resend_ext(confirm_auth):
         """Returns the url extension for the page displayed after the user
         asks to be resent their confirmation email.
         
@@ -193,7 +193,7 @@ class Urls:
         @rtype: str
         @return: The url extension for the resend confirmation page.
         """
-        extension = _RESEND_CONF % confirm_auth
+        extension = Urls._RESEND_CONF % confirm_auth
         return extension
     
     @staticmethod
