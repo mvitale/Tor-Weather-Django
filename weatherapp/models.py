@@ -12,6 +12,7 @@ import emails
 from datetime import datetime
 import base64
 import os
+from weather.config.web_directory import Urls
 
 class Router(models.Model):
     """A model that stores information about every router on the Tor network.
@@ -219,6 +220,12 @@ class LowBandwidthSub(Subscription):
         """
         pass
 
+class SubscriberAlreadyExistsError(Exception):
+    def __init__(self, url):
+        self.url = url
+    def __str__(self):
+        return repr(self.url)
+
 class SubscribeForm(forms.Form):
     """For full feature list. """
 
@@ -231,61 +238,220 @@ class SubscribeForm(forms.Form):
     _MAX_BAND_LOW_GRACE_PD = 4500
     _MIN_BAND_LOW_GRACE_PD = 1
 
-    email_1 = forms.EmailField(name='Enter Email:',
+    email_1 = forms.EmailField(label='Enter Email:',
             max_length=75)
-    email_2 = forms.EmailField(name='Re-enter Email:',
-            max_length=75,
-            validator_list=[
-            validators.AlwaysMatchesOtherField('email_1',
-                                               'Email addresses must match.')])
-    fingerprint = forms.CharField(name='Node Fingerprint:',
+    email_2 = forms.EmailField(label='Re-enter Email:',
+            max_length=75)
+    fingerprint = forms.CharField(label='Node Fingerprint:',
             max_length=50)
 
     get_node_down = forms.BooleanField(
-            name='Receive notifications when node is down')
+            label='Receive notifications when node is down')
     node_down_grace_pd = forms.IntegerField(
             max_value=_MAX_NODE_DOWN_GRACE_PD,
             min_value=_MIN_NODE_DOWN_GRACE_PD,
-            name='How many hours of downtime before \
-                       we send a notifcation?')
+            label='How many hours of downtime before \
+                       we send a notifcation?',
+            help_text='Enter a value between 1 and 4500 (roughly six months)')
     
     get_out_of_date = forms.BooleanField(
-            help_text='Receive notifications when node is out of date')
+            label='Receive notifications when node is out of date')
     out_of_date_threshold = forms.ChoiceField(
             choices=((u'c1', u'out of date lvl 1'),
                      (u'c2', u'out of date lvl 2'),
                      (u'c3', u'out of date lvl 3'),
                      (u'c4', u'out of date lvl 4')),
-                name='How current would you like your version of Tor?')
+                label='How current would you like your version of Tor?')
     out_of_date_grace_pd = forms.IntegerField(
             max_value=_MAX_OUT_OF_DATE_GRACE_PD,
             min_value=_MIN_OUT_OF_DATE_GRACE_PD, 
-            name='How quickly, in days, would you like to be notified?')
+            label='How quickly, in days, would you like to be notified?',
+            help_text='Enter a value between 1 and 200 (roughyly six months)')
     
     get_band_low = forms.BooleanField(
-            name='Receive notifications when node has low bandwidth')
+            label='Receive notifications when node has low bandwidth')
     band_low_threshold = forms.IntegerField(
             max_value=_MAX_BAND_LOW_THRESHOLD,
             min_value=_MIN_BAND_LOW_THRESHOLD,
-            name='Critical bandwidth measured in kilobits per second:')
+            label='Critical bandwidth measured in kilobits per second:',
+            help_text='Default value is 50 kbps.')
     band_low_grace_pd = forms.IntegerField(
             max_value=_MAX_BAND_LOW_GRACE_PD,
             min_value=_MIN_BAND_LOW_GRACE_PD,
-            name='How many hours of low bandwidth before \
-                       we send a notification?')
+            label='How many hours of low bandwidth before \
+                       we send a notification?',
+            help_text='Enter a value between 1 and 4500 (roughly six \
+                       months); default value is 1 hour.')
     
     get_t_shirt = forms.BooleanField(
-            name='Receive notification when node has earned a t-shirt')    
-    
-    
-    # PUT IN THE CHECK IF ROUTER EXISTS CODE HERE
+            label='Receive notification when node has earned a t-shirt')
 
-    # PUT IN THE SAVE/CREATE USER CODE HERE
+    def clean(self):
+        data = self.cleaned_data
+        if not data.get('get_node_down'):
+            self.fields['node_down_grace_pd'].required = False
+        if not data.get('get_out_of_date'):
+            self.fields['out_of_date_threshold'].required = False
+            self.fields['out_of_date_grace_pd'].required = False
+        if not data.get('get_band_low'):
+            self.fields['band_low_threshold'].required = False
+            self.fields['band_low_grace_pd'].required = False
 
-    # IMPLEMENT THE FACT THAT TEXT IS IN NAMES, NOT HELP_TEXT AND ADD HELP_TEXT_2
+        return data
+        
+
+    def hide_node_down(self):
+        self.fields['node_down_grace_pd'].required(False)
+    
+    def unhide_node_down(self):
+        self.fields['node_down_grace_pd'].required(True)
+
+    def hide_out_of_date(self):
+        self.fields['out_of_date_threshold'].required(False)
+        self.fields['out_of_date_grace_pd'].required(False)
+
+    def unhide_node_out_of_date(self):
+        self.fields['out_of_date_threshold'].required(True)
+        self.fields['out_od_date_grace_pd'].required(True)
+
+    def hide_band_low(self):
+        self.fields['band_low_threshold'].required(False)
+        self.fields['band_low_grace_pd'].required(False)
+
+    def unhide_band_low(self):
+        self.fields['band_low_threshold'].required(True)
+        self.fields['band_low_grace_pd'].required(True)
+    
+    def clean_email_2(self):
+        """Uses Django's built-in 'clean' form processing functionality to
+        test whether the 2nd email field matches the 1st.
+        """
+        email_1 = self.cleaned_data.get('email_1')
+        email_2 = self.cleaned_data.get('email_2')
+
+        if email_1 == email_2:
+            return email_2
+        else:
+            raise forms.ValidationError('Email addresses must match')
+
+    def clean_fingerprint(self):
+        """Uses Django's built-in 'clean' form processing functionality to
+        test whether the fingerprint entered is a router we have in the
+        current database, and presents an appropriate error message if it
+        isn't (along with helpful information).
+        """
+        fingerprint = self.cleaned_data.get('fingerprint')
+        fingerprint.replace(' ', '')
+
+        if self.is_valid_router(fingerprint):
+            return fingerprint
+        else:
+            info_extension = Urls.get_fingerprint_info_ext(fingerprint)
+            msg = 'We could not locate a Tor node with that fingerprint. \
+                   (<a href=%s>More info</a>)' % info_ext
+            raise forms.ValidationError(msg)
+
+# ---------------- SEE IF THESE ARE NECESSARY; SEE WHAT HAPPENS W/O THESE
+    def generic_range_clean(self, field, min_val, max_val):
+        """Helper function to avoid repetitive code in the clean methods that
+        check if specific fields are between specified min and max values.
+        """
+        val = self.cleaned_data.get(field)
+        if val < min_val or val > max_val:
+            raise forms.ValidationError('You must enter a number between' +
+                min_val + ' and ' + max_val + '.')
+        else:
+            return val
+
+    def clean_node_down_grace_pd(self):
+        """Uses Django's built-in 'clean' form processing functionality to
+        test whether the value in the field is between the min and max values.
+        """
+        return generic_range_clean(self, 'node_down_grace_pd',
+                _MIN_NODE_DOWN_GRACE_PD, _MAX_NODE_DOWN_GRACE_PD)
+
+    def clean_out_of_date_grace_pd(self):
+        """Uses Django's built-in 'clean' form processing functionality to
+        test whether the value in the field is between the min and max values.
+        """
+        return generic_range_clean(self, 'out_of_date_grace_pd',
+                _MIN_OUT_OF_DATE_GRACE_PD, _MAX_OUT_OF_DATE_GRACE_PD)
+
+    def clean_band_low_threshold(self):
+        """Uses Django's built-in 'clean' form processing functionality to
+        test whether the value in the field is between the min and max values.
+        """
+        return generic_range_clean(self, 'band_low_threshold',
+                _MIN_BAND_LOW_THRESHOLD, _MAX_BAND_LOW_THRESHOLD)
+
+    def clean_band_low_grace_pd(self):
+        """Uses Django's built-in 'clean' form processing functionality to 
+        test whether the valyue in the field is between the min and max values.
+        """
+        return generic_range_clean(self, 'band_low_grace_pd',
+                _MIN_BAND_LOW_GRACE_PD, _MAX_BAND_LOW_GRACE_PD)
+# ----------------------------------------------------------------------------
+
+    def is_valid_router(self, fingerprint):
+        """Helper function to check if a router exists in the database.
+        """
+        router_query_set = Router.objects.filter(fingerprint=fingerprint)
+
+        if router_query_set.count() == 0:
+            return False
+        else:
+            return True
+
+    def save_subscriber(self):
+        """Attempts to save the new subscriber, but throws a catchable error
+        if a subscriber already exists with the given email and fingerprint.
+        PRE-CONDITION: fingerprint is a valid fingerprint for a 
+        router in the Router database.
+        """
+
+        email = self.cleaned_data['email_1']
+        fingerprint = self.cleaned_data['fingerprint']
+        router = Router.objects.get(fingerprint=fingerprint)
+
+        # Get all subscribers that have both the email and fingerprint
+        # entered in the form. 
+        subscriber_query_set = Subscriber.objects.filter(email=email, 
+                                                   fingerprint=fingerprint)
+        
+        # Redirect the user if such a subscriber exists, else create one.
+        if subscriber_query_set.count() > 0:
+            subscriber = subscriber_query_set[0]
+            url_extension = Urls.get_error_ext('already_subscribed', 
+                                               subscriber.pref_auth)
+            raise Exception(url_extension)
+            #raise UserAlreadyExistsError(url_extension)
+        else:
+            subscriber = Subscriber(email=email, router=router)
+            subscriber.save()
+            return subscriber
+            
+    def save_subscriptions(self):
+        # Create the various subscriptions if they are specified.
+        if self.cleaned_data['get_node_down']:
+            node_down_sub = NodeDownSub(subscriber=subscriber,
+                    grace_pd=self.cleaned_data['node_down_grace_pd'])
+            node_down_sub.save()
+        if self.cleaned_data['get_out_of_date']:
+            out_of_date_sub = OutOfDateSub(subscriber=subscriber,
+                    threshold=self.cleaned_data['out_of_date_threshold'],
+                    grace_pd=self.cleaned_data['out_of_date_grace_pd'])
+            out_of_date_sub.save()
+        if self.cleaned_data['get_band_low']:
+            band_low_sub = BandLowSub(subscriber=subscriber,
+                    threshold=self.cleaned_data['band_low_threshold'],
+                    grace_pd=self.cleaned_data['band_low_grace_pd'])
+            band_low_sub.save()
+        if self.cleaned_data['get_t_shirt']:
+            t_shirt_sub = TShirtSub(subscriber=subscriber)
+            t_shirt_sub.save()
 
 class PreferencesForm(forms.Form):
-    """For full feature list."""
+    """For full feature list. This is nowhere near ready"""
 
     _MAX_NODE_DOWN_GRACE_PD = 4500
     _MIN_NODE_DOWN_GRACE_PD = 1

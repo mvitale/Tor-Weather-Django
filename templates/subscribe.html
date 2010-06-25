@@ -29,17 +29,17 @@
 
 <div class="form-section">
 	<div class="email-block">
-		<label for="id_email_1" class="block">{{form.email_1.help_text}}</label>
+		<label for="id_email_1" class="block">{{form.email_1.label}}</label>
 		{% for error in form.email_1.errors %}<span class="error">{{ error }}</span>{% endfor %}
 		{{ form.email_1 }}
 	</div>
 	<div class="email-block">
-		<label for="id_email_2" class="block">{{ form.email_2.help_text }}</label>
+		<label for="id_email_2" class="block">{{ form.email_2.label }}</label>
 		{% for error in form.email_2.errors %}<span class="error">{{ error }}</span>{% endfor %}
 		{{ form.email_2 }}
 	</div>
 	<div class="long-input" class="block">
-		<label for="id_fingerprint" class="block">{{ form.fingerprint.help_text }}</label>
+		<label for="id_fingerprint" class="block">{{ form.fingerprint.label }}</label>
 		{% for error in form.fingerprint.errors %}<span class="error">{{ error }}</span>{% endfor %}
 		{{ form.fingerprint }}
 	</div>
@@ -56,14 +56,14 @@
 	
 	<div>
 		<input id="id_get_node_down" type="checkbox" name="get_node_down" onclick="hideOrUnhide(this, 'node-down-section')" checked="checked" />
-		<label for="get_node_down_id">{{ form.get_node_down.help_text }}</label>
+		<label for="id_get_node_down">{{ form.get_node_down.label }}</label>
 	</div>
 	<div id="node-down-section">
 		<div class="short-input">
-			{{ form.node_down_grace_pd.errors }}
-			<label for="node_down_grace_pd_id" class="block">{{ form.node_down_grace_pd.help_text }}</label>
+			<label for="node_down_grace_pd_id" class="block">{{ form.node_down_grace_pd.label }}</label>
+			{% for error in form.node_down_grace_pd.errors %}<span class="error">{{ error }}</span>{% endfor %}
 			{{ form.node_down_grace_pd }}
-			<em>Enter a value betwen 1 and 4500 (roughly six months)</em>
+			<em>{{ form.node_down_grace_pd.help_text }}</em>
 		</div>
 	</div>
 </div>
@@ -78,19 +78,19 @@
 <div class="form-section">
 	<div>
 		<input id="id_get_of_date" type="checkbox" name="get_out_of_date" onclick="hideOrUnhide(this, 'out-of-date-section')" />
-		<label for="get_out_of_date_id">{{ form.get_out_of_date.help_text }}</label>
+		<label for="get_out_of_date_id">{{ form.get_out_of_date.label }}</label>
 	</div>
 	<div id="out-of-date-section" style="display:none;">
 		<div>
-			{{ form.out_of_date_threshold.errors }}
-			<label for="out_of_date_threshold" class="block">{{ form.out_of_date_threshold.help_text }}</label>
+			<label for="out_of_date_threshold" class="block">{{ form.out_of_date_threshold.label }}</label>
+			{% for error in form.out_of_date_threshold.errors %}<span class="error">{{ error }}</span>{% endfor %}
 			{{ form.out_of_date_threshold }}
 		</div>
 		<div class="short-input">
-			{{ form.out_of_date_grace_pd.errors }}
-			<label for="out_of_date_grace_pd" class="block">{{ form.out_of_date_grace_pd.help_text }}</label>
+			<label for="out_of_date_grace_pd" class="block">{{ form.out_of_date_grace_pd.label }}</label>
+			{% for error in form.out_of_date_grace_pd.errors %}<span class="error">{{ error }}</span>{% endfor %}
 			{{ form.out_of_date_grace_pd }}
-			<em>Enter a value between 1 and 200 (roughly six months); default value is 1 day.</em>
+			<em>{{ form.out_of_date_grace_pd.help_text }}</em>
 		</div>
 	</div>
 </div>
@@ -105,20 +105,20 @@
 <div class="form-section">
 	<div>
 		<input id="id_get_band_low" type="checkbox" name="get_out_of_date" onclick="hideOrUnhide(this, 'band-low-section')" />
-		<label for="get_band_low_id">{{ form.get_band_low.help_text }}</label>
+		<label for="get_band_low_id">{{ form.get_band_low.label }}</label>
 	</div>
 	<div id="band-low-section" style="display:none;">
 		<div class="short-input">
-			{{ form.band_low_threshold.erors }}
-			<label for="band_low_threshold" class="block">{{ form.band_low_threshold.help_text }}</label>
+			<label for="band_low_threshold" class="block">{{ form.band_low_threshold.label }}</label>
+			{% for error in form.band_low_threshold.errors %}<span class="error">{{ error }}</span>{% endfor %}
 			{{ form.band_low_threshold }}
-			<em>Default value is 50 kbps.</em>
+			<em>{{ form.band_low_threshold.help_text }}</em>
 		</div>
 		<div class="short-input">
-			{{ form.band_low_grace_pd.errors }}
-			<label for="band_low_grace_pd" class="block">{{ form.band_low_grace_pd.help_text }}</label>
+			<label for="band_low_grace_pd" class="block">{{ form.band_low_grace_pd.label }}</label>
+			{% for error in form.band_low_grace_pd.errors %}<span class="error">{{ error }}</span>{% endfor %}
 			{{ form.band_low_grace_pd }}
-			<em>Enter a value between 1 and 4500 (roughly six months); default value is 1 hour.</em>
+			<em>{{ form.band_low_grace_pd.help_text }}</em>
 		</div>
 </div>
 
@@ -132,7 +132,7 @@
 <div class="form-section">
 	<div>
 		{{ form.get_t_shirt }}
-		<label for="get_t_shirt">{{ form.get_t_shirt.help_text }}</label>
+		<label for="get_t_shirt">{{ form.get_t_shirt.label }}</label>
 	</div>
 </div>
 

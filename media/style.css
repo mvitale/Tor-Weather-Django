@@ -34,6 +34,13 @@ div#sign-up-link {
 	background-color: white;
 }
 
+span.error {
+	padding-top: 3px;
+	padding-bottom: 3px;
+	color: red;
+	display: block;
+}
+
 input#subscribe-submit {
 	font-size: 18px;
 	float:right;
