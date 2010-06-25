@@ -40,7 +40,7 @@
 	</div>
 	<div class="long-input" class="block">
 		<label for="id_fingerprint" class="block">{{ form.fingerprint.label }}</label>
-		{% for error in form.fingerprint.errors %}<span class="error">{{ error }}</span>{% endfor %}
+		{% for error in form.fingerprint.errors %}<span class="error">{{ error|safe}}</span>{% endfor %}
 		{{ form.fingerprint }}
 	</div>
 </div>
