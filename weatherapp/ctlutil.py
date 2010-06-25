@@ -157,6 +157,30 @@ class CtlUtil:
         # If we're here, we were able to fetch information about the router
         return True
 
+    def is_exit(self, node_id):
+        """Check if this node is an exit node (accepts exits to port 80).
+        
+        @type node_id: str
+        @param node_id: The router's fingerprint
+        @rtype: bool
+        @return: True if this router accepts exits to port 80, false if not
+            or if the descriptor file can't be accessed for this router.
+        """
+        try:
+            descriptor = self.get_single_descriptor(node_id)
+            desc_lines = descriptor.split('\n')
+            for line in desc_lines:
+                if line.startswith('accept') and (line.endswith(':80')
+                                                  or line.endswith('*:*'))
+                    return True
+            return False
+        except TorCtl.ErrorReply, e:
+            logging.error("ErrorReply: %s" % str(e))
+            return False
+        except:
+            # some other error with the function
+            logging.error("Unknown exception in ctlutil.is_exit()")
+
     def get_finger_name_list(self):
         """Get a list of fingerprint and name pairs for all routers in the
         current descriptor file.
@@ -209,3 +233,33 @@ class CtlUtil:
             finger_list.append(pair[0])
         
         return finger_list
+
+    def get_bandwidth(single_descriptor)
+        """Takes a descriptor for a single router and parses out the 
+        bandwidth.
+        
+        @type single_descriptor: str
+        @param single_descriptor: The descriptor for the router
+        @rtype: int 
+        @return: The router's 'observed' bandwidth, in B/s
+        """
+        bandwidth = 0
+        desc_lines = single_descriptor.split('\n')
+        for line in desc_lines:
+            if line.startswith('bandwidth'):
+                word_list = line.split()
+                # the 4th word in the line is the bandwidth-observed in B/s
+                bandwidth = int(word_list[3])
+        return bandwidth
+
+    def get_new_avg_bandwidth(avg_bandwidth, hours_up, obs_bandwidth)
+        """Calculates the new average bandwidth for a router.
+        
+        @param avg_bandwidth: The current average bandwidth for the router
+        @param hours_up: The number of hours this router has been up 
+        @param obs_bandwidth: The observed bandwidth taken from the most 
+            recent descriptor file for this router
+        """
+        new_avg = ((hours_up * avg_bandwidth) + obs_bandwidth) / (hours_up + 1)
+        return new_avg
+

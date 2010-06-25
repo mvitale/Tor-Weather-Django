@@ -48,21 +48,10 @@ def subscribe(request):
             fingerprint = form.cleaned_data['fingerprint']
             grace_pd = form.cleaned_data['grace_pd']
             
-            # gets a query set of the routers with the given fingerprint
-            # (there should be at most one).
-            router_query_set = Router.objects.filter(fingerprint = fingerprint)
+            # gets the router object (we make sure it's there in the custom
+            # clean_fingerprint() method in the SubscribeForm class) 
+            router = Router.objects.get(fingerprint = fingerprint)
             
-            if len(router_query_set) == 0:
-            # we haven't seen this router before. display error page 
-                
-                #gets the url extension for the fingerprint error page
-                url_extension = Urls.get_error_ext('fingerprint_not_found', 
-                                                   fingerprint)
-                return HttpResponseRedirect(url_extension)
-
-            # the router is in the database, get the Router object
-            router = router_query_set[0]
-
             user_query_set = Subscriber.objects.filter(email=addr,
                                                        router=router) 
             # if the Subscriber is in the set, the user is already subscribed 
