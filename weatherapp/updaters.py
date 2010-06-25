@@ -108,18 +108,20 @@ class RouterUpdater:
 
             finger = router[0]
             name = router[1]
-            is_up = self.ctl_util.is_up_or_hibernating(finger)
+            is_up_hiber = self.ctl_util.is_up_or_hibernating(finger)
 
-            if is_up:
+            if is_up_hiber:
+                is_exit = ctl_util.is_exit(finger)
                 try:
                     router_data = Router.objects.get(fingerprint = finger)
                     router_data.last_seen = datetime.now()
                     router_data.name = name
                     router_data.up = True
+                    router_data.exit = is_exit
                     router_data.save()
                 except Router.DoesNotExist:
                     #let's add it
-                    Router(fingerprint=finger, name=name).save()
+                    Router(fingerprint=finger, name=name, exit = is_exit).save()
 
 class Welcomer:
     """A class for informing new relay operators about Weather"""
