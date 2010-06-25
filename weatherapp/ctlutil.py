@@ -100,16 +100,26 @@ class CtlUtil:
 
     def get_single_descriptor(self, node_id):
         """Get a descriptor file for a specific router with fingerprint 
-        C{node_id}.
+        C{node_id}. If a descriptor cannot be retrieved, returns the 
+        empty string.
 
         @type node_id: str
         @param node_id: Fingerprint of the node requested with no spaces.
         @rtype: str
-        @return: String representation of the single descirptor file.
+        @return: String representation of the single descirptor file or
+        the empty string if no such descriptor file exists.
         """
         # get_info method returns a dictionary with single mapping, with
         # all the info stored as the single value, so this extracts the string
-        return self.control.get_info("desc/id/" + node_id).values()[0]
+        desc = ''
+        try:
+            desc = self.control.get_info("desc/id/" + node_id).values()[0]
+        except TorCtl.ErrorReply, e:
+            logging.error("ErrorReply: %s" % str(e))
+        except:
+            logging.error("Unknown exception in CtlUtil" +
+                          "get_single_descriptor()")
+        return desc
 
     def get_full_descriptor(self):
         """Get all current descriptor files for every router currently up.
@@ -241,6 +251,36 @@ class CtlUtil:
         else:
             return False
 
+    def is_hibernating(self, fingerprint):
+        """Check if the Tor relay with fingerprint C{fingerprint} is
+        hibernating.
+        @type fingerprint: str
+        @param fingerprint: The fingerprint of the Tor relay to check.
+
+        @rtype: bool
+        @return: True if the Tor relay has a current descriptor file with
+        the hibernating flag, False otherwise."""
+
+        desc = self.get_single_descriptor(fingerprint)
+        if not desc == "":
+            hib_search = re.search('opt hibernating 1', desc)
+            if not hib_search == None:
+                return True
+            else:
+                return False
+
+    def is_up_or_hibernating(self, fingerprint):
+        """Check if the Tor relay with fingerprint C{fingerprint} is up or 
+        hibernating.
+
+        @type fingerprint: str
+        @param fingerprint: The fingerprint of the Tor relay to check.
+
+        @rtype: bool
+        @return: True if self.is_up(fingerprint or 
+        self.is_hibernating(fingerprint)."""
+        
+        return (self.is_up(fingerprint) or self.is_hibernating(fingerprint))
 
     def _parse_email(self, desc):
         """Parse the email address from an individual router descriptor 

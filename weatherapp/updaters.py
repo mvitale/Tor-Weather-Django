@@ -21,8 +21,8 @@ class SubscriptionChecker:
         for subscription in subscriptions:
             #only check subscriptions of confirmed subscribers
             if subscription.subscriber.confirmed:
-
                 is_up = subscription.subscriber.router.up 
+
                 if is_up:
                     if subscription.triggered:
                        subscription.triggered = False
@@ -108,7 +108,7 @@ class RouterUpdater:
 
             finger = router[0]
             name = router[1]
-            is_up = self.ctl_util.is_up(finger)
+            is_up = self.ctl_util.is_up_or_hibernating(finger)
 
             if is_up:
                 try:
