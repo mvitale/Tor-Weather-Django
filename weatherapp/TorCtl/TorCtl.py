@@ -847,7 +847,7 @@ class Connection:
       except ErrorReply:
         bad_key += 1
         if "Running" in ns.flags:
-          plog("NOTICE", "Running router "+ns.nickname+"="
+          plog("NOTICE", "Running router "+ns.nickname+"=sin"
              +ns.idhex+" has no descriptor")
       except:
         traceback.print_exception(*sys.exc_info())

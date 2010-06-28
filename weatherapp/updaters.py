@@ -1,9 +1,14 @@
+"""Contains classes for updating subscription and router databases and 
+sending the various types of notifications."""
+
 import socket, sys, os
 import ctlutil
 import config
 from emails import Emailer
 import datetime 
 from models import *
+import time
+import logging
 
 class SubscriptionChecker:
     """A class for checking and updating the various subscription types"""
@@ -27,6 +32,7 @@ class SubscriptionChecker:
                     if subscription.triggered:
                        subscription.triggered = False
                        subscription.last_changed = datetime.now()
+                       subscription.emailed = False
                 else:
                     if subscription.triggered:
                         #if subscription.should_email():------enable after debugging---
@@ -52,13 +58,41 @@ class SubscriptionChecker:
     def check_below_bandwidth(self):
         # TO DO ------------------------------------------------- EXTRA FEATURE
         # IMPLEMENT THIS ------------------------------------------------------
-        pass
+        subs = BandwidthSub.objects.all()
+        
+        for sub in subs:
+            fingerprint = sub.subscriber.fingerprint
+            if sub.subscriber.confirmed:
+                low = self.ctlutil.is_bandwidth_low(fingerprint)
+                
+                if low:
+                    if sub.triggered:
+                        if sub.is_grace_passed():
+                            recipient = sub.subscriber.email
+                            grace_pd = sub.grace_pd
+                            unsubs_auth = sub.subscriber.unsubs_auth
+                            pref_auth = sub.subscriber.pref_auth
 
-    def check_earn_tshirt(self):
-        """Check all L{TShirtSub} subscriptions and send an email if necessary. 
+                            Emailer.send_low_bandwidth(recipient, fingerprint,
+                                                       grace_pd, unsubs_auth,
+                                                       pref_auth)
+                            sub.emailed = True
+
+                    else:
+                        sub.triggered = True
+                        sub.last_changed = datetime.now()
+                else:
+                    if sub.triggered:
+                        sub.triggered = False
+                        sub.emailed = False
+                        sub.last_changed = datetime.now()
+
+                sub.save()
+    """def check_earn_tshirt(self):
+        Check all L{TShirtSub} subscriptions and send an email if necessary. 
         If the node is down, the trigger flag set to False. The average 
         bandwidth is calculated if triggered is True. This method uses the 
-        should_email method in the TShirtSub class."""
+        should_email method in the TShirtSub class.
 
         subscriptions = TShirtSub.objects.all()
 
@@ -82,7 +116,7 @@ class SubscriptionChecker:
                     subscription.hours_since_triggered = 1
                 else:
                 # update the avg bandwidth (arithmetic)
-                    subscription.avg_bandwidth = 
+                    subscription.avg_bandwidth = \
                        self.ctl_util.get_new_avg_bandwidth(
                                subscription.avg_bandwidth,
                                subscription.hours_since_triggered,
@@ -91,7 +125,7 @@ class SubscriptionChecker:
 
             # now send the email if it's needed
             if subscription.should_email():
-                #Emailer.send_
+                #Emailer.send_"""
 
                     
     def check_all(self):
@@ -146,7 +180,7 @@ class RouterUpdater:
             is_up_hiber = self.ctl_util.is_up_or_hibernating(finger)
 
             if is_up_hiber:
-                is_exit = ctl_util.is_exit(finger)
+                is_exit = self.ctl_util.is_exit(finger)
                 try:
                     router_data = Router.objects.get(fingerprint = finger)
                     router_data.last_seen = datetime.now()
@@ -160,22 +194,23 @@ class RouterUpdater:
 
 class Welcomer:
     """A class for informing new relay operators about Weather"""
-    def __init__(self, ctl_util = None):
+    def __init__(self, ctl_util):
         self.ctl_util = ctl_util
-        if ctl_util == None:
-            ctl_util = ctlutil.CtlUtil()
 
     def welcome(self):
         """Send welcome emails to new, stable relay operators"""
-        uninformed = Router.objects.filter(welcomed = False)
+        uninformed = Router.objects.filter(welcomed = False, up = True)
         write_file = open("welcome_test.log", "w")
         for router in uninformed:
-            if self.ctl_util.is_stable(router.fingerprint):
-                email = self.ctl_util.get_email(router.fingerprint)
+            print router.fingerprint
+            if self.ctl_util.is_stable(str(router.fingerprint)):
+                email = self.ctl_util.get_email(str(router.fingerprint))
                 if not email == "":
                     write_file.write(email + "\n") 
                     print "Would've emailed " + email
                     #Emailer.send_welcome(email)
+                    logging.info("Tried to send welcome email to %s" % email)
+        write_file.close()
                 
                 #Even if we can't get a router's email, we set welcomed to true
                 #so that we don't keep trying to parse their email
@@ -186,9 +221,9 @@ def main():
     """Run all updaters/checkers in proper sequence"""
     ctl_util = ctlutil.CtlUtil()
     router_updater = RouterUpdater(ctl_util)
+    router_updater.update_all()
     welcome = Welcomer(ctl_util)
     subscription_checker = SubscriptionChecker(ctl_util)
-    router_updater.update_all()
     welcome.welcome()
     subscription_checker.check_all()
 

@@ -13,7 +13,7 @@ import logging
 
 #very basic log setup
 logging.basicConfig(format = '%(asctime) - 15s (%(process)d) %(message)s',
-                    level = logging.INFO, logfile = './weather.log')
+                    level = logging.INFO, filename = './weather.log')
 
 """A module for listening to TorCtl for new consensus events. When one occurs,
 initializes checker"""
@@ -34,7 +34,7 @@ def main():
     ctrl.set_events([TorCtl.EVENT_TYPE.NEWCONSENSUS])
 
 def run_updaters():#just for testing
-    updaters.run_all()
+    updaters.main()
 
 if __name__ == '__main__':
     run_updaters()

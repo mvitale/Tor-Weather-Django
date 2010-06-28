@@ -40,7 +40,7 @@ class Router(models.Model):
     fingerprint = models.CharField(max_length=40, unique=True)
     name = models.CharField(max_length=100)
     welcomed = models.BooleanField(default=False)
-    last_seen = models.DateTimeField('date last seen', default=datetime.now())
+    last_seen = models.DateTimeField(default=datetime.now)
     up = models.BooleanField(default=True)
     exit = models.BooleanField()
 
@@ -107,7 +107,7 @@ class Subscriber(models.Model):
     pref_auth = models.CharField(max_length=250, 
                     default=SubscriberManager.get_rand_string)
 
-    sub_date = models.DateTimeField(default=datetime.now())
+    sub_date = models.DateTimeField(default=datetime.now)
 
     objects = SubscriberManager()
 
@@ -122,7 +122,7 @@ class SubscriptionManager(models.Manager):
     """
 
     @staticmethod
-    def get_hours_since_changed(last_changed):
+    def hours_since_changed(last_changed):
         """Returns the time that has passed since the datetime parameter
         last_changed in hours.
 
@@ -133,7 +133,8 @@ class SubscriptionManager(models.Manager):
         @return: The number of hours since last_changed.
         """
         time_since_changed = datetime.now() - last_changed
-        hours_since_changed = time_since_changed.seconds / 3600
+        hours_since_changed = (time_since_changed.hours * 24) + \
+                              (time_since_changed.seconds / 3600)
         return hours_since_changed
     
 
@@ -160,8 +161,7 @@ class Subscription(models.Model):
     subscriber = models.ForeignKey(Subscriber)
     emailed = models.BooleanField(default=False)
     triggered = models.BooleanField(default=False)
-    last_changed = models.DateTimeField('date of last change', 
-                                        default=datetime.now())
+    
 
     # In Django, Manager objects handle table-wide methods (i.e filtering)
     objects = SubscriptionManager()
@@ -178,6 +178,7 @@ class NodeDownSub(Subscription):
         after a node is seen down.
     """
     grace_pd = models.IntegerField()
+    last_changed = models.DateTimeField(default=datetime.now)
 
     def should_email():
         """Returns a bool representing whether or not the Subscriber should
@@ -188,7 +189,7 @@ class NodeDownSub(Subscription):
             is down and the grace period has passed, False otherwise.
         """
         hours_since_changed = \
-            SubscriptionManager.get_hours_since_changed(last_changed)
+            SubscriptionManager.hours_since_changed(last_changed)
         if triggered and not emailed and \
                      (hours_since_changed > grace_pd):
             return True
@@ -213,17 +214,15 @@ class VersionSub(Subscription):
         """
 
 
-class LowBandwidthSub(Subscription):    
+class BandwidthSub(Subscription):    
     """
     """
-    threshold = models.IntegerField(default = 0)
     grace_pd = models.IntegerField(default = 1)
+    last_changed = models.DateTimeField(default=datetime.now)
 
-    #def should_email():
-        #"""
-        #"""
-        #time_since_changed
-
+    def is_grace_passed():
+        if 
+   
 
 class TShirtSub(Subscription):
     """"""

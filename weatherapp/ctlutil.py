@@ -1,3 +1,6 @@
+"""A module containing the CtlUtil class that handles communication with
+the local Tor process"""
+
 import socket
 from TorCtl import TorCtl
 import config
@@ -8,7 +11,8 @@ import string
 debugfile = open("debug", "w")
 
 class CtlUtil:
-    """A class that handles communication with TorCtl.
+    """A class that handles communication with the local Tor process via
+    TorCtl.
     
     @type control_host: str
     @ivar control_host: Control host of the TorCtl connection.
@@ -181,7 +185,7 @@ class CtlUtil:
             desc_lines = descriptor.split('\n')
             for line in desc_lines:
                 if line.startswith('accept') and (line.endswith(':80')
-                                                  or line.endswith('*:*'))
+                                            or line.endswith('*:*')):
                     return True
             return False
         except TorCtl.ErrorReply, e:
@@ -244,7 +248,7 @@ class CtlUtil:
         
         return finger_list
 
-    def get_bandwidth(single_descriptor)
+    def get_bandwidth(single_descriptor):
         """Takes a descriptor for a single router and parses out the 
         bandwidth.
         
@@ -262,7 +266,7 @@ class CtlUtil:
                 bandwidth = int(word_list[3])
         return bandwidth
 
-    def get_new_avg_bandwidth(avg_bandwidth, hours_up, obs_bandwidth)
+    def get_new_avg_bandwidth(avg_bandwidth, hours_up, obs_bandwidth):
         """Calculates the new average bandwidth for a router.
         
         @param avg_bandwidth: The current average bandwidth for the router
@@ -290,18 +294,27 @@ class CtlUtil:
 
     def is_stable(self, fingerprint):
         """Check if a Tor node has the stable flag.
-
         @type fingerprint: str
         @param fingerprint: The fingerprint of the router to check
 
         @rtype: bool
-        @return: True if this router has the stable flag, false otherwise.
+        @return: True if this router has a valid consensus with the stable
+        flag, false otherwise.
         """
 
-        info = self.get_single_consensus(fingerprint)
-        if re.search('\ns.* Stable ', info):
-            return True
-        else:
+        try:
+            info = self.get_single_consensus(fingerprint)
+            if re.search('\ns.* Stable ', info):
+                return True
+            else:
+                return False
+        except TorCtl.ErrorReply, e:
+            #If we're getting here, we're likely seeing:
+            #ErrorReply: 552 Unrecognized key "ns/id/46D9..."
+            logging.error("ErrorReply: %s" % str(e))
+            return False
+        except:
+            logging.error("Unknown exception in ctlutil.is_stable()")
             return False
 
     def is_hibernating(self, fingerprint):
@@ -334,6 +347,45 @@ class CtlUtil:
         self.is_hibernating(fingerprint)."""
         
         return (self.is_up(fingerprint) or self.is_hibernating(fingerprint))
+    
+    def is_bandwidth_low(self, fingerprint):
+        """Check if the Tor relay with fingerprint C{fingerprint} has 
+        bandwidth below 50KB/s
+       
+        @type fingerprint: str
+        @param fingerprint: The fingerprint of the Tor relay to check.
+
+        @rtype: bool
+        @return: C{True} if the observed bandwidth in the most recent     
+        descriptor for this Tor relay is below 50k/sec, otherwise C{False}.
+        """
+        bandwidth = self.get_bandwidth(fingerprint)
+        
+        if bandwidth < 50:
+            return True
+        else:
+            return False
+
+
+    def get_bandwidth(self, fingerprint):
+        """Get the observed bandwidth in KB/s from the most recent descriptor
+        for the Tor relay with fingerprint C{fingerprint}.
+
+        @type fingerprint: str
+        @param fingerprint: The fingerprint of the Tor relay to check
+
+        @rtype: float
+        @return: The observed bandwidth for this Tor relay.
+        """
+        desc = self.get_single_descriptor(fingerprint)
+        desc_lines = desc.split('\n')
+        bandwidth = ''
+
+        for line in desc_lines:
+            if line.startswith('bandwidth '):
+                bandwidth = (int(line.split()[3])) / 1000.0
+
+        return bandwidth
 
     def _parse_email(self, desc):
         """Parse the email address from an individual router descriptor 
@@ -347,28 +399,33 @@ class CtlUtil:
                 parsed, the empty string.
         """
         split_desc = desc.split('\n')
-        contacts = []
         punct = string.punctuation
+        contact = ""
         for line in split_desc:
             if line.startswith('contact '):
-                contacts.append(line)
-        for line in contacts:
-            clean_line = line.replace('<', ' ').replace('>', ' ') 
-            email = re.search('[^ <]*@.*\.[^\n \)\(>]*', clean_line)
-            if email == None:
-                email = re.search('[^\s]*\s(?:@|at|['+punct+']*at['+punct+']*' +
-                ')\s.*\s(?:\.|dot|d0t|['+punct+']*dot['+punct+']*)\s[^\n\)\(]*',
-                clean_line, re.IGNORECASE)
-                if email == None:
-                    email = re.search('[^\s]*\s(?:@|at|['+punct+']*at['+punct+
-                                    ']*)\s.*\.[^\n\)\(]*', clean_line, 
-                                                                re.IGNORECASE)
+                contact = contact + line
+        clean_line = contact.replace('<', ' ').replace('>', ' ') 
+        email = re.search('[^ <]*@.*\.[^\n \)\(>]*', clean_line)
         if email == None:
-            #----Learn how logging works and configure!------
-            #errormsg = ('Could not parse the following contact line:\n'+ line)
-            #logging.error(errormsg)
-            #print >> sys.stderr, errormsg
+            email = re.search('[^\s]*(?:@|at|['+punct+'\s]*at['+punct+'\s]*' +
+            ').*\s(?:\.|dot|d0t|['+punct+']*dot['+punct+']*)\s[^\n\)\(]*',
+            clean_line, re.IGNORECASE)
+            if email == None:
+                email = re.search('[^\s]*(?:@|at|['+punct+'\s]at['+punct+
+                                '\s]).*\.[^\n\)\(]*', clean_line, 
+                                                            re.IGNORECASE)
+        if email == None:
+        #----Learn how logging works and configure!------
+        #errormsg = ('Could not parse the following contact line:\n'+ line)
+        #logging.error(errormsg)
+        #print >> sys.stderr, errormsg
             email = ""
         else:
             email = email.group()
+            email = email.lower()
+            email = re.sub('['+punct+'\s]*at['+punct+'\s]*', '@', email)
+            email = re.sub('['+punct+'\s]*dot['+punct+'\s]*', '.', email)
+            email = email.replace(' d0t ', '.').replace(' hyphen ', '-').\
+                    replace(' ', '')
+
         return email
