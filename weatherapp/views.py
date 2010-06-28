@@ -65,7 +65,10 @@ def subscribe(request):
                 return HttpResponseRedirect(url_extension)
     else:
         # User hasn't submitted info, so just display empty subscribe form.
-        form = SubscribeForm()
+        form = SubscribeForm(initial={'get_node_down': True, 
+                                      'get_out_of_date': False, 
+                                      'get_band_low': False, 
+                                      'get_t_shirt': False})
     c = {'form' : form}
 
     # For pages with POST methods, a Cross Site Request Forgery protection

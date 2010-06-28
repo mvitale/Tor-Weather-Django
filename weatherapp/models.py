@@ -235,8 +235,8 @@ class LowBandwidthSub(Subscription):
 
 class TShirtSub(Subscription):
     """"""
-    avg_bandwidth = models.IntegerField()
-    hours_since_triggered = models.IntegerField()
+    avg_bandwidth = models.IntegerField(default = 0)
+    hours_since_triggered = models.IntegerField(default = 0)
 
     def __unicode__(self):
         return self.subscriber.email + ": T-Shirt Sub"
@@ -282,7 +282,7 @@ class SubscribeForm(forms.Form):
     fingerprint = forms.CharField(label='Node Fingerprint:',
             max_length=50)
 
-    get_node_down = forms.BooleanField(required=False,
+    get_node_down = forms.BooleanField(initial=True, required=False,
             label='Receive notifications when node is down')
     node_down_grace_pd = forms.IntegerField(required=False,
             max_value=_MAX_NODE_DOWN_GRACE_PD,
@@ -291,7 +291,7 @@ class SubscribeForm(forms.Form):
                        we send a notifcation?',
             help_text='Enter a value between 1 and 4500 (roughly six months)')
     
-    get_out_of_date = forms.BooleanField(required=False,
+    get_out_of_date = forms.BooleanField(initial=False, required=False,
             label='Receive notifications when node is out of date')
     out_of_date_threshold = forms.ChoiceField(required=False,
             choices=((u'c1', u'out of date lvl 1'),
@@ -305,7 +305,7 @@ class SubscribeForm(forms.Form):
             label='How quickly, in days, would you like to be notified?',
             help_text='Enter a value between 1 and 200 (roughly six months)')
     
-    get_band_low = forms.BooleanField(required=False,
+    get_band_low = forms.BooleanField(initial=False, required=False,
             label='Receive notifications when node has low bandwidth')
     band_low_threshold = forms.IntegerField(required=False,
             max_value=_MAX_BAND_LOW_THRESHOLD,
@@ -320,7 +320,7 @@ class SubscribeForm(forms.Form):
             help_text='Enter a value between 1 and 4500 (roughly six \
                        months); default value is 1 hour.')
     
-    get_t_shirt = forms.BooleanField(required=False,
+    get_t_shirt = forms.BooleanField(initial=False, required=False,
             label='Receive notification when node has earned a t-shirt')
 
     def clean(self):
@@ -330,52 +330,79 @@ class SubscribeForm(forms.Form):
         # 'parent' checkbox is checked. That is, a validation error for
         # fields pertinent to get_node_down are only thrown if get_node_down
         # is checked. By default, all non-subscriber fields are not required.
+        # The reason for all this complication is that it doesn't seem possible
+        # to actually dynamically change Django's built-in required field
+        # functionality.
 
-        # If the node down subscription box is checked
+        # If the node down subscription box is checked.
         if self.cleaned_data['get_node_down']:
             # If there are no other errors for the node_down_grace_pd field and
-            # it is empty (either not in cleaned_data or in it as None)
+            # it is empty (either not in cleaned_data or in it as None).
             if 'node_down_grace_pd' not in self._errors \
             and ('node_down_grace_pd' not in self.cleaned_data
             or self.cleaned_data['node_down_grace_pd'] == None):
+                # Create an error saying that the field is required.
                 self._errors['node_down_grace_pd'] = self.error_class(
                                                             [required_msg])
         # If the node down subscription box isn't checked, and there are
         # errors for node_down_grace_pd, then ignore them.
         elif 'node_down_grace_pd' in self._errors:
+            # Deletes the error since it should be ignored.
             del self._errors['node_down_grace_pd']
 
-        # If the out of date subscription box is checked
+        # If the out of date subscription box is checked.
         if self.cleaned_data['get_out_of_date']:
             # If there are no other errors for the out_of_date_threshold field
-            # and it is empty (either not in cleaned data or in it as None)
+            # and it is empty (either not in cleaned data or in it as None).
             if 'out_of_date_threshold' not in self._errors \
             and ('out_of_date_threshold' not in self.cleaned_data
-            or self.cleaned_data['out_of_date_grace_pd'] == None):
+            or self.cleaned_data['out_of_date_threshold'] == None):
+                # Create an error saying that the field is required.
                 self._errors['out_of_date_threshold'] = self.error_class(
                                                             [required_msg])
-            if 'out_of_date_grace_pd' not in self.cleaned_data \
-            and 'out_of_date_grace_pd' not in self._errors:
+            # If there are no other errrors for the out_of_date_grace_pd field
+            # and it is empty (either not in clenaed data or in it as None).
+            if 'out_of_date_grace_pd' not in self._errors \
+            and ('out_of_date_grace_pd' not in self.cleaned_data
+            or self.cleaned_data['out_of_date_grace_pd'] == None):
+                # Create an error saying that the field is required.
                 self._errors['out_of_date_grace_pd'] = self.error_class(
                                                             [required_msg])
-        elif 'out_of_date_threshold' in self._errors:
-            del self._errors['out_of_date_threshold']
-        elif 'out_of_date_grace_pd' in self._errors:
-            del self._errors['out_of_date_grace_pd']
+        # If the out of date subscription box isn't checked.
+        else:
+            # If there are errors for out_of_date_trheshold, then ignore them.
+            if 'out_of_date_threshold' in self._errors:     
+                del self._errors['out_of_date_threshold']
+            # If there are errors for out_of_date_grace_pd, then ignore them.
+            if 'out_of_date_grace_pd' in self._errors:
+                del self._errors['out_of_date_grace_pd']
 
+        # If the band low subscription is checked.
         if self.cleaned_data['get_band_low']:
-            if 'band_low_threshold' not in self.cleaned_data \
-            and 'band_low_threshold' not in self._errors:
+            # If there are no errors for the band_low_threshold field and it is
+            # empty (either not in cleaned_data or in it as None).
+            if 'band_low_threshold' not in self._errors \
+            and ('band_low_threshold' not in self.cleaned_data
+            or self.cleaned_data['band_low_threshold'] == None):
+                # Create an error saying that the field is required.
                 self._errors['band_low_threshold'] = self.error_class(
                                                             [required_msg])
-            if 'band_low_grace_pd' not in self.cleaned_data \
-            and 'band_low_grace_pd' not in self._errors:
+            # If there are no errors for the band_low_grace_pd field and it is
+            # empty (either not in cleaned_data or in it as None).
+            if 'band_low_grace_pd' not in self._errors \
+            and ('band_low_grace_pd' not in self.cleaned_data
+            or self.cleaned_data['band_low_grace_pd'] == None):
+                # Create an error saying that the field is required.
                 self._errors['band_low_grace_pd'] = self.error_class(
                                                             [required_msg])
-        elif 'band_low_threshold' in self._errors:
-            del self._errors['band_low_threshold']
-        elif 'band_low_grace_pd' in self._errors:
-            del self._errors['band_low_grace_pd']
+        # If the band low subscription box isn't checked.
+        else:
+            # If there are errors for band_low_threshold, then ignore them.
+            if 'band_low_threshold' in self._errors:
+                del self._errors['band_low_threshold']
+            # If there are errors for band_low_grace_pd, then ignore them.
+            if 'band_low_grace_pd' in self._errors:
+                del self._errors['band_low_grace_pd']
 
 
         # Makes sure email_1 and email_2 match and creates error messages
