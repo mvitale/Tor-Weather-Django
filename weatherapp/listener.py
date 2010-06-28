@@ -34,7 +34,7 @@ def main():
     ctrl.set_events([TorCtl.EVENT_TYPE.NEWCONSENSUS])
 
 def run_updaters():#just for testing
-    updaters.main()
+    updaters.run_all()
 
 if __name__ == '__main__':
     run_updaters()

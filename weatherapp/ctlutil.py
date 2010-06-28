@@ -145,6 +145,38 @@ class CtlUtil:
         # Individual descriptors are delimited by -----END SIGNATURE-----
         return self.get_full_descriptor().split("-----END SIGNATURE-----")
 
+    def get_rec_version_list(self):
+        """Get a list of currently recommended versions"""
+        return self.control.get_info("status/version/recommended").\
+        values()[0].split(',')
+
+    def get_version(self, fingerprint):
+        """Get the version of the Tor software that the relay with fingerprint
+        C{fingerprint} is running
+
+        @type fingerprint: str
+        @param fingerprint: The fingerprint of the Tor relay to check.
+
+        @rtype: str
+        @return: The version of the Tor software that this relay is running.
+        """
+        desc = self.get_single_descriptor(fingerprint)
+        return re.search('\nplatform\sTor\s.*\s', desc).group()\
+        .split()[2].replace(' ', '')
+        
+
+    def is_running_rec_version(self, fingerprint):
+        """Check if a Tor relay is running a recommended version of the Tor
+        software."""
+        rec_version_list = self.get_rec_version_list()
+        node_version = self.get_version(fingerprint) 
+        rec_version = False
+        for version in rec_version_list:
+            if version == node_version:
+                rec_version = True
+                break
+
+        return rec_version
 
     def is_up(self, node_id):
         """Check if this node is up (actively running) by requesting a

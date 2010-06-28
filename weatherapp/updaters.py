@@ -160,7 +160,7 @@ class RouterUpdater:
         if not ctl_util:
             self.ctl_util = ctlutil.CtlUtil()
 
-    def update_all(self):
+    def update_router_info(self):
         """Add ORs we haven't seen before to the database and update the
         information of ORs that are already in the database."""
 
@@ -192,42 +192,41 @@ class RouterUpdater:
                     #let's add it
                     Router(fingerprint=finger, name=name, exit = is_exit).save()
 
-class Welcomer:
-    """A class for informing new relay operators about Weather"""
-    def __init__(self, ctl_util):
-        self.ctl_util = ctl_util
 
-    def welcome(self):
-        """Send welcome emails to new, stable relay operators"""
-        uninformed = Router.objects.filter(welcomed = False, up = True)
-        write_file = open("welcome_test.log", "w")
-        for router in uninformed:
-            print router.fingerprint
-            if self.ctl_util.is_stable(str(router.fingerprint)):
-                email = self.ctl_util.get_email(str(router.fingerprint))
-                if not email == "":
-                    write_file.write(email + "\n") 
-                    print "Would've emailed " + email
-                    #Emailer.send_welcome(email)
-                    logging.info("Tried to send welcome email to %s" % email)
-        write_file.close()
-                
-                #Even if we can't get a router's email, we set welcomed to true
-                #so that we don't keep trying to parse their email
+        def welcome(self):
+            """Send welcome emails to new, stable relay operators"""
+            uninformed = Router.objects.filter(welcomed = False, up = True)
+            write_file = open("welcome_test.log", "w")
+            for router in uninformed:
+                print router.fingerprint
+                if self.ctl_util.is_stable(str(router.fingerprint)):
+                    email = self.ctl_util.get_email(str(router.fingerprint))
+                    if not email == "":
+                        write_file.write(email + "\n")
+                        print "Would've emailed " + email
+                        #Emailer.send_welcome(email)
+                        logging.info("Tried to send welcome email to %s" %\
+                                      email)
+            write_file.close()
+                    
+                    #Even if we can't get a router's email, we set welcomed to 
+                    #true
+                    #so that we don't keep trying to parse their email
 
-                #router.welcomed = True
-                #router.save()
-def main():
+                    #----commented out for testing purposes-------
+                    #router.welcomed = True
+                    #router.save()
+
+        def update_all(self):
+            """Update the router table and send welcome emails as appropriate.
+            """
+            self.update()
+            self.welcom()
+
+def run_all():
     """Run all updaters/checkers in proper sequence"""
     ctl_util = ctlutil.CtlUtil()
     router_updater = RouterUpdater(ctl_util)
-    router_updater.update_all()
-    welcome = Welcomer(ctl_util)
     subscription_checker = SubscriptionChecker(ctl_util)
-    welcome.welcome()
+    router_updater.update_all()
     subscription_checker.check_all()
-
-if __name__ == "__main__":
-    main()
-
-
