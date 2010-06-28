@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/!svn/ver/6862/torctl/trunk/cs/control/ControlConnectionClasses
+END
+Delegates.cs
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/6862/torctl/trunk/cs/control/ControlConnectionClasses/Delegates.cs
+END
+TorControlConnectionFactory.cs
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svn/!svn/ver/6862/torctl/trunk/cs/control/ControlConnectionClasses/TorControlConnectionFactory.cs
+END
+ITorControlConnection.cs
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/!svn/ver/6862/torctl/trunk/cs/control/ControlConnectionClasses/ITorControlConnection.cs
+END
+TorControlConnectionBase.cs
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/!svn/ver/6862/torctl/trunk/cs/control/ControlConnectionClasses/TorControlConnectionBase.cs
+END
+TorControl.cs
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/6862/torctl/trunk/cs/control/ControlConnectionClasses/TorControl.cs
+END
+TorControlConnection0.cs
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/!svn/ver/6862/torctl/trunk/cs/control/ControlConnectionClasses/TorControlConnection0.cs
+END
+TorControlConnection1.cs
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/!svn/ver/6862/torctl/trunk/cs/control/ControlConnectionClasses/TorControlConnection1.cs
+END

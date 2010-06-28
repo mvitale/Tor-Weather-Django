@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/!svn/ver/20270/torctl/branches/stable/cs/control/HelperClasses
+END
+Waiter.cs
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/!svn/ver/20270/torctl/branches/stable/cs/control/HelperClasses/Waiter.cs
+END
+BigEndianWriter.cs
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/20270/torctl/branches/stable/cs/control/HelperClasses/BigEndianWriter.cs
+END
+BigEndianReader.cs
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/20270/torctl/branches/stable/cs/control/HelperClasses/BigEndianReader.cs
+END
+Cmd.cs
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/!svn/ver/20270/torctl/branches/stable/cs/control/HelperClasses/Cmd.cs
+END
+ReplyLine.cs
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/20270/torctl/branches/stable/cs/control/HelperClasses/ReplyLine.cs
+END
+Bytes.cs
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/!svn/ver/20270/torctl/branches/stable/cs/control/HelperClasses/Bytes.cs
+END
+ConfigEntry.cs
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/20270/torctl/branches/stable/cs/control/HelperClasses/ConfigEntry.cs
+END

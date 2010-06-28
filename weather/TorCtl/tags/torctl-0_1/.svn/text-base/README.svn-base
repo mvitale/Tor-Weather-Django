@@ -1,0 +1,5 @@
+$Id$
+This packages has libraries to help you write Tor controllers, written in
+Python and Java.  It is intended for developers.
+
+For more information, read the how-to document in doc/howto.txt .

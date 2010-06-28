@@ -1,0 +1,5 @@
+$Id: README 19427 2009-05-04 13:05:44Z mikeperry $
+This packages has libraries to help you write Tor controllers, written in
+Python and Java.  It is intended for developers.
+
+See README-Java.txt and python/README for more information.

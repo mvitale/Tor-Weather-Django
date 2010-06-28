@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/svn/!svn/ver/21780/torctl/branches/stable
+END
+LICENSE
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/!svn/ver/20270/torctl/branches/stable/LICENSE
+END
+TODO
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/!svn/ver/20270/torctl/branches/stable/TODO
+END
+ChangeLog
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/20270/torctl/branches/stable/ChangeLog
+END
+README-Java.txt
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/!svn/ver/20270/torctl/branches/stable/README-Java.txt
+END
+.cvsignore
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/!svn/ver/20270/torctl/branches/stable/.cvsignore
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/20270/torctl/branches/stable/Makefile
+END
+README
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/20270/torctl/branches/stable/README
+END

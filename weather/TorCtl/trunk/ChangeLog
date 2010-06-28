@@ -1,0 +1,16 @@
+
+
+New in torctl-0.1-cvs:
+  - Merge Java documentation patch from Mark Melahn
+  - Fix behavior of signal in TorControlConnection1.java (from Mark Melahn)
+  - Fix behavior of signal in TorControlConnection0.java (from Oliver Rau)
+  - Throw TorControlError, not Error.
+  - Implement resetConf method in controllers.
+  - Fix bug when sending a signal that kills Tor; avoid a
+    NullPointerException when Tor exits. (java; from Karsten Loesing)
+  - Remove all v0 support; merge TorControlConnection1 into 
+    TorControlConnection.  (Java; from Karsten)
+  - (Java): Add generics support where applicable. (Sebastian)
+  - (Java): Waiter.response is no longer of type Object. (Sebastian)
+  - (Java): removed some unnecessary casts. (Sebastian)
+  

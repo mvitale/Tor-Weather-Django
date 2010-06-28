@@ -1,0 +1,384 @@
+#!/usr/bin/python
+# TorCtl.py -- Python module to interface with Tor Control interface.
+# Copyright 2005 Nick Mathewson -- See LICENSE for licensing information.
+#$Id$
+
+import binascii
+import os
+import re
+import socket
+import sys
+import threading
+import types
+import Queue
+import TorCtl
+
+def _quote(s):
+    return re.sub(r'([\r\n\\\"])', r'\\\1', s)
+
+def _escape_dots(s, translate_nl=1):
+    if translate_ln:
+        lines = re.split(r"\r?\n", s)
+    else:
+        lines = s.split("\r\n")
+    if lines and not lines[-1]:
+        del lines[-1]
+    for i in xrange(len(lines)):
+        if lines[i].startswith("."):
+            lines[i] = "."+lines[i]
+    lines.append(".\r\n")
+    return "\r\n".join(lines)
+
+def _unescape_dots(s, translate_nl=1):
+    lines = s.split("\r\n")
+
+    for i in xrange(len(lines)):
+        if lines[i].startswith("."):
+            lines[i] = lines[i][1:]
+
+    if lines and lines[-1]:
+        lines.append("")
+
+    if translate_nl:
+        return "\n".join(lines)
+    else:
+        return "\r\n".join(lines)
+
+class _BufSock:
+    def __init__(self, s):
+        self._s = s
+        self._buf = []
+
+    def readline(self):
+        if self._buf:
+            idx = self._buf[0].find('\n')
+            if idx >= 0:
+                result = self._buf[0][:idx+1]
+                self._buf[0] = self._buf[0][idx+1:]
+                return result
+
+        while 1:
+            s = self._s.recv(128)
+            idx = s.find('\n')
+            if idx >= 0:
+                self._buf.append(s[:idx+1])
+                result = "".join(self._buf)
+                rest = s[idx+1:]
+                if rest:
+                    self._buf = [ rest ]
+                else:
+                    del self._buf[:]
+                return result
+            else:
+                self._buf.append(s)
+
+    def write(self, s):
+        self._s.send(s)
+
+    def close(self):
+        self._s.close()
+
+def _read_reply(f,debugFile=None):
+    lines = []
+    while 1:
+        line = f.readline().strip()
+        if debugFile:
+            debugFile.write("    %s\n" % line)
+        if len(line)<4:
+            raise TorCtl.ProtocolError("Badly formatted reply line: Too short")
+        code = line[:3]
+        tp = line[3]
+        s = line[4:]
+        if tp == "-":
+            lines.append((code, s, None))
+        elif tp == " ":
+            lines.append((code, s, None))
+            return lines
+        elif tp != "+":
+            raise TorCtl.ProtocolError("Badly formatted reply line: unknown type %r"%tp)
+        else:
+            more = []
+            while 1:
+                line = f.readline()
+                if debugFile:
+                    debugFile.write("    %s" % line)
+                if line in (".\r\n", ".\n"):
+                    break
+                more.append(line)
+            lines.append((code, s, _unescape_dots("".join(more))))
+
+class Connection:
+    """A Connection represents a connection to the Tor process."""
+    def __init__(self, sock):
+        """Create a Connection to communicate with the Tor process over the
+           socket 'sock'.
+        """
+        self._s = _BufSock(sock)
+        self._debugFile = None
+        self._handler = None
+        self._sendLock = threading.RLock()
+        self._queue = Queue.Queue()
+        self._thread = None
+
+    def debug(self, f):
+        """DOCDOC"""
+        self._debugFile = f
+
+    def set_event_handler(self, handler):
+        """Cause future events from the Tor process to be sent to 'handler'.
+        """
+        self._handler = handler
+
+    def launch_thread(self, daemon=1):
+        """Launch a background thread to handle messages from the Tor process."""
+        assert self._thread is None
+        t = threading.Thread(target=self._loop)
+        if daemon:
+            t.setDaemon(daemon)
+        t.start()
+        self._thread = t
+        return t
+
+    def close(self):
+        """Shut down this controller connection"""
+        self._sendLock.acquire()
+        try:
+            self._queue.put("CLOSE")
+            self._s.close()
+        finally:
+            self._sendLock.release()
+
+    def _loop(self):
+        """Main subthread loop: Read commands from Tor, and handle them either
+           as events or as responses to other commands.
+        """
+        while 1:
+            try:
+                lines = _read_reply(self._s,self._debugFile)
+            except OSError:
+                if self._queue.get(timeout=0) != "CLOSE":
+                    raise
+            assert lines
+            if lines[0][0][0] == "6":
+                if self._handler is not None:
+                    self._handler.handle1(lines)
+            else:
+                cb = self._queue.get()
+                cb(lines)
+
+    def _sendAndRecv(self, msg="", expectedTypes=("250",)):
+        """Helper: Send a command 'msg' to Tor, and wait for a command
+           in response.  If the response type is in expectedTypes,
+           return a list of (tp,body,extra) tuples.  If it is an
+           error, raise ErrorReply.  Otherwise, raise TorCtl.ProtocolError.
+        """
+        if self._thread is None:
+            self.launch_thread(1)
+        # This condition will get notified when we've got a result...
+        condition = threading.Condition()
+        # Here's where the result goes...
+        result = []
+
+        def cb(lines,condition=condition,result=result):
+            condition.acquire()
+            try:
+                result.append((lines))
+                condition.notify()
+            finally:
+                condition.release()
+
+        if type(msg) == types.ListType:
+            msg = "".join(msg)
+
+        assert msg.endswith("\r\n")
+
+        # Sends a message to Tor...
+        self._sendLock.acquire()
+        try:
+            self._queue.put(cb)
+            if self._debugFile:
+                self._debugFile.write(">>> %s" % msg)
+            self._s.write(msg)
+        finally:
+            self._sendLock.release()
+
+        # Now wait till the answer is in...
+        condition.acquire()
+        try:
+            while not result:
+                condition.wait()
+        finally:
+            condition.release()
+
+        # ...And handle the answer appropriately.
+        assert len(result) == 1
+        lines = result[0]
+        for tp, msg, _ in lines:
+            if tp[0] in '45':
+                raise TorCtl.ErrorReply("%s %s"%(tp, msg))
+            if tp not in expectedTypes:
+                raise TorCtl.ProtocolError("Unexpectd message type %r"%tp)
+
+        return lines
+
+    def authenticate(self, secret=""):
+        """Send an authenticating secret to Tor.  You'll need to call this
+           method before Tor can start.
+        """
+        hexstr = binascii.b2a_hex(secret)
+        self._sendAndRecv("AUTHENTICATE %s\r\n"%hexstr)
+
+    def get_option(self, name):
+        """Get the value of the configuration option named 'name'.  To
+           retrieve multiple values, pass a list for 'name' instead of
+           a string.  Returns a list of (key,value) pairs.
+        """
+        if not isinstance(name, str):
+            name = " ".join(name)
+        lines = self._sendAndRecv("GETCONF %s\r\n" % name)
+
+        r = []
+        for _,line,_ in lines:
+            try:
+                key, val = line.split("=", 1)
+                r.append((key,val))
+            except ValueError:
+                r.append((line, None))
+
+        return r
+
+    def set_option(self, key, value):
+        """Set the value of the configuration option 'key' to the value 'value'.
+        """
+        self.set_options([key, value])
+
+    def set_options(self, kvlist):
+        """Given a list of (key,value) pairs, set them as configuration
+           options.
+        """
+        if not kvlist:
+            return
+        msg = " ".join(["%s=%s"%(k,_quote(v)) for k,v in kvlist])
+        self._sendAndRecv("SETCONF %s\r\n"%msg)
+
+    def get_info(self, name):
+        """Return the value of the internal information field named 'named'.
+           DOCDOC
+        """
+        if not isinstance(name, str):
+            name = " ".join(name)
+        lines = self._sendAndRecv("GETINFO %s\r\n"%name)
+        d = {}
+        for _,msg,more in lines:
+            if msg == "OK":
+                break
+            try:
+                k,rest = msg.split("=",1)
+            except ValueError:
+                raise TorCtl.ProtocolError("Bad info line %r",msg)
+            if more:
+                d[k] = more
+            else:
+                d[k] = rest
+        return d
+
+    def set_events(self, events):
+        """Change the list of events that the event handler is interested
+           in to those in 'events', which is a list of event names.
+           Recognized event names are listed in section 3.3 of the control-spec
+        """
+        evs = []
+
+        # Translate options supported by old interface.
+        for e in events:
+            if e == 0x0001 or e == "CIRCSTATUS":
+                e = "CIRC"
+            elif e == 0x0002 or e == "STREAMSTATUS":
+                e = "STREAM"
+            elif e == 0x0003 or e == "ORCONNSTATUS":
+                e = "ORCONN"
+            elif e == 0x0004 or e == "BANDWIDTH":
+                e = "BW"
+            elif e == 0x0005 or e == "OBSOLETE_LOG":
+                coneinue
+            elif e == 0x0006 or e == "NEWDESC":
+                e = "NEWDESC"
+            elif e == 0x0007 or e == "DEBUG_MSG":
+                continue
+            elif e == 0x0008 or e == "INFO_MSG":
+                e = "INFO"
+            elif e == 0x0008 or e == "NOTICE_MSG":
+                e = "NOTICE"
+            elif e == 0x0008 or e == "WARN_MSG":
+                e = "WARN"
+            elif e == 0x0008 or e == "ERR_MSG":
+                e = "ERR"
+            evs.append(e)
+
+        self._sendAndRecv("SETEVENTS %s\r\n" % " ".join(evs))
+
+    def save_conf(self):
+        """Flush all configuration changes to disk.
+        """
+        self._sendAndRecv("SAVECONF\r\n")
+
+    def send_signal(self, sig):
+        """Send the signal 'sig' to the Tor process; The allowed values for
+           'sig' are listed in section 3.6 of control-spec.
+        """
+        sig = { 0x01 : "HUP",
+                0x02 : "INT",
+                0x0A : "USR1",
+                0x0C : "USR2",
+                0x0F : "TERM" }.get(sig,sig)
+        self._sendAndRecv("SIGNAL %s\r\n"%sig)
+
+    def map_address(self, kvList):
+        if not kvList:
+            return
+        m = " ".join([ "%s=%s" for k,v in kvList])
+        lines = self._sendAndRecv("MAPADDRESS %s\r\n"%m)
+        r = []
+        for _,line,_ in lines:
+            try:
+                key, val = line.split("=", 1)
+            except ValueError:
+                raise TorCtl.ProtocolError("Bad address line %r",v)
+            r.append((key,val))
+        return r
+
+    def extend_circuit(self, circid, hops):
+        """Tell Tor to extend the circuit identified by 'circid' through the
+           servers named in the list 'hops'.
+        """
+        if circid is None:
+            circid = "0"
+        lines = self._sendAndRecv("EXTENDCIRCUIT %s %s\r\n"
+                                  %(circid, ",".join(hops)))
+        tp,msg,_ = lines[0]
+        m = re.match(r'EXTENDED (\S*)', msg)
+        if not m:
+            raise TorCtl.ProtocolError("Bad extended line %r",msg)
+        return m.group(1)
+
+    def redirect_stream(self, streamid, newtarget):
+        """DOCDOC"""
+        self._sendAndRecv("REDIRECTSTREAM %s %s\r\n"%(streamid, newtarget))
+
+    def attach_stream(self, streamid, circid):
+        """DOCDOC"""
+        self._sendAndRecv("REDIRECTSTREAM %s %s\r\n"%(streamid, circid))
+
+    def close_stream(self, streamid, reason=0, flags=()):
+        """DOCDOC"""
+        self._sendAndRecv("CLOSESTREAM %s %s %s\r\n"
+                          %(streamid, reason, "".join(flags)))
+
+    def close_circuit(self, circid, reason=0, flags=()):
+        """DOCDOC"""
+        self._sendAndRecv("CLOSECIRCUIT %s %s %s\r\n"
+                          %(circid, reason, "".join(flags)))
+
+    def post_descriptor(self, desc):
+        self._sendAndRecv("+POSTDESCRIPTOR\r\n%s"%_escape_dots(desc))
+
