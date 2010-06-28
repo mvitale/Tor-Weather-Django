@@ -115,7 +115,7 @@ class Emailer:
         msg = Emailer._CONFIRMATION_MAIL % (fingerprint, confirm_url)
         sender = Emailer._SENDER
         subj = Emailer._SUBJECT_HEADER + Emailer._CONFIRMATION_SUBJ
-        send_mail(subj, msg, sender, [recipient], fail_silently=True)
+        send_mail(subj, msg, sender, [recipient], fail_silently=False)
 
     @staticmethod
     def send_confirmed(recipient,

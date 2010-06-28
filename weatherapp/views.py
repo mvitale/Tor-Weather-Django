@@ -48,7 +48,7 @@ def subscribe(request):
             except Exception, e:
                 return HttpResponseRedirect(e)
             else:
-                form.save_subscriptions()
+                form.save_subscriptions(subscriber)
 
                 # Spawn a daemon to send the confirmation email.
                 confirm_auth = subscriber.confirm_auth

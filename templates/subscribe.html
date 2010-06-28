@@ -45,6 +45,8 @@
 	</div>
 </div>
 
+{% for error in form.non_field_errors %}<span class="big-error">{{ error }}</span>{% endfor %}
+
 <h3 class="form-heading">
 	<span>
 		Node Down Notification Options

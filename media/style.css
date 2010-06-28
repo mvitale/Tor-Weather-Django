@@ -17,7 +17,7 @@ form div {
 .form-heading {
 	border-bottom: 1px solid black;
 	margin-bottom: 15px;
-	margin-top: 20px;
+	margin-top: 10px;
 }
 
 div#sign-up-link {
@@ -39,6 +39,13 @@ span.error {
 	padding-bottom: 3px;
 	color: red;
 	display: block;
+}
+
+span.big-error {
+	padding-top: 10px;
+	color: red;
+	display: block;
+	font-weight: bold;
 }
 
 input#subscribe-submit {

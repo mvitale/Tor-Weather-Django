@@ -40,7 +40,7 @@ class Router(models.Model):
     fingerprint = models.CharField(max_length=40, unique=True)
     name = models.CharField(max_length=100)
     welcomed = models.BooleanField(default=False)
-    last_seen = models.DateTimeField('date last seen', default=datetime.now())
+    last_seen = models.DateTimeField('date last seen', default=datetime.now)
     up = models.BooleanField(default=True)
     exit = models.BooleanField()
 
@@ -167,7 +167,7 @@ class Subscription(models.Model):
     objects = SubscriptionManager()
     
     def __unicode__(self):
-        return self.subscriber.email
+        return self.subscriber.email + ": Generic Sub"
 
 
 class NodeDownSub(Subscription):
@@ -178,6 +178,9 @@ class NodeDownSub(Subscription):
         after a node is seen down.
     """
     grace_pd = models.IntegerField()
+
+    def __unicode__(self):
+        return self.subscriber.email + ": Node Down Sub"
 
     def should_email():
         """Returns a bool representing whether or not the Subscriber should
@@ -207,6 +210,9 @@ class VersionSub(Subscription):
 # -----------------------------------------------------------------------
     threshold = models.CharField(max_length=250)
 
+    def __unicode__(self):
+        return self.subscriber.email + ": Version Sub"
+
     def should_email():
         """
         """
@@ -218,6 +224,9 @@ class LowBandwidthSub(Subscription):
     threshold = models.IntegerField(default = 0)
     grace_pd = models.IntegerField(default = 1)
 
+    def __unicode__(self):
+        return self.subscriber.email + ": Low Bandwidth Sub"
+
     #def should_email():
         #"""
         #"""
@@ -228,6 +237,9 @@ class TShirtSub(Subscription):
     """"""
     avg_bandwidth = models.IntegerField()
     hours_since_triggered = models.IntegerField()
+
+    def __unicode__(self):
+        return self.subscriber.email + ": T-Shirt Sub"
 
     def should_email():
         """Returns true if the router being watched has been up for 1464 hours
@@ -318,17 +330,28 @@ class SubscribeForm(forms.Form):
         # 'parent' checkbox is checked. That is, a validation error for
         # fields pertinent to get_node_down are only thrown if get_node_down
         # is checked. By default, all non-subscriber fields are not required.
+
+        # If the node down subscription box is checked
         if self.cleaned_data['get_node_down']:
-            if 'node_down_grace_pd' not in self.cleaned_data \
-            and 'node_down_grace_pd' not in self._errors:
+            # If there are no other errors for the node_down_grace_pd field and
+            # it is empty (either not in cleaned_data or in it as None)
+            if 'node_down_grace_pd' not in self._errors \
+            and ('node_down_grace_pd' not in self.cleaned_data
+            or self.cleaned_data['node_down_grace_pd'] == None):
                 self._errors['node_down_grace_pd'] = self.error_class(
                                                             [required_msg])
+        # If the node down subscription box isn't checked, and there are
+        # errors for node_down_grace_pd, then ignore them.
         elif 'node_down_grace_pd' in self._errors:
             del self._errors['node_down_grace_pd']
 
+        # If the out of date subscription box is checked
         if self.cleaned_data['get_out_of_date']:
-            if 'out_of_date_threshold' not in self.cleaned_data \
-            and 'out_of_date_threshold' not in self._errors:
+            # If there are no other errors for the out_of_date_threshold field
+            # and it is empty (either not in cleaned data or in it as None)
+            if 'out_of_date_threshold' not in self._errors \
+            and ('out_of_date_threshold' not in self.cleaned_data
+            or self.cleaned_data['out_of_date_grace_pd'] == None):
                 self._errors['out_of_date_threshold'] = self.error_class(
                                                             [required_msg])
             if 'out_of_date_grace_pd' not in self.cleaned_data \
@@ -354,6 +377,10 @@ class SubscribeForm(forms.Form):
         elif 'band_low_grace_pd' in self._errors:
             del self._errors['band_low_grace_pd']
 
+
+        # Makes sure email_1 and email_2 match and creates error messages
+        # if they don't as well as deleting the cleaned data so that it isn't
+        # erroneously used.
         if 'email_1' in self.cleaned_data and 'email_2' in self.cleaned_data:
             email_1 = self.cleaned_data['email_1']
             email_2 = self.cleaned_data['email_2']
@@ -365,6 +392,14 @@ class SubscribeForm(forms.Form):
                 
                 del self.cleaned_data['email_1']
                 del self.cleaned_data['email_2']
+
+        # Ensures that at least one subscription must be checked.
+        if not (self.cleaned_data['get_node_down'] or
+                self.cleaned_data['get_out_of_date'] or
+                self.cleaned_data['get_band_low'] or
+                self.cleaned_data['get_t_shirt']):
+            raise forms.ValidationError('You must choose at least one \
+                                         type of subscription!')
 
         return self.cleaned_data
 
@@ -423,7 +458,7 @@ class SubscribeForm(forms.Form):
             subscriber.save()
             return subscriber
             
-    def save_subscriptions(self):
+    def save_subscriptions(self, subscriber):
         # Create the various subscriptions if they are specified.
         if self.cleaned_data['get_node_down']:
             node_down_sub = NodeDownSub(subscriber=subscriber,
