@@ -216,8 +216,8 @@ class CtlUtil:
             descriptor = self.get_single_descriptor(node_id)
             desc_lines = descriptor.split('\n')
             for line in desc_lines:
-                if line.startswith('accept') and (line.endswith(':80')
-                                            or line.endswith('*:*')):
+                if (line.startswith('accept') and (line.endswith(':80') 
+                                                   or line.endswith('*:*'))):
                     return True
             return False
         except TorCtl.ErrorReply, e:

@@ -1,8 +1,12 @@
-from django.core.mail import send_mail
-from weather.config.web_directory import Urls
+"""The emails module contains methods to send individual confirmation and confirmed emails as well as methods to return tuples needed by Django's 
+send_mass_mail() method, which is called after all notification checks are run 
+to send necessary emails. 
 
-"""The emails module contains email templates and methods to send Weather 
-Report emails to Tor Weather users."""
+@var
+"""
+# --------- DOCUMENT THE VARS ---------------------------
+from django.core.mail import send_mail
+from weather.config import url_helper
 
 _SENDER = 'tor-ops@torproject.org'
 _SUBJECT_HEADER = '[Tor Weather] '
@@ -11,7 +15,7 @@ _CONFIRMATION_SUBJ = 'Confirmation Needed'
 _CONFIRMATION_MAIL = "Dear human,\n\n" +\
     "This is the Tor Weather Report system.\n\n" +\
     "Someone (possibly you) has requested that status monitoring "+\
-    " information about a Tor node (id: %s) be sent to this email "+\
+    "information about a Tor node (id: %s) be sent to this email "+\
     "address.\n\nIf you wish to confirm this request, please visit the "+\
     "following url:\n\n%s\n\nIf you do not wish to receive Tor Weather "+\
     "Reports, you don't need to do anything. You shouldn't hear from us "+\
@@ -69,7 +73,8 @@ _T_SHIRT_MAIL = "This is a Tor Weather Report.\n\n"+\
 
 _WELCOME_SUBJ = 'Welcome to Tor!'
 _WELCOME_MAIL = "Hello and welcome to Tor!\n\n" +\
-    "We've noticed that your Tor node has been running long enough to be "+\
+    "We've noticed that your Tor node %s(id = %s) has been running long "+\
+    "enough to be "+\
     "flagged as \"stable\". First, we would like to thank you for your "+\
     "contribution to the Tor network! As Tor grows, we require ever more "+\
     "nodes to optomize browsing speed and reliability for our users. "+\
@@ -114,14 +119,11 @@ def send_confirmation(recipient,
         monitor.
     @type confirm_auth: str
     @param confirm_auth: The user's unique confirmation authorization key.
-    @type sender: str
-    @param sender: The sender's email address. Default = the stored 
-        email address for the Tor Weather Notification System.
     """
-    confirm_url = Urls.get_confirm_url(confirm_auth)
-    msg = _CONFIRMATION_MAIL % (fingerprint, confirm_url)
-    sender = _SENDER
-    subj = _SUBJECT_HEADER + _CONFIRMATION_SUBJ
+    confirm_url = url_helper.get_confirm_url(confirm_auth)
+    msg = Emailer._CONFIRMATION_MAIL % (fingerprint, confirm_url)
+    sender = Emailer._SENDER
+    subj = Emailer._SUBJECT_HEADER + Emailer._CONFIRMATION_SUBJ
     send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
 def send_confirmed(recipient,
@@ -137,15 +139,15 @@ def send_confirmed(recipient,
     @type fingerprint: str
     @param fingerprint: The fingerprint of the node this user wishes to
         monitor.
-    @type unsub_auth: str
-    @param unsub_auth: The user's unique unsubscribe auth key
+    @type unsubs_auth: str
+    @param unsubs_auth: The user's unique unsubscribe auth key
     @type pref_auth: str
     @param pref_auth: The user's unique preferences auth key
     """
     subj = _SUBJECT_HEADER + _CONFIRMED_SUBJ
     sender = _SENDER
-    unsubURL = Urls.get_unsubscribe_url(unsubs_auth)
-    prefURL = Urls.get_preferences_url(pref_auth)
+    unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
+    prefURL = url_helper.get_preferences_url(pref_auth)
     msg = _CONFIRMED_MAIL % (fingerprint, unsubURL, prefURL) 
     send_mail(subj, msg, sender, [recipient], fail_silently=False)
 
@@ -155,7 +157,20 @@ def send_node_down(recipient,
                    unsubs_auth,
                    pref_auth):
     """Sends an email to the user about their node being down.
-    
+    @type unsubs_auth: str
+    @param unsubs_auth: The user's unique unsubscribe auth key
+    @type pref_auth: str
+    @param pref_auth: The user's unique preferences auth key
+    """
+    subj = Emailer._SUBJECT_HEADER + Emailer._CONFIRMED_SUBJ
+    sender = Emailer._SENDER
+    unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
+    prefURL = url_helper.get_preferences_url(pref_auth)
+    msg = Emailer._CONFIRMED_MAIL % (fingerprint, unsubURL, prefURL) 
+    send_mail(subj, msg, sender, [recipient], fail_silently=False)
+
+def node_down_tuple(recipient, fingerprint, grace_pd, unsubs_auth, pref_auth):
+    """Returns the tuple for a node down email.
     @type recipient: str
     @param recipient: The user's email address
     @type fingerprint: str
@@ -167,46 +182,25 @@ def send_node_down(recipient,
     @param unsubs_auth: The user's unique unsubscribe auth key
     @type pref_auth: str
     @param pref_auth: The user's unique preferences auth key
+    @rtype: tuple
+    @return: A tuple listing information about the email to be sent, which is
+        used by the send_mass_mail method in updaters.
     """
-    subj = _SUBJECT_HEADER + _NODE_DOWN_SUBJ
-    sender = _SENDER
-    unsubURL = Urls.get_unsubscribe_url(unsubs_auth)
-    prefURL = Urls.get_preferences_url(pref_auth)
-    msg = _NODE_DOWN_MAIL % (fingerprint, grace_pd, unsubURL,   
-                             prefURL)
-    send_mail(subj, msg, sender, [recipient], fail_silently=True)
+    subj = Emailer._SUBJECT_HEADER + Emailer._NODE_DOWN_SUBJ
+    sender = Emailer._SENDER
+    unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
+    prefURL = url_helper.get_preferences_url(pref_auth)
+    msg = Emailer._NODE_DOWN_MAIL % (fingerprint, grace_pd, unsubURL,   
+                                     prefURL)
+    return (subj, msg, sender, [recipient])
 
-def send_low_bandwidth(recipient, fingerprint, grace_pd, unsubs_auth,
-                       pref_auth):
-    """Inform C{recipient} that their bandwidth is below 50KB/s
-   
-    @type recipient: str
-    @param recipient: The recipient's email address.
-    @type fingerprint: str
-    @param fingerprin: The fingerprint of the node this user is monitoring.
-    @type: int
-    @param grace_pd: The grace period specified by the user.
-    @type unsubs_auth: str
-    @param unsubs_auth: The user's unique unsubscribe auth key.
-    @type pref_auth: str
-    @param pref_auth: The user's unique preferences auth key.
-    """
-    subj = _SUBJECT_HEADER + _LOW_BANDWIDTH_SUBJ
-    sender = _SENDER
-    unsubURL = Urls.get_unsubscribe_url(unsubs_auth)
-    prefURL = Urls.get_preferences_url(pref_auth)
-    msg = _LOW_BANDWIDTH_MAIL % (fingerprint, grace_pd, unsubs_auth,
-                                 pref_auth)
-    send_mail(subj, msg, sender, [recipient], fail_silently=True)
-
-def send_t_shirt(recipient,
+def t_shirt_tuple(recipient,
                  avg_bandwidth,
                  hours_since_triggered,
                  is_exit,
                  unsubs_auth,
                  pref_auth):
-    """Sends an email to the user notifying them that their node has
-    earned them a T-shirt.
+    """Returns a tuple for a t-shirt earned email.
     
     @type recipient: str
     @param recipient: The user's email address
@@ -218,40 +212,56 @@ def send_t_shirt(recipient,
         was first viewed as running.
     @type is_exit: bool
     @param is_exit: True if the router is an exit node, False if not.
-    @param unsub_auth: The user's unique unsubscribe auth key
+    @type unsubs_auth: str
+    @param unsubs_auth: The user's unique unsubscribe auth key
     @type pref_auth: str
     @param pref_auth: The user's unique preferences auth key
+    @rtype: tuple
+    @return: A tuple listing information about the email to be sent, which is
+        used by the send_mass_mail method in updaters.
     """
     stable_message = 'running'
     if is_exit:
         node_type += ' as an exit node'
     days_running = hours_since_triggered / 24
     avg_bandwidth = avg_bandwidth / 1000
-    subj = _SUBJECT_HEADER + _T_SHIRT_SUBJ
-    sender = _SENDER
-    unsubURL = Urls.get_unsubscribe_url(unsubs_auth)
-    prefURL = Urls.get_preferences_url(pref_auth)
-    msg = _T_SHIRT_MAIL % (stable_message, days_running, 
+    subj = Emailer._SUBJECT_HEADER + Emailer._T_SHIRT_SUBJ
+    sender = Emailer._SENDER
+    unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
+    prefURL = url_helper.get_preferences_url(pref_auth)
+    msg = Emailer._T_SHIRT_MAIL % (stable_message, days_running, 
                                    avg_bandwidth, unsubURL, prefURL)
-    send_mail(subj, msg, sender, [recipient], fail_silently=True)
+    return (subj, msg, sender, [recipient])
 
-def send_welcome(recipient):
-    """Sends a welcome email to a stable node operator. The email 
-    alerts the operator about Tor Weather and the or-announce mailing 
-    list.
+def welcome_tuple(recipient, fingerprint, exit):
+# ---------- CONFIGURE LEGAL INFO  --------------------------------
+    """Returns a tuple for the welcome email.
 
     @type recipient: str
     @param recipient: The user's email address.
+    @type fingerprint: str
+    @param fingerprint: The fingerprint for the router this user is subscribed
+        to.
+    @type exit: bool
+    @param exit: C{True} if the router is an exit node, C{False} if not.
+    @rtype: tuple
+    @return: A tuple listing information about the email to be sent, which is
+        used by the send_mass_mail method in updaters.
     """
-    subj = _SUBJECT_HEADER + _WELCOME_SUBJ
-    sender = _SENDER
-    msg = _WELCOME_MAIL
-    send_mail(subj, msg, sender, [recipient], fail_silently=True)
+    router = Router.objects.get(fingerprint=fingerprint)
+    router_name = router.name
+    name = ''
+    if router_name != 'Unnamed':
+        name = router_name + ', ' 
+    subj = Emailer._SUBJECT_HEADER + Emailer._WELCOME_SUBJ
+    sender = Emailer._SENDER
+    msg = Emailer._WELCOME_MAIL % (name, router.fingerprint)
+    return (subj, msg, sender, [recipient])
 
 def send_legal(recipient):
                # PUT REQUIRED NUMBER OF % PARAMETERS HERE
     """"""
-    subj = _SUBJECT_HEADER + _WELCOME_SUBJ
-    sender = _SENDER
-    msg = _LEGAL_MAIL #% PUT PARAMETERS HERE
+    subj = Emailer._SUBJECT_HEADER + Emailer._WELCOME_SUBJ
+    sender = Emailer._SENDER
+    msg = Emailer._LEGAL_MAIL #% PUT PARAMETERS HERE
     send_mail(subj, msg, sender, [recipient], fail_silently=True)

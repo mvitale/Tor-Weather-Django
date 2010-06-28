@@ -1,0 +1,82 @@
+Tor Weather Design Documentation
+================================
+
+Django
+------------
+Tor Weather was ported to 'Django'_ (v1.2) to take advantage of the framework's object relational mapper for database access. Data can be directly accessed by way of Django's models, each of which maps to a table in the database and can be utilized as an object. Django's adaptation of the model-view-controller schema is a bit confusing: controllers are stored in a module named views.py and views are called templates (but models are still, thankfully, called models).
+
+Directory Structure
+-------------------------
+Directory structure in Django involves an outer directory, weather, with four 
+default files: __init__.py (empty), manage.py (we leave this alone--it syncs the database and runs the server), settings.py (a config file), and urls.py (stores url patterns to recognize and the corresponding controller to direct to). The next level is the application's folder, weatherapp. By default, application folders in Django contain four default files: __init__.py (empty), 'models.py'_ (a module for the models), tests.py (a module for application tests), and 'views.py'_ (a module for the controllers).
+
+Within the main directory (weather/), we included a directory for docs (including a README and licensing information), a templates directory including all of the Tor Weather views, and a config directory. In the templates directory, the file base.html is the main template with the Tor banner, and all other template files 'extend' this template (a Django funtionality). The config directory contains a module (templates.py) for mapping template filenames to variables and a module (url_helper.py) for accessing url extensions. Should the template file names or url path extensions in urls.py ever be changed, these need only be updated in the config directory.
+
+Modules in weatherapp
+--------------------------
+.. _models.py
+models.py
+..........
+To add flexibility, the Tor Weather model structure was expanded to include
+three main models: Router, Subscriber, and Subscription. 
+
+Router
+,,,,,,,
+The Router table stores information about every router in the Tor network that a)posts its fingerprint to the directory authorities and b)has been seen up either within the past year or since the new Tor Weather has been running (whichever is more recent). That way, Tor Weather can send welcome notifications to all new relay operators once their node is flagged stable, assuming we can parse their email.
+
+Subscriber
+,,,,,,,,,,,,
+The Subscriber maps to a single router by a many-to-one foreign key relation (multiple users can subscribe to a single router, but if a user wants to subscribe to more than one router they will be represented by multiple Subscriber objects in the table). Each object stores unique authorization keys that are used to access user-specific pages (i.e. preferences, unsubscribe, etc).
+
+Subscription
+,,,,,,,,,,,,,
+We decided to create separate Subscription models to improve flexibility: with new "subscription types", each Subscriber can have multiple Subscriptions to a 
+Router. The subscription types (each of which inherits from the Subscription model) include NodeDownSub (sends an email if the Router is down), TShirtSub (sends an email if the Router earned the Subscriber--ideally the operator--a t-shirt), LowBandwidthSub (sends an email if the Router's bandwidth drops below 50 KB/s, Tor's minimum for being a functional node), and VersionSub (sends an email if the Router is running an out-of-date version of Tor).
+
+.. _views.py
+views.py
+............
+The module stores all of the controllers for the web interface.
+
+auth_token
+..............
+A key used to authenticate a connection to the local Tor process through TorCtl
+
+ctlutil.py
+............
+Contains the CtlUtil class, which establishes a connection to TorCtl and handles all relevant communication (i.e. accessing consensus documents and descriptor files).
+
+emails.py
+............
+Contains all email messages that Tor Weather can send and the methods to send them.
+
+error_messages.py
+.................
+Contains the error messages that are passed to the error template and the
+method to access the appropriate message.
+
+listener.py
+..............
+Listens to TorCtl for new consensus events and initializes the events to check all subscriptions.
+
+updaters.py
+.............
+Calls methods for checking each Subscription in the database and populating/updating the Router table.
+
+Event Flow
+------------------
+The arrival of a new consensus document triggers a cascade of events. First, the Router table is populated and updated, and welcome emails are sent to new stable relay operators. Next, each Subscription is checked to determine if a Tor Weather notification should be sent. Finally, all of the necessary emails are sent out.
+
+Consensus Event Hanlding
+..........................
+The main method in listeners.py spawns a thread that continually listens for new consensus events through TorCtl and triggers run_all() within the updaters module when a consensus document is received.
+
+Updating and Notifying
+..........................
+Updating the database and sending email notifications is handled by the updaters module. Within updaters, the Router table is first populated and updated by scanning the consensus document for all router fingerprints therein. If a router isn't stored in the database, it's added. Relevant information for existing routers in the database is updated using descriptor information. If a router in the database is flagged as stable in the consensus document, a welcome email is sent to the node operator after parsing their email from the descriptor file. The welcome email contains information about Tor Weather and legal information if the node functions as an exit node.
+
+Next, each Subscription in the database is updated, and emails are sent to the Subscriber's email if the conditions indicate a notification should be sent.
+
+Finally, 
+
+.. _Django: http://docs.djangoproject.com/en/1.2/intro/overview/

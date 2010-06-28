@@ -1,3 +1,6 @@
+"""A module for listening to TorCtl for new consensus events. When one occurs,
+initializes checker"""
+
 import sys, os
 
 sys.path.append(os.path.abspath('../..'))
@@ -14,9 +17,6 @@ import logging
 #very basic log setup
 logging.basicConfig(format = '%(asctime) - 15s (%(process)d) %(message)s',
                     level = logging.INFO, filename = './weather.log')
-
-"""A module for listening to TorCtl for new consensus events. When one occurs,
-initializes checker"""
 
 class MyEventHandler(TorCtl.EventHandler):
     def new_consensus_event(self, event):
