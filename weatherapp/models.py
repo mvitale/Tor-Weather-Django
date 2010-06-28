@@ -319,24 +319,41 @@ class SubscribeForm(forms.Form):
         # fields pertinent to get_node_down are only thrown if get_node_down
         # is checked. By default, all non-subscriber fields are not required.
         if self.cleaned_data['get_node_down']:
-            if 'node_down_grace_pd' not in self.cleaned_data:
+            if 'node_down_grace_pd' not in self.cleaned_data \
+            and 'node_down_grace_pd' not in self._errors:
                 self._errors['node_down_grace_pd'] = self.error_class(
                                                             [required_msg])
+        elif 'node_down_grace_pd' in self._errors:
+            del self._errors['node_down_grace_pd']
+
         if self.cleaned_data['get_out_of_date']:
-            if 'out_of_date_threshold' not in self.cleaned_data:
+            if 'out_of_date_threshold' not in self.cleaned_data \
+            and 'out_of_date_threshold' not in self._errors:
                 self._errors['out_of_date_threshold'] = self.error_class(
                                                             [required_msg])
-            if 'out_of_date_grace_pd' not in self.cleaned_data:
+            if 'out_of_date_grace_pd' not in self.cleaned_data \
+            and 'out_of_date_grace_pd' not in self._errors:
                 self._errors['out_of_date_grace_pd'] = self.error_class(
                                                             [required_msg])
+        elif 'out_of_date_threshold' in self._errors:
+            del self._errors['out_of_date_threshold']
+        elif 'out_of_date_grace_pd' in self._errors:
+            del self._errors['out_of_date_grace_pd']
+
         if self.cleaned_data['get_band_low']:
-            if 'band_low_threshold' not in self.cleaned_data:
+            if 'band_low_threshold' not in self.cleaned_data \
+            and 'band_low_threshold' not in self._errors:
                 self._errors['band_low_threshold'] = self.error_class(
                                                             [required_msg])
-            if 'band_low_grace_pd' not in self.cleaned_data:
+            if 'band_low_grace_pd' not in self.cleaned_data \
+            and 'band_low_grace_pd' not in self._errors:
                 self._errors['band_low_grace_pd'] = self.error_class(
                                                             [required_msg])
-        
+        elif 'band_low_threshold' in self._errors:
+            del self._errors['band_low_threshold']
+        elif 'band_low_grace_pd' in self._errors:
+            del self._errors['band_low_grace_pd']
+
         if 'email_1' in self.cleaned_data and 'email_2' in self.cleaned_data:
             email_1 = self.cleaned_data['email_1']
             email_2 = self.cleaned_data['email_2']
@@ -350,30 +367,6 @@ class SubscribeForm(forms.Form):
                 del self.cleaned_data['email_2']
 
         return self.cleaned_data
-
-    #def clean_email_1(self):
-    #    """Uses Django's built-in 'clean' form processing functionality to
-    #    test whether the 1st email field matches the 1st.
-    #    """
-    #    email_1 = self.cleaned_data.get('email_1')
-    #    email_2 = self.cleaned_data.get('email_2')
-#
-#        if email_1 == email_2:
-#            return email_1
-#        else:
-#            raise forms.ValidationError('Email addresses must match.')
-#
-#    def clean_email_2(self):
-#        """Uses Django's built-in 'clean' form processing functionality to
-#        test whether the 2nd email field matches the 1st.
-#        """
-#        email_1 = self.cleaned_data.get('email_1')
-#        email_2 = self.cleaned_data.get('email_2')
-#
-#        if email_1 == email_2:
-#            return email_2
-#        else:
-#            raise forms.ValidationError('Email addresses must match.')
 
     def clean_fingerprint(self):
         """Uses Django's built-in 'clean' form processing functionality to
@@ -391,48 +384,6 @@ class SubscribeForm(forms.Form):
             msg = 'We could not locate a Tor node with that fingerprint. \
                    (<a href=%s>More info</a>)' % info_extension
             raise forms.ValidationError(msg)
-
-# ---------------- SEE IF THESE ARE NECESSARY; SEE WHAT HAPPENS W/O THESE
- 
-#    def generic_range_clean(self, field, min_val, max_val):
-#        """Helper function to avoid repetitive code in the clean methods that
-#        check if specific fields are between specified min and max values.
-#        """
-#        val = self.cleaned_data.get(field)
-#        if val < min_val or val > max_val:
-#            raise forms.ValidationError('You must enter a number between' +
-#                min_val + ' and ' + max_val + '.')
-#        else:
-#            return val
-#
-#    def clean_node_down_grace_pd(self):
-#        """Uses Django's built-in 'clean' form processing functionality to
-#        test whether the value in the field is between the min and max values.
-#        """
-#        return self.generic_range_clean('node_down_grace_pd',
-#                _MIN_NODE_DOWN_GRACE_PD, _MAX_NODE_DOWN_GRACE_PD)
-#
-#    def clean_out_of_date_grace_pd(self):
-#        """Uses Django's built-in 'clean' form processing functionality to
-#        test whether the value in the field is between the min and max values.
-#        """
-#        return self.generic_range_clean('out_of_date_grace_pd',
-#                _MIN_OUT_OF_DATE_GRACE_PD, _MAX_OUT_OF_DATE_GRACE_PD)
-#
-#    def clean_band_low_threshold(self):
-#        """Uses Django's built-in 'clean' form processing functionality to
-#        test whether the value in the field is between the min and max values.
-#        """
-#        return self.generic_range_clean('band_low_threshold',
-#                _MIN_BAND_LOW_THRESHOLD, _MAX_BAND_LOW_THRESHOLD)
-#
-#    def clean_band_low_grace_pd(self):
-#        """Uses Django's built-in 'clean' form processing functionality to 
-#        test whether the valyue in the field is between the min and max values.
-#        """
-#        return self.generic_range_clean('band_low_grace_pd',
-#                _MIN_BAND_LOW_GRACE_PD, _MAX_BAND_LOW_GRACE_PD)
-# ----------------------------------------------------------------------------
 
     def is_valid_router(self, fingerprint):
         """Helper function to check if a router exists in the database.
