@@ -409,7 +409,7 @@ class SubscribeForm(forms.Form):
         # Get all subscribers that have both the email and fingerprint
         # entered in the form. 
         subscriber_query_set = Subscriber.objects.filter(email=email, 
-                                                   fingerprint=fingerprint)
+                                        router__fingerprint=fingerprint)
         
         # Redirect the user if such a subscriber exists, else create one.
         if subscriber_query_set.count() > 0:

@@ -52,6 +52,8 @@ def subscribe(request):
 
                 # Spawn a daemon to send the confirmation email.
                 confirm_auth = subscriber.confirm_auth
+                addr = subscriber.email
+                fingerprint = subscriber.router.fingerprint
                 email_thread = threading.Thread(
                         target=Emailer.send_confirmation,
                         args=[addr, fingerprint, confirm_auth])
