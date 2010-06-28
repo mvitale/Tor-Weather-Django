@@ -10,12 +10,12 @@ import threading
 from models import Subscriber, NodeDownSub, Router, \
                    SubscribeForm, PreferencesForm
 from emails import Emailer
-from django.core.context_processors import csrf
 from weather.config import url_helper
 from weather.config import templates
-from weather.weatherapp.error_messages import ErrorMessages
+from weather.weatherapp import error_messages
 
 from django.db import models
+from django.core.context_processors import csrf
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponseRedirect, HttpRequest, Http404
 from django.http import HttpResponse
@@ -288,11 +288,11 @@ def error(request, error_type, key):
     @type error_type: str
     @param error_type: A description of the type of error encountered.
     @type key: str
-    @param key: A key interpreted by the L{ErrorMessages} class to render
-        a user-specific error message."""
+    @param key: A key interpreted by the get_error_message function in the 
+        error_messages module to render a user-specific error message."""
     
     # get the appropriate error message
-    message = ErrorMessages.get_error_message(error_type, key)
+    message = error_messages.get_error_message(error_type, key)
 
     # get the error template
     template = templates.error
