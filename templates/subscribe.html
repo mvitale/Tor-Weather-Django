@@ -55,17 +55,11 @@
 <div class="form-section">
 	
 	<div>
-		<input id="id_get_node_down" type="checkbox" name="get_node_down" onclick="hideOrUnhide(this, 'node-down-section')" />
+		<input id="id_get_node_down" type="checkbox" name="get_node_down" onclick="hideOrUnhide(this, 'node-down-section')" onLoad="hideOrUnhide(this, 'node-down-section')"/>
 		<label for="id_get_node_down">{{ form.get_node_down.label }}</label>
 	</div>
-	<script>
-		<!--
-		hideOrUnhide(document.getElementById(id_get_node_down),
-				'node-down-section')
-		-->
-	</script>
-	<div id="node-down-section">
 
+	<div id="node-down-section" style="display:none;">
 		<div class="short-input">
 			<label for="node_down_grace_pd_id" class="block">{{ form.node_down_grace_pd.label }}</label>
 			{% for error in form.node_down_grace_pd.errors %}<span class="error">{{ error }}</span>{% endfor %}
@@ -113,6 +107,7 @@
 	<div>
 		<input id="id_get_band_low" type="checkbox" name="get_out_of_date" onclick="hideOrUnhide(this, 'band-low-section')" />
 		<label for="get_band_low_id">{{ form.get_band_low.label }}</label>
+		{% for error in form.get_band_low.errors %}<span class="error">{{ error }}</span>{% endfor %}
 	</div>
 	<div id="band-low-section" style="display:none;">
 		<div class="short-input">
@@ -127,6 +122,7 @@
 			{{ form.band_low_grace_pd }}
 			<em>{{ form.band_low_grace_pd.help_text }}</em>
 		</div>
+	</div>
 </div>
 
 <h3 class="form-heading">

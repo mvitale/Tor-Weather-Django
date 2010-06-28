@@ -270,37 +270,37 @@ class SubscribeForm(forms.Form):
     fingerprint = forms.CharField(label='Node Fingerprint:',
             max_length=50)
 
-    get_node_down = forms.BooleanField(
+    get_node_down = forms.BooleanField(required=False,
             label='Receive notifications when node is down')
-    node_down_grace_pd = forms.IntegerField(
+    node_down_grace_pd = forms.IntegerField(required=False,
             max_value=_MAX_NODE_DOWN_GRACE_PD,
             min_value=_MIN_NODE_DOWN_GRACE_PD,
             label='How many hours of downtime before \
                        we send a notifcation?',
             help_text='Enter a value between 1 and 4500 (roughly six months)')
     
-    get_out_of_date = forms.BooleanField(
+    get_out_of_date = forms.BooleanField(required=False,
             label='Receive notifications when node is out of date')
-    out_of_date_threshold = forms.ChoiceField(
+    out_of_date_threshold = forms.ChoiceField(required=False,
             choices=((u'c1', u'out of date lvl 1'),
                      (u'c2', u'out of date lvl 2'),
                      (u'c3', u'out of date lvl 3'),
                      (u'c4', u'out of date lvl 4')),
                 label='How current would you like your version of Tor?')
-    out_of_date_grace_pd = forms.IntegerField(
+    out_of_date_grace_pd = forms.IntegerField(required=False,
             max_value=_MAX_OUT_OF_DATE_GRACE_PD,
             min_value=_MIN_OUT_OF_DATE_GRACE_PD, 
             label='How quickly, in days, would you like to be notified?',
             help_text='Enter a value between 1 and 200 (roughly six months)')
     
-    get_band_low = forms.BooleanField(
+    get_band_low = forms.BooleanField(required=False,
             label='Receive notifications when node has low bandwidth')
-    band_low_threshold = forms.IntegerField(
+    band_low_threshold = forms.IntegerField(required=False,
             max_value=_MAX_BAND_LOW_THRESHOLD,
             min_value=_MIN_BAND_LOW_THRESHOLD,
             label='Critical bandwidth measured in kilobits per second:',
             help_text='Default value is 50 kbps.')
-    band_low_grace_pd = forms.IntegerField(
+    band_low_grace_pd = forms.IntegerField(required=False,
             max_value=_MAX_BAND_LOW_GRACE_PD,
             min_value=_MIN_BAND_LOW_GRACE_PD,
             label='How many hours of low bandwidth before \
@@ -308,38 +308,48 @@ class SubscribeForm(forms.Form):
             help_text='Enter a value between 1 and 4500 (roughly six \
                        months); default value is 1 hour.')
     
-    get_t_shirt = forms.BooleanField(
+    get_t_shirt = forms.BooleanField(required=False,
             label='Receive notification when node has earned a t-shirt')
 
     def clean(self):
-        data = self.cleaned_data
-        errors = self._errors
-        if not data.get('get_node_down'):
-            if 'node_down_grace_pd' in self._errors:
-                del self._errors['node_down_grace_pd']
-        if not data.get('get_out_of_date'):
-            if 'out_of_date_threshold' in self._errors:
-                del self._errors['out_of_date_threshold']
-            if 'out_of_date_grace_pd' in self._errors:
-                del self._errors['out_of_date_grace_pd']
-        if not data.get('get_band_low'):
-            if 'band_low_threshold' in self._errors:
-                del self._errors['band_low_threshold']
-            if 'band_low_grace_pd' in self._errors:
-                del self._errors['band_low_grace_pd']
+        required_msg = "This field is required."
 
-        email_1 = data.get('email_1')
-        email_2 = data.get('email_2')
+        # Only creates validation errors for required fields if their
+        # 'parent' checkbox is checked. That is, a validation error for
+        # fields pertinent to get_node_down are only thrown if get_node_down
+        # is checked. By default, all non-subscriber fields are not required.
+        if self.cleaned_data['get_node_down']:
+            if 'node_down_grace_pd' not in self.cleaned_data:
+                self._errors['node_down_grace_pd'] = self.error_class(
+                                                            [required_msg])
+        if self.cleaned_data['get_out_of_date']:
+            if 'out_of_date_threshold' not in self.cleaned_data:
+                self._errors['out_of_date_threshold'] = self.error_class(
+                                                            [required_msg])
+            if 'out_of_date_grace_pd' not in self.cleaned_data:
+                self._errors['out_of_date_grace_pd'] = self.error_class(
+                                                            [required_msg])
+        if self.cleaned_data['get_band_low']:
+            if 'band_low_threshold' not in self.cleaned_data:
+                self._errors['band_low_threshold'] = self.error_class(
+                                                            [required_msg])
+            if 'band_low_grace_pd' not in self.cleaned_data:
+                self._errors['band_low_grace_pd'] = self.error_class(
+                                                            [required_msg])
+        
+        if 'email_1' in self.cleaned_data and 'email_2' in self.cleaned_data:
+            email_1 = self.cleaned_data['email_1']
+            email_2 = self.cleaned_data['email_2']
 
-        if not email_1 == email_2:
-            msg = 'Email addresses must match.'
-            self._errors['email_1'] = self.error_class([msg])
-            self._errors['email_2'] = self.error_class([msg])
-# FIX THISSS
-            del self.cleaned_data['email_1']
-            del self.cleaned_data['email_2']
+            if not email_1 == email_2:
+                msg = 'Email addresses must match.'
+                self._errors['email_1'] = self.error_class([msg])
+                self._errors['email_2'] = self.error_class([msg])
+                
+                del self.cleaned_data['email_1']
+                del self.cleaned_data['email_2']
 
-        return data
+        return self.cleaned_data
 
     #def clean_email_1(self):
     #    """Uses Django's built-in 'clean' form processing functionality to
