@@ -18,16 +18,15 @@ import datetime
 import time
 import logging
 
-import ctlutil
-import config
-from models import *
-
-import emails
+from weatherapp.ctlutil import CtlUtil
+from weatherapp.models import *
+import weatherapp.emails
+import config.config 
 
 from django.core.mail import send_mass_mail
 
 #a CtlUtil instance module attribute
-ctl_util = ctlutil.CtlUtil()
+ctl_util = CtlUtil()
 
 def check_node_down(email_list):
     """Check if all nodes with L{NodeDownSub} subs are up or down,
