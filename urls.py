@@ -23,7 +23,7 @@ urlpatterns = patterns('',
     (r'^run_updaters$', 'weather.weatherapp.views.run_updaters'),
 
     # This is for serving static files for the development server, mainly for
-    # getting the CSS file.
+    # getting the CSS file and jquery file.
     (r'^media/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': '/home/jruberg/code/weather/media'}),
 

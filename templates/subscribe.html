@@ -3,56 +3,6 @@
 {% block content %}
 <h2> Neo Sign Up! </h2>
 
-<script type="text/javascript">
-	<!--
-	var nodeDownCheckbox = document.getElementById('id_get_node_down');
-	nodeDownCheckbox.onclick = hideOrUnhide(nodeDownCheckbox, 'node-down-section');
-
-	var outOfDateCheckbox = document.getElementById('id_get_out_of_date');
-	outOfDateCheckbox.onclick = hideOrUnhide(outOfDateCheckbox, 'out-of-date-section');
-
-	var bandLowCheckbox = document.getElementById('id_get_band_low');
-	bandLowCheckbox.onclick = hideOrUnhide(bandLowCheckbox, 'band_low-section');
-
-	function renderForm() {
-		var nodeDownSection = document.getElementById('node-down-section');
-		var outOfDateSection = document.getElementById('out-of-date-section');
-		var bandLowSection = document.getElementById('band-low-section');
-		
-		if (document.getElementById('id_get_node_down').checked) {
-			nodeDownSection.style.display='block';
-		} else {
-			nodeDownSection.style.display='none';
-		}
-		
-		if (document.getElementById('id_get_out_of_date').checked) {
-			outOfDateSection.style.display='block';
-		} else {	
-			outOfDateSection.style.display='none';
-		}
-
-		if (document.getElementById('id_get_band_low').checked) {
-			bandLowSection.style.display='block';
-		} else {
-			bandLowSection.style.display='none';
-		}
-
-		return true;
-	}
-
-	function hideOrUnhide(checkbox, id) {
-		if (checkbox.checked) {
-			document.getElementById(id).style.display='block';
-		} else {
-			document.getElementById(id).style.display='none';
-		}
-		return true;
-	}
-	-->
-</script>
-
-
-
 <form method="post" action="/subscribe/">{% csrf_token %}
 <p>
 	You can use this form to request status updates to tell you when a particular Tor node has become unreachable for a sustained period of time.
@@ -93,7 +43,7 @@
 
 <div class="form-section">
 	
-	<div>
+	<div id="node-down-check">
 		<!--<input id="id_get_node_down" type="checkbox" name="get_node_down"  onClick="renderForm()" alt="hideOrUnhide(this, 'node-down-section')" />-->
 		{{ form.get_node_down }}
 		<label for="id_get_node_down">{{ form.get_node_down.label }}</label>
@@ -117,12 +67,11 @@
 </h3>
 
 <div class="form-section">
-	<div>
-		<!--<input id="id_get_of_date" type="checkbox" name="get_out_of_date" onClick="renderForm()" alt="hideOrUnhide(this, 'out-of-date-section')" />-->
+	<div id="out-of-date-check">
 		{{ form.get_out_of_date }}
 		<label for="get_out_of_date_id">{{ form.get_out_of_date.label }}</label>
 	</div>
-	<div id="out-of-date-section">
+	<div id="out-of-date-section" style="display:none;">
 		<div>
 			<label for="out_of_date_threshold" class="block">{{ form.out_of_date_threshold.label }}</label>
 			{% for error in form.out_of_date_threshold.errors %}<span class="error">{{ error }}</span>{% endfor %}
@@ -145,13 +94,12 @@
 </h3>
 
 <div class="form-section">
-	<div>
-		<!--<input id="id_get_band_low" type="checkbox" name="get_band_low" onClick="renderForm()" alt="hideOrUnhide(this, 'band-low-section')" />-->
+	<div id="band-low-check">
 		{{ form.get_band_low }}
 		<label for="get_band_low_id">{{ form.get_band_low.label }}</label>
 		{% for error in form.get_band_low.errors %}<span class="error">{{ error }}</span>{% endfor %}
 	</div>
-	<div id="band-low-section">
+	<div id="band-low-section" style="display:none;">
 		<div class="short-input">
 			<label for="band_low_threshold" class="block">{{ form.band_low_threshold.label }}</label>
 			{% for error in form.band_low_threshold.errors %}<span class="error">{{ error }}</span>{% endfor %}
@@ -176,7 +124,6 @@
 
 <div class="form-section">
 	<div>
-		<!--<input id="id_get_t_shirt" type="checkbox" name="get_t_shirt" />-->
 		{{ form.get_t_shirt }}
 		<label for="get_t_shirt">{{ form.get_t_shirt.label }}</label>
 	</div>
