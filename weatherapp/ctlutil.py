@@ -51,10 +51,10 @@ class CtlUtil:
                        "Is Tor running on %s with its control port" + \
                        "opened on %s?" % (control_host, control_port)
             logging.error(errormsg)
-            print >> sys.stderr, errormsg
+            print
             raise
 
-        # Create connection to TorCtl
+        
         self.control = TorCtl.Connection(self.sock)
 
         # Authenticate connection
@@ -146,9 +146,27 @@ class CtlUtil:
         return self.get_full_descriptor().split("-----END SIGNATURE-----")
 
     def get_rec_version_list(self):
-        """Get a list of currently recommended versions"""
+        """Get a list of currently recommended versions sorted in ascending
+        order."""
         return self.control.get_info("status/version/recommended").\
         values()[0].split(',')
+
+    def get_stable_version_list(self):
+        """Get a list of stable, recommended versions of client software.
+
+        @rtype: list[str]
+        @return: A list of stable, recommended versions of client software
+        sorted in ascending order.
+        """
+        version_list = self.get_rec_version_list()
+        for version in version_list:
+            if not version.find('alpha') == -1 or not version.find(
+            'beta') == -1:
+                index = version_list.index(version)
+                version_list = version_list[:index]
+                break
+
+        return version_list
 
     def get_version(self, fingerprint):
         """Get the version of the Tor software that the relay with fingerprint
@@ -165,7 +183,52 @@ class CtlUtil:
         .split()[2].replace(' ', '')
         
 
-    def is_running_rec_version(self, fingerprint):
+    def get_version_type(self, fingerprint):
+        """Get the type of version the relay with fingerprint C{fingerprint}
+        is running. 
+        
+        @type fingerprint: str
+        @param fingerprint: The fingerprint of the Tor relay to check.
+
+        @rtype: str
+        @return: The type of version of Tor the client is running, where the
+        types are RECOMMENDED, OBSOLETE, and UNRECOMMENDED. Returns RECOMMENDED
+        if the relay is running the most recent stable release or a more     
+        recent unstable release , UNRECOMMENDED
+        if it is running an older version than the most recent stable release
+        that is contained in the list returned by C{get_rec_version_list()},
+        and OBSOLETE if the version isn't on the list.
+        """
+        version_list = self.get_rec_version_list()
+        client_version = self.get_version(fingerprint)
+
+        current_stable_index = -1
+        for version in version_list:
+            if not version.find('alpha') == -1 or not version.find('beta')\
+            == -1:
+                current_stable_index = version_list.index(version) - 1
+                break
+        
+        #if the client has one of these versions, return RECOMMENDED
+        rec_list = version_list[current_stable_index:]
+        
+        #if the client has one of these, return UNRECOMMENDED
+        unrec_list = version_list[:current_stable_index]
+
+        for version in rec_list:
+            if client_version == version:
+                return 'RECOMMENDED'
+        
+        for version in unrec_list:
+            if client_version == version:
+                return 'UNRECOMMENDED'
+
+        #the client doesn't have a RECOMMENDED or UNRECOMMENDED version,
+        #so it must be OBSOLETE
+        return 'OBSOLETE'
+
+
+    def has_rec_version(self, fingerprint):
         """Check if a Tor relay is running a recommended version of the Tor
         software."""
         rec_version_list = self.get_rec_version_list()

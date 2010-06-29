@@ -185,22 +185,18 @@ class NodeDownSub(Subscription):
     grace_pd = models.IntegerField()
     last_changed = models.DateTimeField(default=datetime.now)
 
-    def should_email():
-        """Returns a bool representing whether or not the Subscriber should
-        be emailed about their node being down.
+    def is_grace_passed(self):
+        """Check if the grace period has passed for this subscription
 
         @rtype: bool
-        @return: True if the Subscriber should be emailed because their node
-            is down and the grace period has passed, False otherwise.
+        @return: C{True} if C{triggered} and 
+        C{SubscriptionManager.hours_since_changed()}, otherwise C{False}.
         """
-        hours_since_changed = \
-            SubscriptionManager.hours_since_changed(last_changed)
-        if triggered and not emailed and \
-                     (hours_since_changed > grace_pd):
+
+        if triggered and SubscriptionManager.hours_since_changed() >= grace_pd:
             return True
         else:
             return False
-
 
 class VersionSub(Subscription):
     """
@@ -212,11 +208,11 @@ class VersionSub(Subscription):
 # -----------------------------------------------------------------------
 # FILL IN LATER, FIX DOCUMENTATION
 # -----------------------------------------------------------------------
-    threshold = models.CharField(max_length=250)
 
-    def should_email():
-        """
-        """
+    #only send notifications if the version is of type notify_type
+    notify_type = models.CharField(max_length=250)
+
+
 
 
 class BandwidthSub(Subscription):    
@@ -225,8 +221,19 @@ class BandwidthSub(Subscription):
     grace_pd = models.IntegerField(default = 1)
     last_changed = models.DateTimeField(default=datetime.now)
 
-    def is_grace_passed():
-        if 
+    def is_grace_passed(self):
+        """Check if the grace period has passed for this subscription
+
+        @rtype: bool
+        @return: C{True} if C{triggered} and 
+        C{SubscriptionManager.hours_since_changed()}, otherwise C{False}.
+        """
+
+        if triggered and SubscriptionManager.hours_since_changed() >= grace_pd:
+            return True
+        else:
+            return False
+
    
 
 class TShirtSub(Subscription):
