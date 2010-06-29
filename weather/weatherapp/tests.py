@@ -1,23 +1,19 @@
 """
-This file demonstrates two different styles of tests (one doctest and one
-unittest). These will both pass when you run "manage.py test".
-
-Replace these with more appropriate tests for your application.
+The test module.
 """
+from models import Subscriber, Subscription, Router, NodeDownSub
 
 from django.test import TestCase
+from django.test.client import Client
+from django.core import mail
 
-class SimpleTest(TestCase):
-    def test_basic_addition(self):
-        """
-        Tests that 1 + 1 always equals 2.
-        """
-        self.failUnlessEqual(1 + 1, 2)
-
-__test__ = {"doctest": """
-Another way to test that 1 + 1 is equal to 2.
-
->>> 1 + 1 == 2
-True
-"""}
-
+class WebTests(TestCase)
+    """Tests the Tor Weather application via post requests"""
+    def subscribe_test(self)
+        c = Client()
+        r = Router(fingerprint = '1234', name = 'abc')
+        r.save()
+        response = c.post('/subscribe/', {'email' : 'name@place.com',
+                                          'fingerprint' : '1234', 
+                                          'grace_pd' : 1})
+    

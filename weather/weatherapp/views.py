@@ -9,7 +9,7 @@ import threading
 
 from models import Subscriber, NodeDownSub, Router, \
                    SubscribeForm, PreferencesForm
-from emails import Emailer
+import emails
 from weather.config import url_helper
 from weather.config import templates
 from weather.weatherapp import error_messages
@@ -80,7 +80,7 @@ def subscribe(request):
 
             # spawn a daemon to send the confirmation email
             confirm_auth = user.confirm_auth
-            email_thread = threading.Thread(target=Emailer.send_confirmation,
+            email_thread = threading.Thread(target=emails.send_confirmation,
                                         args=[addr, fingerprint, confirm_auth])
             email_thread.setDaemon(True)
             email_thread.start()
@@ -143,7 +143,7 @@ def confirm(request, confirm_auth):
 
     # spawn a daemon to send an email confirming subscription and 
     #providing the links
-    email_thread=threading.Thread(target=Emailer.send_confirmed,
+    email_thread=threading.Thread(target=emails.send_confirmed,
                             args=[user.email, router.fingerprint, 
                                   user.unsubs_auth, user.pref_auth])
     email_thread.setDaemon(True)
@@ -283,7 +283,7 @@ def resend_conf(request, confirm_auth):
     template = templates.resend_conf
 
     # spawn a daemon to resend the confirmation email
-    email_thread=threading.Thread(target=Emailer.send_confirmation,
+    email_thread=threading.Thread(target=emails.send_confirmation,
                             args=[user.email, router.fingerprint, confirm_auth])
     email_thread.setDaemon(True)
     email_thread.start()

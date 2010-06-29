@@ -144,7 +144,7 @@ def check_earn_tshirt(email_list):
             pref_auth = subscription.subscriber.pref_auth
             
             email = emails.t_shirt_tuple(recipient, avg_band, time, exit, 
-                                         unsubs_auth, pref_auth])
+                                         unsubs_auth, pref_auth)
             email_list.append(email)
             subscription.emailed = True
 
@@ -215,7 +215,7 @@ def update_all_routers(email_list):
     return email_list
 
 def run_all():
-    """Run all updaters/checkers in proper sequence, send emails"""
+    """Run all updaters/checkers in proper sequence, send emails."""
     # the list of tuples of email info, gets updated w/ each call
     email_list = []
     email_list = update_all_routers(email_list)

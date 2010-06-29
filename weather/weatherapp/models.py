@@ -41,7 +41,7 @@ class Router(models.Model):
     fingerprint = models.CharField(max_length=40, unique=True)
     name = models.CharField(max_length=100)
     welcomed = models.BooleanField(default=False)
-    last_seen = models.DateTimeField('date last seen', default=datetime.now())
+    last_seen = models.DateTimeField('date last seen', default=datetime.now)
     up = models.BooleanField(default=True)
     exit = models.BooleanField()
 
@@ -110,7 +110,7 @@ class Subscriber(models.Model):
     pref_auth = models.CharField(max_length=250, 
                     default=SubscriberManager.get_rand_string)
 
-    sub_date = models.DateTimeField(default=datetime.now())
+    sub_date = models.DateTimeField(default=datetime.now)
 
     objects = SubscriberManager()
 
@@ -164,7 +164,7 @@ class Subscription(models.Model):
     emailed = models.BooleanField(default=False)
     triggered = models.BooleanField(default=False)
     last_changed = models.DateTimeField('date of last change', 
-                                        default=datetime.now())
+                                        default=datetime.now)
 
     # In Django, Manager objects handle table-wide methods (i.e filtering)
     objects = SubscriptionManager()
@@ -242,7 +242,10 @@ class TShirtSub(Subscription):
     @type hours_since_triggered: int
     @ivar hours_since_triggered: The hours this router has been up"""
     avg_bandwidth = models.IntegerField()
-    hours_since_triggered = models.IntegerField()
+    last_changed = models.DateTimeField(default = datetime.now)
+
+    def get_hours_since_triggered(self):
+        """Returns the time in hours that the router has been up."""
 
     def should_email():
         """Returns true if the router being watched has been up for 1464 hours
