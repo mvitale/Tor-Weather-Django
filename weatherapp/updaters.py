@@ -45,10 +45,11 @@ def check_node_down(email_list):
             if is_up:
                 if sub.triggered:
                    sub.triggered = False
+                   sub.emailed = False
                    sub.last_changed = datetime.now()
             else:
                 if sub.triggered:
-                    #if sub.is_grace_passed():------enable after debugging---
+                    #if sub.is_grace_passed() and sub.emailed == False:------enable after debugging---
                     recipient = sub.subscriber.email
                     fingerprint = sub.subscriber.router.fingerprint
                     grace_pd = sub.grace_pd
@@ -60,25 +61,14 @@ def check_node_down(email_list):
                                                    pref_auth)
                     email_list.append(email)
                     sub.emailed = True 
-                    #else:
-                        #sub.triggered = True
-                        #sub.last_changed = datetime.now()
-                sub.save()
+                else:
+                    sub.triggered = True
+                    sub.last_changed = datetime.now()
+
+            sub.save()
     return email_list
 
-def check_out_of_date(email_list):
-    """
-    
-    @type email_list: list
-    @param email_list: The list of tuples containing email info.
-    @rtype: list
-    @return: The updated list of tuples containing email info.
-    """
-    # TO DO ------------------------------------------------- EXTRA FEATURE 
-    # IMPLEMENT THIS ------------------------------------------------------
-    return email_list
-
-def check_below_bandwidth(email_list):
+def check_low_bandwidth(email_list):
     """
     @type email_list: list
     @param email_list: The list of tuples containing email info.
@@ -90,10 +80,9 @@ def check_below_bandwidth(email_list):
     for sub in subs:
         fingerprint = sub.subscriber.fingerprint
         if sub.subscriber.confirmed:
-            low = self.ctlutil.is_bandwidth_low(fingerprint)
-
-            if low:
-                if sub.is_grace_passed():
+            if self.ctlutil.get_bandwidth(fingerprint) < sub.threshold and\
+            sub.emailed == False:
+                if sub.triggered and sub.is_grace_passed():
                     recipient = sub.subscriber.email
                     grace_pd = sub.grace_pd
                     unsubs_auth = sub.subscriber.unsubs_auth
@@ -103,17 +92,17 @@ def check_below_bandwidth(email_list):
                     grace_pd, unsubs_auth, pref_auth)) 
 
                     sub.emailed = True
+
+                elif not sub.triggered:
+                    sub.triggered = True
+                    sub.last_changed = datetime.now()
             else:
-                sub.triggered = True
-                sub.last_changed = datetime.now()
-        else:
-            if sub.triggered:
-                sub.triggered = False
-                sub.emailed = False
-                sub.last_changed = datetime.now()
+                if sub.triggered:
+                    sub.triggered = False
+                    sub.emailed = False
+                    sub.last_changed = datetime.now()
 
-        sub.save()
-
+            sub.save()
     return email_list
 
 def check_earn_tshirt(email_list):
@@ -167,7 +156,7 @@ def check_earn_tshirt(email_list):
 
     return email_list
 
-def check_version():
+def check_version(email_list):
     """Check/update all C{VersionSub} subscriptions and send emails as
     necessary."""
 
@@ -175,7 +164,20 @@ def check_version():
 
     for sub in subs:
         version_type = ctlutil.get_version_type(sub.subscriber.fingerprint)
-        if version_type == sub.notify_type:
+        if version_type == sub.notify_type and sub.subscriber.confirmed
+            and sub.emailed == False:
+            fingerprint = sub.subscriber.fingerprint
+            recipient = sub.subscriber.email
+            unsubs_auth = sub.subscriber.unsubs_auth
+            pref_auth = sub.subscriber.pref_auth
+            email_list.append(emails.version_tuple(recipient, fingerprint,
+                                                   unsubs_auth, pref_auth))
+            sub.emailed = True
+
+        #if the user has their desired version type, we need to set emailed
+        #to False so that we can email them again if we need to
+        else:
+            sub.emailed = False
 
         
                 
@@ -190,8 +192,8 @@ def check_all_subs(email_list):
 
     email_list = check_node_down(email_list)
     #---Add when implemented---
-    #check_out_of_date(email_list)
-    #check_below_bandwidth(email_list)
+    #check_version(email_list)
+    check_low_bandwidth(email_list)
     email_list = check_earn_tshirt(email_list)
     return email_list
 

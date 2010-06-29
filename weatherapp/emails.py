@@ -39,8 +39,8 @@ _NODE_DOWN_MAIL = "This is a Tor Weather Report.\n\n" +\
 # ------------------------------------------------------------------
 # CONFIGURE THIS!
 # ------------------------------------------------------------------
-_OUT_OF_DATE_SUBJ = 'Node Out of Date!'
-_OUT_OF_DATE_MAIL = "This is a Tor Weather Report.\n\n"+\
+_VERSION_SUBJ = 'Node Out of Date!'
+_VERSION_MAIL = "This is a Tor Weather Report.\n\n"+\
     "It appears that a Tor node you elected to monitor (node id: %s) "+\
     "is running an out of date version of Tor. You can download the "+\
     "latest version of Tor at %s.\n\n You can unsubscribe from these "+\
@@ -248,7 +248,7 @@ def welcome_tuple(recipient, fingerprint, exit):
     msg = Emailer._WELCOME_MAIL % (name, fingerprint)
     return (subj, msg, sender, [recipient])
 
-def version_tuple(recipient, fingerprint, version, current_version):
+def version_tuple(recipient, fingerprint, unsubs_auth, pref_auth):
     """Returns a tuple for a version notification email.
 
     @type recipient: str
@@ -268,11 +268,12 @@ def version_tuple(recipient, fingerprint, version, current_version):
              C{updaters}.
     """
     router = Router.objects.get(fingerprint=fingerprint)
-    router_name = router.name
     subj = _SUBJECT_HEADER + _VERSION_SUBJ
     sender = _SENDER
-    unsubURL = url_helper.get_unsubscribe_url
-    msg = _VERSION_MAIL % (fingerprint, )
+    unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
+    prefURL = url_helper.get_preferences_url(pref_auth)
+    downloadURL = url_helper.get_download_url()
+    msg = _VERSION_MAIL % (fingerprint, downloadURL, unsubURL, prefURL)
     return (subj, msg, sender, [recipient])
     
     

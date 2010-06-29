@@ -162,7 +162,7 @@ class Subscription(models.Model):
     """
     subscriber = models.ForeignKey(Subscriber)
     emailed = models.BooleanField(default=False)
-    triggered = models.BooleanField(default=False)
+    
     
 
     # In Django, Manager objects handle table-wide methods (i.e filtering)
@@ -177,6 +177,7 @@ class NodeDownSub(Subscription):
     @ivar grace_pd: The amount of time (hours) before a notification is sent
         after a node is seen down.
     """
+    triggered = models.BooleanField(default=False)
     grace_pd = models.IntegerField()
     last_changed = models.DateTimeField(default=datetime.now)
 
@@ -219,6 +220,8 @@ class BandwidthSub(Subscription):
     """
     grace_pd = models.IntegerField(default = 1)
     last_changed = models.DateTimeField(default=datetime.now)
+    triggered = models.BooleanField(default=False)
+    threshold = models.IntegerField(default = 20)
 
     def is_grace_passed(self):
         """Check if the grace period has passed for this subscription
@@ -244,8 +247,10 @@ class TShirtSub(Subscription):
     @ivar avg_bandwidth: The router's average bandwidth
     @type hours_since_triggered: int
     @ivar hours_since_triggered: The hours this router has been up"""
+
     avg_bandwidth = models.IntegerField(default = 0)
     hours_since_triggered = models.IntegerField(default = 0)
+    triggered = models.BooleanField(default=False)
 
     def should_email():
         """Returns true if the router being watched has been up for 1464 hours

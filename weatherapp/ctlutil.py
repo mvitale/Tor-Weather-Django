@@ -443,25 +443,6 @@ class CtlUtil:
         
         return (self.is_up(fingerprint) or self.is_hibernating(fingerprint))
     
-    def is_bandwidth_low(self, fingerprint):
-        """Check if the Tor relay with fingerprint C{fingerprint} has 
-        bandwidth below 50KB/s
-       
-        @type fingerprint: str
-        @param fingerprint: The fingerprint of the Tor relay to check.
-
-        @rtype: bool
-        @return: C{True} if the observed bandwidth in the most recent     
-        descriptor for this Tor relay is below 50k/sec, otherwise C{False}.
-        """
-        bandwidth = self.get_bandwidth(fingerprint)
-        
-        if bandwidth < 50:
-            return True
-        else:
-            return False
-
-
     def get_bandwidth(self, fingerprint):
         """Get the observed bandwidth in KB/s from the most recent descriptor
         for the Tor relay with fingerprint C{fingerprint}.
