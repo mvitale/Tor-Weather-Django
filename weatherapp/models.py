@@ -166,8 +166,8 @@ class Subscription(models.Model):
     # In Django, Manager objects handle table-wide methods (i.e filtering)
     objects = SubscriptionManager()
     
-    def __unicode__(self):
-        return self.subscriber.email + ": Generic Sub"
+    #def __unicode__(self):
+    #    return self.subscriber.email + " - Generic Sub"
 
 
 class NodeDownSub(Subscription):
@@ -211,7 +211,7 @@ class VersionSub(Subscription):
     threshold = models.CharField(max_length=250)
 
     def __unicode__(self):
-        return self.subscriber.email + ": Version Sub"
+        return self.subscriber.email + " - Version Sub"
 
     def should_email():
         """
@@ -225,7 +225,7 @@ class LowBandwidthSub(Subscription):
     grace_pd = models.IntegerField(default = 1)
 
     def __unicode__(self):
-        return self.subscriber.email + ": Low Bandwidth Sub"
+        return self.subscriber.email + " - Low Bandwidth Sub"
 
     #def should_email():
         #"""
@@ -239,7 +239,7 @@ class TShirtSub(Subscription):
     hours_since_triggered = models.IntegerField(default = 0)
 
     def __unicode__(self):
-        return self.subscriber.email + ": T-Shirt Sub"
+        return self.subscriber.email + " - T-Shirt Sub"
 
     def should_email():
         """Returns true if the router being watched has been up for 1464 hours
@@ -268,8 +268,8 @@ class SubscribeForm(forms.Form):
 
     _MAX_NODE_DOWN_GRACE_PD = 4500
     _MIN_NODE_DOWN_GRACE_PD = 1
-    _MAX_OUT_OF_DATE_GRACE_PD = 200
-    _MIN_OUT_OF_DATE_GRACE_PD = 1
+    #_MAX_OUT_OF_DATE_GRACE_PD = 200
+    #_MIN_OUT_OF_DATE_GRACE_PD = 1
     _MAX_BAND_LOW_THRESHOLD = 5000
     _MIN_BAND_LOW_THRESHOLD = 1
     _MAX_BAND_LOW_GRACE_PD = 4500
@@ -299,11 +299,11 @@ class SubscribeForm(forms.Form):
                      (u'c3', u'out of date lvl 3'),
                      (u'c4', u'out of date lvl 4')),
                 label='How current would you like your version of Tor?')
-    out_of_date_grace_pd = forms.IntegerField(required=False,
-            max_value=_MAX_OUT_OF_DATE_GRACE_PD,
-            min_value=_MIN_OUT_OF_DATE_GRACE_PD, 
-            label='How quickly, in days, would you like to be notified?',
-            help_text='Enter a value between 1 and 200 (roughly six months)')
+    #out_of_date_grace_pd = forms.IntegerField(required=False,
+    #        max_value=_MAX_OUT_OF_DATE_GRACE_PD,
+    #        min_value=_MIN_OUT_OF_DATE_GRACE_PD, 
+    #        label='How quickly, in days, would you like to be notified?',
+    #        help_text='Enter a value between 1 and 200 (roughly six months)')
     
     get_band_low = forms.BooleanField(initial=False, required=False,
             label='Receive notifications when node has low bandwidth')
@@ -362,20 +362,20 @@ class SubscribeForm(forms.Form):
                                                             [required_msg])
             # If there are no other errrors for the out_of_date_grace_pd field
             # and it is empty (either not in clenaed data or in it as None).
-            if 'out_of_date_grace_pd' not in self._errors \
-            and ('out_of_date_grace_pd' not in self.cleaned_data
-            or self.cleaned_data['out_of_date_grace_pd'] == None):
-                # Create an error saying that the field is required.
-                self._errors['out_of_date_grace_pd'] = self.error_class(
-                                                            [required_msg])
+            #if 'out_of_date_grace_pd' not in self._errors \
+            #and ('out_of_date_grace_pd' not in self.cleaned_data
+            #or self.cleaned_data['out_of_date_grace_pd'] == None):
+            #    # Create an error saying that the field is required.
+            #    self._errors['out_of_date_grace_pd'] = self.error_class(
+            #                                                [required_msg])
         # If the out of date subscription box isn't checked.
         else:
             # If there are errors for out_of_date_trheshold, then ignore them.
             if 'out_of_date_threshold' in self._errors:     
                 del self._errors['out_of_date_threshold']
             # If there are errors for out_of_date_grace_pd, then ignore them.
-            if 'out_of_date_grace_pd' in self._errors:
-                del self._errors['out_of_date_grace_pd']
+            #if 'out_of_date_grace_pd' in self._errors:
+            #    del self._errors['out_of_date_grace_pd']
 
         # If the band low subscription is checked.
         if self.cleaned_data['get_band_low']:
@@ -492,12 +492,13 @@ class SubscribeForm(forms.Form):
                     grace_pd=self.cleaned_data['node_down_grace_pd'])
             node_down_sub.save()
         if self.cleaned_data['get_out_of_date']:
-            out_of_date_sub = OutOfDateSub(subscriber=subscriber,
+            out_of_date_sub = VersionSub(subscriber=subscriber,
                     threshold=self.cleaned_data['out_of_date_threshold'],
-                    grace_pd=self.cleaned_data['out_of_date_grace_pd'])
+                    #grace_pd=self.cleaned_data['out_of_date_grace_pd']
+                    )
             out_of_date_sub.save()
         if self.cleaned_data['get_band_low']:
-            band_low_sub = BandLowSub(subscriber=subscriber,
+            band_low_sub = LowBandwidthSub(subscriber=subscriber,
                     threshold=self.cleaned_data['band_low_threshold'],
                     grace_pd=self.cleaned_data['band_low_grace_pd'])
             band_low_sub.save()
