@@ -1,0 +1,95 @@
+div.center {
+	max-width: 760px;
+}
+
+div.main-column {
+	padding-right: 10px;
+}
+
+.email-block input {
+	width: 143px;
+}
+
+form div {
+	margin-bottom: 5px;
+}
+
+.form-heading {
+	border-bottom: 1px solid black;
+	margin-bottom: 15px;
+	margin-top: 10px;
+}
+
+div#sign-up-link {
+	font-size: 20px;
+	font-weight: bold;
+	padding-bottom: 10px;
+}	
+
+.form-heading span {
+	display: block;
+	margin-bottom: -15px;
+	padding-right: 5px;
+	float: left;
+	background-color: white;
+}
+
+span.error {
+	padding-top: 3px;
+	padding-bottom: 3px;
+	color: red;
+	display: block;
+}
+
+span.big-error {
+	padding-top: 10px;
+	color: red;
+	display: block;
+	font-weight: bold;
+}
+
+input#subscribe-submit {
+	font-size: 18px;
+	float:right;
+}
+
+label.block {
+	display: block;
+}
+
+.form-heading div {
+	clear: both;
+}
+
+div.form-section {
+	clear: both;
+}
+
+div.form-heading strong {
+	margin-right: 5px;
+}
+
+.form-section {
+	font-size: 14px;
+}
+
+.form-section em {
+	color: rgb(75, 75, 75);
+}
+
+div.email-block {
+	float: left;
+	margin-right: 15px;
+}
+
+div.long-input {
+	clear: both;
+}
+
+div.long-input input {
+	width: 300px;
+}
+
+div.short-input input {
+	width: 100px;
+}

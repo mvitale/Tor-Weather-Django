@@ -265,3 +265,4 @@ def send_legal(recipient):
     sender = Emailer._SENDER
     msg = Emailer._LEGAL_MAIL #% PUT PARAMETERS HERE
     send_mail(subj, msg, sender, [recipient], fail_silently=True)
+
