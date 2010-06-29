@@ -60,7 +60,7 @@
 
 <h3 class="form-heading">
 	<span>
-		Out of Date Notification Options
+		Version Notification Options
 	</span>
 	<div></div>
 </h3>
@@ -70,7 +70,7 @@
 		{{ form.get_out_of_date }}
 		<label for="get_out_of_date_id">{{ form.get_out_of_date.label }}</label>
 	</div>
-	<div id="out-of-date-section" style="display:none;">
+	<div id="out-of-date-section">
 		<div>
 			<label for="out_of_date_threshold" class="block">{{ form.out_of_date_threshold.label }}</label>
 			{% for error in form.out_of_date_threshold.errors %}<span class="error">{{ error }}</span>{% endfor %}
@@ -99,7 +99,7 @@
 		<label for="get_band_low_id">{{ form.get_band_low.label }}</label>
 		{% for error in form.get_band_low.errors %}<span class="error">{{ error }}</span>{% endfor %}
 	</div>
-	<div id="band-low-section" style="display:none;">
+	<div id="band-low-section">
 		<div class="short-input">
 			<label for="band_low_threshold" class="block">{{ form.band_low_threshold.label }}</label>
 			{% for error in form.band_low_threshold.errors %}<span class="error">{{ error }}</span>{% endfor %}

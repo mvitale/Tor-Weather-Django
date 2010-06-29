@@ -29,5 +29,5 @@ urlpatterns = patterns('',
     # This is for serving static files for the development server, mainly for
     # getting the CSS file and jquery file.
     (r'^media/(?P<path>.*)$', 'django.views.static.serve',
-        {'document_root': '/home/jruberg/code/weather/media'}),
+        {'document_root': 'media'}),
 )
