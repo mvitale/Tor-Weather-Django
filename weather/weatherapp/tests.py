@@ -16,4 +16,5 @@ class WebTests(TestCase)
         response = c.post('/subscribe/', {'email' : 'name@place.com',
                                           'fingerprint' : '1234', 
                                           'grace_pd' : 1})
+
     

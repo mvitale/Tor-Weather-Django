@@ -15,7 +15,8 @@ import string
 debugfile = open("debug", "w")
 
 class CtlUtil:
-    """A class that handles communication with TorCtl.
+    """A class that handles communication with the local Tor process via
+    TorCtl.
     
     @type control_host: str
     @ivar control_host: Control host of the TorCtl connection.
@@ -54,10 +55,10 @@ class CtlUtil:
                        "Is Tor running on %s with its control port" + \
                        "opened on %s?" % (control_host, control_port)
             logging.error(errormsg)
-            print >> sys.stderr, errormsg
+            print
             raise
 
-        # Create connection to TorCtl
+        
         self.control = TorCtl.Connection(self.sock)
 
         # Authenticate connection
@@ -148,6 +149,101 @@ class CtlUtil:
         # Individual descriptors are delimited by -----END SIGNATURE-----
         return self.get_full_descriptor().split("-----END SIGNATURE-----")
 
+    def get_rec_version_list(self):
+        """Get a list of currently recommended versions sorted in ascending
+        order."""
+        return self.control.get_info("status/version/recommended").\
+        values()[0].split(',')
+
+    def get_stable_version_list(self):
+        """Get a list of stable, recommended versions of client software.
+
+        @rtype: list[str]
+        @return: A list of stable, recommended versions of client software
+        sorted in ascending order.
+        """
+        version_list = self.get_rec_version_list()
+        for version in version_list:
+            if not version.find('alpha') == -1 or not version.find(
+            'beta') == -1:
+                index = version_list.index(version)
+                version_list = version_list[:index]
+                break
+
+        return version_list
+
+    def get_version(self, fingerprint):
+        """Get the version of the Tor software that the relay with fingerprint
+        C{fingerprint} is running
+
+        @type fingerprint: str
+        @param fingerprint: The fingerprint of the Tor relay to check.
+
+        @rtype: str
+        @return: The version of the Tor software that this relay is running.
+        """
+        desc = self.get_single_descriptor(fingerprint)
+        return re.search('\nplatform\sTor\s.*\s', desc).group()\
+        .split()[2].replace(' ', '')
+        
+
+    def get_version_type(self, fingerprint):
+        """Get the type of version the relay with fingerprint C{fingerprint}
+        is running. 
+        
+        @type fingerprint: str
+        @param fingerprint: The fingerprint of the Tor relay to check.
+
+        @rtype: str
+        @return: The type of version of Tor the client is running, where the
+        types are RECOMMENDED, OBSOLETE, and UNRECOMMENDED. Returns RECOMMENDED
+        if the relay is running the most recent stable release or a more     
+        recent unstable release , UNRECOMMENDED
+        if it is running an older version than the most recent stable release
+        that is contained in the list returned by C{get_rec_version_list()},
+        and OBSOLETE if the version isn't on the list.
+        """
+        version_list = self.get_rec_version_list()
+        client_version = self.get_version(fingerprint)
+
+        current_stable_index = -1
+        for version in version_list:
+            if not version.find('alpha') == -1 or not version.find('beta')\
+            == -1:
+                current_stable_index = version_list.index(version) - 1
+                break
+        
+        #if the client has one of these versions, return RECOMMENDED
+        rec_list = version_list[current_stable_index:]
+        
+        #if the client has one of these, return UNRECOMMENDED
+        unrec_list = version_list[:current_stable_index]
+
+        for version in rec_list:
+            if client_version == version:
+                return 'RECOMMENDED'
+        
+        for version in unrec_list:
+            if client_version == version:
+                return 'UNRECOMMENDED'
+
+        #the client doesn't have a RECOMMENDED or UNRECOMMENDED version,
+        #so it must be OBSOLETE
+        return 'OBSOLETE'
+
+
+    def has_rec_version(self, fingerprint):
+        """Check if a Tor relay is running a recommended version of the Tor
+        software."""
+        rec_version_list = self.get_rec_version_list()
+        node_version = self.get_version(fingerprint) 
+        rec_version = False
+        for version in rec_version_list:
+            if version == node_version:
+                rec_version = True
+                break
+
+        return rec_version
 
     def is_up(self, node_id):
         """Check if this node is up (actively running) by requesting a
@@ -297,18 +393,27 @@ class CtlUtil:
 
     def is_stable(self, fingerprint):
         """Check if a Tor node has the stable flag.
-
         @type fingerprint: str
         @param fingerprint: The fingerprint of the router to check
 
         @rtype: bool
-        @return: True if this router has the stable flag, false otherwise.
+        @return: True if this router has a valid consensus with the stable
+        flag, false otherwise.
         """
 
-        info = self.get_single_consensus(fingerprint)
-        if re.search('\ns.* Stable ', info):
-            return True
-        else:
+        try:
+            info = self.get_single_consensus(fingerprint)
+            if re.search('\ns.* Stable ', info):
+                return True
+            else:
+                return False
+        except TorCtl.ErrorReply, e:
+            #If we're getting here, we're likely seeing:
+            #ErrorReply: 552 Unrecognized key "ns/id/46D9..."
+            logging.error("ErrorReply: %s" % str(e))
+            return False
+        except:
+            logging.error("Unknown exception in ctlutil.is_stable()")
             return False
 
     def is_hibernating(self, fingerprint):
@@ -341,6 +446,26 @@ class CtlUtil:
         self.is_hibernating(fingerprint)."""
         
         return (self.is_up(fingerprint) or self.is_hibernating(fingerprint))
+    
+    def get_bandwidth(self, fingerprint):
+        """Get the observed bandwidth in KB/s from the most recent descriptor
+        for the Tor relay with fingerprint C{fingerprint}.
+
+        @type fingerprint: str
+        @param fingerprint: The fingerprint of the Tor relay to check
+
+        @rtype: float
+        @return: The observed bandwidth for this Tor relay.
+        """
+        desc = self.get_single_descriptor(fingerprint)
+        desc_lines = desc.split('\n')
+        bandwidth = ''
+
+        for line in desc_lines:
+            if line.startswith('bandwidth '):
+                bandwidth = (int(line.split()[3])) / 1000.0
+
+        return bandwidth
 
     def _parse_email(self, desc):
         """Parse the email address from an individual router descriptor 
@@ -354,28 +479,33 @@ class CtlUtil:
                 parsed, the empty string.
         """
         split_desc = desc.split('\n')
-        contacts = []
         punct = string.punctuation
+        contact = ""
         for line in split_desc:
             if line.startswith('contact '):
-                contacts.append(line)
-        for line in contacts:
-            clean_line = line.replace('<', ' ').replace('>', ' ') 
-            email = re.search('[^ <]*@.*\.[^\n \)\(>]*', clean_line)
-            if email == None:
-                email = re.search('[^\s]*\s(?:@|at|['+punct+']*at['+punct+']*' +
-                ')\s.*\s(?:\.|dot|d0t|['+punct+']*dot['+punct+']*)\s[^\n\)\(]*',
-                clean_line, re.IGNORECASE)
-                if email == None:
-                    email = re.search('[^\s]*\s(?:@|at|['+punct+']*at['+punct+
-                                    ']*)\s.*\.[^\n\)\(]*', clean_line, 
-                                                                re.IGNORECASE)
+                contact = contact + line
+        clean_line = contact.replace('<', ' ').replace('>', ' ') 
+        email = re.search('[^ <]*@.*\.[^\n \)\(>]*', clean_line)
         if email == None:
-            #----Learn how logging works and configure!------
-            #errormsg = ('Could not parse the following contact line:\n'+ line)
-            #logging.error(errormsg)
-            #print >> sys.stderr, errormsg
+            email = re.search('[^\s]*(?:@|at|['+punct+'\s]*at['+punct+'\s]*' +
+            ').*\s(?:\.|dot|d0t|['+punct+']*dot['+punct+']*)\s[^\n\)\(]*',
+            clean_line, re.IGNORECASE)
+            if email == None:
+                email = re.search('[^\s]*(?:@|at|['+punct+'\s]at['+punct+
+                                '\s]).*\.[^\n\)\(]*', clean_line, 
+                                                            re.IGNORECASE)
+        if email == None:
+        #----Learn how logging works and configure!------
+        #errormsg = ('Could not parse the following contact line:\n'+ line)
+        #logging.error(errormsg)
+        #print >> sys.stderr, errormsg
             email = ""
         else:
             email = email.group()
+            email = email.lower()
+            email = re.sub('['+punct+'\s]*at['+punct+'\s]*', '@', email)
+            email = re.sub('['+punct+'\s]*dot['+punct+'\s]*', '.', email)
+            email = email.replace(' d0t ', '.').replace(' hyphen ', '-').\
+                    replace(' ', '')
+
         return email

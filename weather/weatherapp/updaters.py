@@ -1,7 +1,7 @@
 """This module's run_all() method is called when a new consensus event is 
-triggered in listener.py. The cascade of events first populates and updates
+triggered in listener.py. It first populates and updates
 the Router table by storing new routers seen in the consensus document and 
-updating info relating to routers already stored. Next, each Subscription is 
+updating info relating to routers already stored. Next, each subscription is 
 checked to determine if the Subscriber should be emailed. When an email 
 notification is indicated, a tuple with the email subject, message, sender, and 
 recipient is added to the list of email tuples. Once all updates are complete, 
@@ -21,76 +21,94 @@ import logging
 import ctlutil
 import config
 from models import *
+
 import emails
 
 from django.core.mail import send_mass_mail
 
+#a CtlUtil instance module attribute
 ctl_util = ctlutil.CtlUtil()
 
 def check_node_down(email_list):
-    """Check if all nodes with L{NodeDownSub} subscriptions are up or down,
-    and send emails and update subscription data as necessary.
+    """Check if all nodes with L{NodeDownSub} subs are up or down,
+    and send emails and update sub data as necessary.
     
     @type email_list: list
     @param email_list: The list of tuples containing email info.
     @rtype: list
     @return: The updated list of tuples containing email info.
     """
-    #All node down subscriptions
-    subscriptions = NodeDownSub.objects.all()
+    #All node down subs
+    subs = NodeDownSub.objects.all()
 
-    for subscription in subscriptions:
-        #only check subscriptions of confirmed subscribers
-        if subscription.subscriber.confirmed:
-            is_up = subscription.subscriber.router.up 
+    for sub in subs:
+        #only check subs of confirmed subscribers
+        if sub.subscriber.confirmed:
+            is_up = sub.subscriber.router.up 
 
             if is_up:
-                if subscription.triggered:
-                   subscription.triggered = False
-                   subscription.last_changed = datetime.now()
+                if sub.triggered:
+                   sub.triggered = False
+                   sub.emailed = False
+                   sub.last_changed = datetime.now()
             else:
-                if subscription.triggered:
-                    #if subscription.should_email():------enable after debugging---
-                    recipient = subscription.subscriber.email
-                    fingerprint = subscription.subscriber.router.fingerprint
-                    grace_pd = subscription.grace_pd
-                    unsubs_auth = subscription.subscriber.unsubs_auth
-                    pref_auth = subscription.subscriber.pref_auth
+                if sub.triggered:
+                    #if sub.is_grace_passed() and sub.emailed == False:------enable after debugging---
+                    recipient = sub.subscriber.email
+                    fingerprint = sub.subscriber.router.fingerprint
+                    grace_pd = sub.grace_pd
+                    unsubs_auth = sub.subscriber.unsubs_auth
+                    pref_auth = sub.subscriber.pref_auth
                     
                     email = emails.node_down_tuple(recipient, fingerprint, 
                                                    grace_pd, unsubs_auth,
                                                    pref_auth)
                     email_list.append(email)
-                    subscription.emailed = True 
-                    #else:
-                        #subscription.triggered = True
-                        #subscription.last_changed = datetime.now()
-                subscription.save()
+                    sub.emailed = True 
+                else:
+                    sub.triggered = True
+                    sub.last_changed = datetime.now()
+
+            sub.save()
     return email_list
 
-def check_out_of_date(email_list):
-    """
-    
-    @type email_list: list
-    @param email_list: The list of tuples containing email info.
-    @rtype: list
-    @return: The updated list of tuples containing email info.
-    """
-    # TO DO ------------------------------------------------- EXTRA FEATURE 
-    # IMPLEMENT THIS ------------------------------------------------------
-    return email_list
-
-def check_below_bandwidth(email_list):
+def check_low_bandwidth(email_list):
     """Checks all L{LowBandwidthSub} subscriptions, updates the information,
     determines if an email should be sent, and updates email_list.
-    
+
     @type email_list: list
     @param email_list: The list of tuples containing email info.
     @rtype: list
     @return: The updated list of tuples containing email info.
     """
-    # TO DO ------------------------------------------------- EXTRA FEATURE
-    # IMPLEMENT THIS ------------------------------------------------------
+    subs = BandwidthSub.objects.all()
+
+    for sub in subs:
+        fingerprint = sub.subscriber.fingerprint
+        if sub.subscriber.confirmed:
+            if self.ctlutil.get_bandwidth(fingerprint) < sub.threshold and\
+            sub.emailed == False:
+                if sub.triggered and sub.is_grace_passed():
+                    recipient = sub.subscriber.email
+                    grace_pd = sub.grace_pd
+                    unsubs_auth = sub.subscriber.unsubs_auth
+                    pref_auth = sub.subscriber.pref_auth
+
+                    email_list.append(emails.bandwidth_tuple(recipient,         
+                    grace_pd, unsubs_auth, pref_auth)) 
+
+                    sub.emailed = True
+
+                elif not sub.triggered:
+                    sub.triggered = True
+                    sub.last_changed = datetime.now()
+            else:
+                if sub.triggered:
+                    sub.triggered = False
+                    sub.emailed = False
+                    sub.last_changed = datetime.now()
+
+            sub.save()
     return email_list
 
 def check_earn_tshirt(email_list):
@@ -105,50 +123,75 @@ def check_earn_tshirt(email_list):
     @return: The updated list of tuples containing email info.
     """
 
-    subscriptions = TShirtSub.objects.all()
+    subs = TShirtSub.objects.all()
 
-    for subscription in subscriptions:
+    for sub in subs:
         # first, update the database 
-        router = subscription.subscriber.router
+        router = sub.subscriber.router
         is_up = router.up
         fingerprint = router.fingerprint
         if not is_up:
             # reset the data if the node goes down
-            subscription.triggered = False
-            subscription.avg_bandwidth = 0
-            subscription.hours_since_triggered = 0
+            sub.triggered = False
+            sub.avg_bandwidth = 0
+            sub.hours_since_triggered = 0
         else:
             descriptor = ctl_ultil.get_single_descriptor(fingerprint)
             current_bandwidth = ctl_util.get_bandwidth(descriptor)
-            if subscription.triggered == False:
+            if sub.triggered == False:
             # router just came back, reset values
-                subscription.triggered = True
-                subscription.avg_bandwidth = current_bandwidth
-                subscription.hours_since_triggered = 1
+                sub.triggered = True
+                sub.avg_bandwidth = current_bandwidth
+                sub.hours_since_triggered = 1
             else:
             # update the avg bandwidth (arithmetic)
-                subscription.avg_bandwidth = ctl_util.get_new_avg_bandwidth(
-                                            subscription.avg_bandwidth,
-                                            subscription.hours_since_triggered,
+                sub.avg_bandwidth = ctl_util.get_new_avg_bandwidth(
+                                            sub.avg_bandwidth,
+                                            sub.hours_since_triggered,
                                             current_bandwidth)
-                subscription.hours_since_triggered+=1
-        subscription.save()
+                sub.hours_since_triggered+=1
+        sub.save()
 
         # now send the email if it's needed
-        if subscription.should_email():
-            recipient = subscription.subscriber.email
-            avg_band = subscription.avg_bandwidth
-            time = subscription.hours_since_triggered
-            exit = subscription.subscriber.router.exit
-            unsubs_auth = subscription.subscriber.unsubs_auth
-            pref_auth = subscription.subscriber.pref_auth
+        if sub.should_email():
+            recipient = sub.subscriber.email
+            avg_band = sub.avg_bandwidth
+            time = sub.hours_since_triggered
+            exit = sub.subscriber.router.exit
+            unsubs_auth = sub.subscriber.unsubs_auth
+            pref_auth = sub.subscriber.pref_auth
             
             email = emails.t_shirt_tuple(recipient, avg_band, time, exit, 
                                          unsubs_auth, pref_auth)
             email_list.append(email)
-            subscription.emailed = True
+            sub.emailed = True
 
     return email_list
+
+def check_version(email_list):
+    """Check/update all C{VersionSub} subscriptions and send emails as
+    necessary."""
+
+    subs = VersionSub.objects.all()
+
+    for sub in subs:
+        version_type = ctlutil.get_version_type(sub.subscriber.fingerprint)
+        if version_type == sub.notify_type and sub.subscriber.confirmed
+            and sub.emailed == False:
+            fingerprint = sub.subscriber.fingerprint
+            recipient = sub.subscriber.email
+            unsubs_auth = sub.subscriber.unsubs_auth
+            pref_auth = sub.subscriber.pref_auth
+            email_list.append(emails.version_tuple(recipient, fingerprint,
+                                                   unsubs_auth, pref_auth))
+            sub.emailed = True
+
+        #if the user has their desired version type, we need to set emailed
+        #to False so that we can email them again if we need to
+        else:
+            sub.emailed = False
+
+        
                 
 def check_all_subs(email_list):
     """Check/update all subscriptions
@@ -161,8 +204,8 @@ def check_all_subs(email_list):
 
     email_list = check_node_down(email_list)
     #---Add when implemented---
-    #check_out_of_date(email_list)
-    #check_below_bandwidth(email_list)
+    #check_version(email_list)
+    check_low_bandwidth(email_list)
     email_list = check_earn_tshirt(email_list)
     return email_list
 
@@ -220,5 +263,10 @@ def run_all():
     email_list = []
     email_list = update_all_routers(email_list)
     email_list = check_all_subs(email_list)
-    tupl = tuple(email_list)
-    send_mass_mail(tupl, fail_silently=True)
+    mails = tuple(email_list)
+
+    #-------commented out for safety!---------------
+    #send_mass_mail(mails, fail_silently=True)
+
+if __name__ == "__main__":
+    run_all()

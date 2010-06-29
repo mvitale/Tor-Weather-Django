@@ -77,13 +77,22 @@ _NODE_DOWN_MAIL = "This is a Tor Weather Report.\n\n" +\
 # ------------------------------------------------------------------
 # CONFIGURE THIS!
 # ------------------------------------------------------------------
-_OUT_OF_DATE_SUBJ = 'Node Out of Date!'
-_OUT_OF_DATE_MAIL = "This is a Tor Weather Report.\n\n"+\
+_VERSION_SUBJ = 'Node Out of Date!'
+_VERSION_MAIL = "This is a Tor Weather Report.\n\n"+\
     "It appears that a Tor node you elected to monitor (node id: %s) "+\
     "is running an out of date version of Tor. You can download the "+\
     "latest version of Tor at %s.\n\n You can unsubscribe from these "+\
     "reports at any time by visiting the following url:\n\n%s\n\n"+\
     "or change your Tor Weather notification preferences here:\n\n%s\n"
+
+_LOW_BANDWIDTH_SUBJ = 'Low bandwidth!'
+_LOW_BANDWIDTH_MAIL = "The is a Tor Weather Report.\n\n"+\
+    "It appears that a tor node you elected to monitor (node id: %s) "+\
+    "has had an observed bandwidth of less than 50KB/s for at least %s "+\
+    "hours(s). You may wish to look at it to see why.\n\n You can "+\
+    "unsubscribe from these reports at any time by visiting the "+\
+    "following url:\n\n%s\n\n or change your Tor Weather notification "\
+    "preferences here:\n\n%s\n"
 
 _T_SHIRT_SUBJ = 'Congratulations! Have a T-shirt!'
 _T_SHIRT_MAIL = "This is a Tor Weather Report.\n\n"+\
@@ -98,7 +107,6 @@ _T_SHIRT_MAIL = "This is a Tor Weather Report.\n\n"+\
     "You can unsubscribe from these reports at any time by visiting the "+\
     "following url:\n\n%s\n\nor change your Tor Weather notification "+\
     "preferences here:\n\n%s\n"
-
 
 _WELCOME_SUBJ = 'Welcome to Tor!'
 _WELCOME_MAIL = "Hello and welcome to Tor!\n\n" +\
@@ -178,9 +186,17 @@ def send_confirmed(recipient,
     msg = _CONFIRMED_MAIL % (fingerprint, unsubURL, prefURL) 
     send_mail(subj, msg, sender, [recipient], fail_silently=False)
 
+def bandwidth_tuple(recipient, fingerprint, grace_pd, unsubs_auth, pref_auth):
+    subj = _SUBJECT_HEADER + LOW_BANDWIDTH_SUBJ
+    sender = _SENDER
+    unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
+    prefURL = url_helper.get_preferences_url(pref_auth)
+    msg = _LOW_BANDWIDTH_MAIL % (fingerprint, unsubURL, prefURL)
+
+    return (subj, msg, sender, [recipient])
+
 def node_down_tuple(recipient, fingerprint, grace_pd, unsubs_auth, pref_auth):
     """Returns the tuple for a node down email.
-    
     @type recipient: str
     @param recipient: The user's email address
     @type fingerprint: str
@@ -270,4 +286,32 @@ def welcome_tuple(recipient, fingerprint, exit):
     if exit:
         append = _LEGAL_INFO
     msg = _WELCOME_MAIL % (name, router.fingerprint, append)
+    return (subj, msg, sender, [recipient])
+
+def version_tuple(recipient, fingerprint, unsubs_auth, pref_auth):
+    """Returns a tuple for a version notification email.
+
+    @type recipient: str
+    @param recipient: The user's email address.
+    @type fingerprint: str
+    @param fingerprint: The fingerprint for the router this user is subscribed
+                        to.
+    @type version: str
+    @param version: The version of the Tor software this router is running.
+    @type current_version: str
+    @param current_version: The version number of the most recent stable
+                            release.
+
+    @rtype: tuple
+    @return: A tuple containing information about the email to be sent in
+             an appropriate format for the C{send_mass_mail()} function in
+             C{updaters}.
+    """
+    router = Router.objects.get(fingerprint=fingerprint)
+    subj = _SUBJECT_HEADER + _VERSION_SUBJ
+    sender = _SENDER
+    unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
+    prefURL = url_helper.get_preferences_url(pref_auth)
+    downloadURL = url_helper.get_download_url()
+    msg = _VERSION_MAIL % (fingerprint, downloadURL, unsubURL, prefURL)
     return (subj, msg, sender, [recipient])

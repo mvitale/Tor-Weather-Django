@@ -32,6 +32,7 @@ _PREFERENCES = '/preferences/%s/'
 _RESEND_CONF = '/resend_conf/%s/'
 _SUBSCRIBE = '/subscribe/'
 _UNSUBSCRIBE = '/unsubscribe/%s/'
+_DOWNLOAD = 'https://www.torproject.org/easy-download.html'
 
 def get_confirm_url(confirm_auth):
     """Returns a string representation of the full url for the confirmation 
@@ -174,3 +175,11 @@ def get_unsubscribe_url(unsubs_auth):
     """
     url = base_url + _UNSUBSCRIBE % unsubs_auth
     return url
+
+def get_download_url():
+    """Returns the Tor downloads urls
+    
+    @rtype: str
+    @return: The url for the Tor downloads page.
+    """
+    return _DOWNLOAD

@@ -18,8 +18,7 @@ from django import forms
 class Router(models.Model):
     """A model that stores information about every router on the Tor network.
     If a router hasn't been seen on the network for at least one year, it is
-    removed from the database.
-    
+    removed from the database.  
     @type fingerprint: str
     @ivar fingerprint: The router's fingerprint.
     @type name: str
@@ -41,7 +40,7 @@ class Router(models.Model):
     fingerprint = models.CharField(max_length=40, unique=True)
     name = models.CharField(max_length=100)
     welcomed = models.BooleanField(default=False)
-    last_seen = models.DateTimeField('date last seen', default=datetime.now)
+    last_seen = models.DateTimeField(default=datetime.now)
     up = models.BooleanField(default=True)
     exit = models.BooleanField()
 
@@ -125,7 +124,7 @@ class SubscriptionManager(models.Manager):
     """
 
     @staticmethod
-    def get_hours_since_changed(last_changed):
+    def hours_since_changed(last_changed):
         """Returns the time that has passed since the datetime parameter
         last_changed in hours.
 
@@ -136,7 +135,8 @@ class SubscriptionManager(models.Manager):
         @return: The number of hours since last_changed.
         """
         time_since_changed = datetime.now() - last_changed
-        hours_since_changed = time_since_changed.seconds / 3600
+        hours_since_changed = (time_since_changed.hours * 24) + \
+                              (time_since_changed.seconds / 3600)
         return hours_since_changed
     
 
@@ -162,17 +162,10 @@ class Subscription(models.Model):
     """
     subscriber = models.ForeignKey(Subscriber)
     emailed = models.BooleanField(default=False)
-    triggered = models.BooleanField(default=False)
-    last_changed = models.DateTimeField('date of last change', 
-                                        default=datetime.now)
 
     # In Django, Manager objects handle table-wide methods (i.e filtering)
     objects = SubscriptionManager()
     
-    def __unicode__(self):
-        return self.subscriber.email
-
-
 class NodeDownSub(Subscription):
     """A subscription class for node-down subscriptions, which send 
     notifications to the user if their node is down for the downtime grace
@@ -182,25 +175,27 @@ class NodeDownSub(Subscription):
     @ivar grace_pd: The amount of time (hours) before a notification is sent
         after a node is seen down.
     """
+    triggered = models.BooleanField(default=False)
     grace_pd = models.IntegerField()
+    last_changed = models.DateTimeField(default=datetime.now)
 
-    def should_email():
-        """Returns a bool representing whether or not the Subscriber should
-        be emailed about their node being down.
-
+    def is_grace_passed(self):
+        """Check if the grace period has passed for this subscription
+        
         @rtype: bool
-        @return: True if the Subscriber should be emailed because their node
-            is down and the grace period has passed, False otherwise.
+        @return: C{True} if C{triggered} and 
+        C{SubscriptionManager.hours_since_changed()}, otherwise C{False}.
         """
-        hours_since_changed = \
-            SubscriptionManager.get_hours_since_changed(last_changed)
-        if triggered and not emailed and \
-                     (hours_since_changed > grace_pd):
+
+        if triggered and SubscriptionManager.hours_since_changed() >= grace_pd:
             return True
         else:
             return False
 
+    def __unicode__(self):
+        return self.subscriber.email + ": Node Down Sub"
 
+        
 class VersionSub(Subscription):
     """
 
@@ -211,24 +206,31 @@ class VersionSub(Subscription):
 # -----------------------------------------------------------------------
 # FILL IN LATER, FIX DOCUMENTATION
 # -----------------------------------------------------------------------
-    threshold = models.CharField(max_length=250)
 
-    def should_email():
-        """
-        """
+    #only send notifications if the version is of type notify_type
+    notify_type = models.CharField(max_length=250)
 
 
-class LowBandwidthSub(Subscription):    
+class BandwidthSub(Subscription):    
     """
     """
-    threshold = models.IntegerField(default = 0)
     grace_pd = models.IntegerField(default = 1)
+    last_changed = models.DateTimeField(default=datetime.now)
+    triggered = models.BooleanField(default=False)
+    threshold = models.IntegerField(default = 20)
 
-    #def should_email():
-        #"""
-        #"""
-        #time_since_changed
+    def is_grace_passed(self):
+        """Check if the grace period has passed for this subscription
 
+        @rtype: bool
+        @return: C{True} if C{triggered} and 
+        C{SubscriptionManager.hours_since_changed()}, otherwise C{False}.
+        """
+
+        if triggered and SubscriptionManager.hours_since_changed() >= grace_pd:
+            return True
+        else:
+            return False
 
 class TShirtSub(Subscription):
     """A subscription class for T-shirt notifications. An email is sent
@@ -263,117 +265,238 @@ class TShirtSub(Subscription):
                     return True
         return False
 
+class SubscriberAlreadyExistsError(Exception):
+    def __init__(self, url):
+        self.url = url
+    def __str__(self):
+        return repr(self.url)
 
-class SubscribeForm(forms.Form):
-    """The form for a new subscriber. The form includes an email field, 
-    a node fingerprint field, and a field to specify the hours of downtime 
-    before receiving a notification.
+class GenericForm(forms.Form):
+    _MAX_NODE_DOWN_GRACE_PD = 4500
+    _MIN_NODE_DOWN_GRACE_PD = 1
+    _MAX_BAND_LOW_GRACE_PD = 4500
+    _MIN_BAND_LOW_GRACE_PD = 1
+    _INIT_BAND_LOW_THRESHOLD = 20
+    _MIN_BAND_LOW_THRESHOLD = 1
+    _MAX_BAND_LOW_THRESHOLD = 100000
 
-    @ivar email: A field for the user's email address
-    @ivar fingerprint: A field for the fingerprint (node ID) corresponding 
-        to the node the user wants to monitor
-    @ivar grace_pd: A field for the hours of downtime the user specifies
-        before being notified via email"""
-
-    # widget attributes are modified here to customize the form
-    email = forms.EmailField(widget=forms.TextInput(attrs={'size':'50', 
-        'value' : 'Enter a valid email address', 'onClick' : 'if (this.value'+\
-        '=="Enter a valid email address") {this.value=""}'}))
-    fingerprint = forms.CharField(widget=forms.TextInput(attrs={'size':'50',
-        'value' : 'Enter one Tor node ID', 'onClick' : 'if (this.value' +\
-        '=="Enter one Tor node ID") {this.value=""}'}))
-    grace_pd = forms.IntegerField(widget=forms.TextInput(attrs={'size':'50',
-        'value' : 'Default is 1 hour, enter up to 8760 (1 year)', 'onClick' :
-        'if (this.value=="Default is 1 hour, enter up to 8760 (1 year)") '+\
-        '{this.value=""}'}))
-
-    def clean_grace_pd(self):
-        """Django lets you specify how to 'clean' form data for specific
-        fields by adding clean methods to the form classes. The grace 
-        period for downtime must be between 1 and 8760, and this method
-        ensures that an error message is displayed to the user if they
-        try to submit a value outside that range.
-        """ 
-        grace_pd = self.cleaned_data.get('grace_pd')
-        if grace_pd < 1 or grace_pd > 8760:
-            raise forms.ValidationError("You must enter a number between " 
-                                        + "1 and 8760")
-        return grace_pd
-
-    def clean_fingerprint(self):
-        """Raises a validation error if the fingerprint the user entered
-        wasn't found in the database. The error message contains a link
-        to a page listing possible problems.
-        """
-        fingerprint = self.cleaned_data.get('fingerprint')
-        fingerprint.replace(' ','')
-        fingerprint_set = Router.objects.filter(fingerprint=fingerprint)
-        if len(fingerprint_set) == 0:
-            info_ext = url_helper.get_fingerprint_info_ext(fingerprint)
-            message = "We could not locate a Tor node with that fingerprint. "+\
-                      "(<a href=%s>More info</a>)" % info_ext
-            raise forms.ValidationError(message)
-        return fingerprint
-
-class NewSubscribeForm(forms.Form):
-    """For full feature list. NOWHERE NEAR READY. """
-
-    email_1 = forms.EmailField(max_length=75, help_text='Email:')
-    email_2 = forms.EmailField(max_length=75, help_text='Re-enter Email:')
-    fingerprint = forms.CharField(max_length=40, help_text='Node Fingerprint:')
-
-    get_node_down = forms.BooleanField(
-            help_text='Receive notifications when node is down')
-    node_down_grace_pd = forms.IntegerField( 
-            help_text='How many hours of downtime before we send'
-                      + 'a notification?')
-    node_down_grace_pd.help_text_2 = \
-            'Enter a value between 1 and 4500 (roughly six months)'
+    get_node_down = forms.BooleanField(initial=True, required=False,
+            label='Receive notifications when node is down')
+    node_down_grace_pd = forms.IntegerField(required=False,
+            max_value=_MAX_NODE_DOWN_GRACE_PD,
+            min_value=_MIN_NODE_DOWN_GRACE_PD,
+            label='How many hours of downtime before \
+                       we send a notifcation?',
+            help_text='Enter a value between 1 and 4500 (roughly six months)')
     
-    get_out_of_date = forms.BooleanField(
-            help_text='Receive notifications when node is out of date')
-    out_of_date_threshold = forms.ChoiceField(
+    get_out_of_date = forms.BooleanField(initial=False, required=False,
+            label='Receive notifications when node is out of date')
+    out_of_date_threshold = forms.ChoiceField(required=False,
             choices=((u'c1', u'out of date lvl 1'),
                      (u'c2', u'out of date lvl 2'),
                      (u'c3', u'out of date lvl 3'),
                      (u'c4', u'out of date lvl 4')),
-                help_text='How current would you like your version of Tor?')
-    out_of_date_grace_pd = forms.IntegerField(
-            help_text='How quickly, in days, would you like to be notified?')
-    out_of_date_grace_pd.help_text_2 = \
-            'Enter a value between 1 and 200 (roughly six months)'
+                label='How current would you like your version of Tor?')
     
-    get_band_low = forms.BooleanField(
-            help_text='Receive notifications when node has low bandwidth')
-    out_of_date_threshold = forms.IntegerField(
-            help_text='Critical bandwidth measured in kilobits')
-    out_of_date_grace_pd = forms.IntegerField(
-            help_text='How many hours of low bandwidth?')
-    out_of_date_grace_pd.help_text_2 = \
-            'Enter a value between 1 and 4500 (roughly six months)'
+    get_band_low = forms.BooleanField(initial=False, required=False,
+            label='Receive notifications when node has low bandwidth')
+    band_low_threshold = forms.IntegerField(initial=_INIT_BAND_LOW_THRESHOLD,
+            required=False, max_value=_MAX_BAND_LOW_THRESHOLD,
+            min_value=_MIN_BAND_LOW_THRESHOLD, label='What critical bandwidth \
+            would you like to be informed of?')
+    band_low_grace_pd = forms.IntegerField(required=False,
+            max_value=_MAX_BAND_LOW_GRACE_PD,
+            min_value=_MIN_BAND_LOW_GRACE_PD,
+            label='How many hours of low bandwidth before \
+                       we send a notification?',
+            help_text='Enter a value between 1 and 4500 (roughly six \
+                       months); default value is 1 hour.')
+    
+    get_t_shirt = forms.BooleanField(initial=False, required=False,
+            label='Receive notification when node has earned a t-shirt')
 
-    get_t_shirt = forms.BooleanField(
-            help_text='Receive notification when node has earned a t-shirt')
-    t_shirt_grace_pd = forms.IntegerField(
-            help_text='How quickly, in days, would you like to be notified?')
-    t_shirt_grace_pd.help_text_2 = \
-            'Enter a value between 1 and 200 (roughly six months)'
+    def clean(self):
+        # Only creates validation errors for required fields if their
+        # 'parent' checkbox is checked. That is, a validation error for
+        # fields pertinent to get_node_down are only thrown if get_node_down
+        # is checked. By default, all non-subscriber fields are not required.
+        # The reason for all this complication is that it doesn't seem possible
+        # to actually dynamically change Django's built-in required field
+        # functionality.
 
+        # If the node down subscription box is checked.
+        if self.cleaned_data['get_node_down']:
+            # If there are no other errors for the node_down_grace_pd field and
+            # it is empty (either not in cleaned_data or in it as None).
+            if 'node_down_grace_pd' not in self._errors \
+            and ('node_down_grace_pd' not in self.cleaned_data
+            or self.cleaned_data['node_down_grace_pd'] == None):
+                # Create an error saying that the field is required.
+                self._errors['node_down_grace_pd'] = self.error_class(
+                                                            [required_msg])
+        # If the node down subscription box isn't checked, and there are
+        # errors for node_down_grace_pd, then ignore them.
+        elif 'node_down_grace_pd' in self._errors:
+            # Deletes the error since it should be ignored.
+            del self._errors['node_down_grace_pd']
 
-class PreferencesForm(forms.Form):
-    """The form for changing preferences.
+        # If the out of date subscription box is checked.
+        if self.cleaned_data['get_out_of_date']:
+            # If there are no other errors for the out_of_date_threshold field
+            # and it is empty (either not in cleaned data or in it as None).
+            if 'out_of_date_threshold' not in self._errors \
+            and ('out_of_date_threshold' not in self.cleaned_data
+            or self.cleaned_data['out_of_date_threshold'] == None):
+                # Create an error saying that the field is required.
+                self._errors['out_of_date_threshold'] = self.error_class(
+                                                            [required_msg])
+        # If the out of date subscription box isn't checked.
+        else:
+            # If there are errors for out_of_date_trheshold, then ignore them.
+            if 'out_of_date_threshold' in self._errors:     
+                del self._errors['out_of_date_threshold']
+            # If there are errors for out_of_date_grace_pd, then ignore them.
+            #if 'out_of_date_grace_pd' in self._errors:
+            #    del self._errors['out_of_date_grace_pd']
 
-    @ivar grace_pd: A fiend for the user to specify the hours of 
-        downtime before an email notification is sent"""
+        # If the band low subscription is checked.
+        if self.cleaned_data['get_band_low']:
+            # If there are no errors for the band_low_grace_pd field and it is
+            # empty (either not in cleaned_data or in it as None).
+            if 'band_low_grace_pd' not in self._errors \
+            and ('band_low_grace_pd' not in self.cleaned_data
+            or self.cleaned_data['band_low_grace_pd'] == None):
+                # Create an error saying that the field is required.
+                self._errors['band_low_grace_pd'] = self.error_class(
+                                                            [required_msg])
+            # If there are no errors for the band_low_threshold field and it is
+            # empty (either not in claned_data or in it as None).
+            if 'band_low_threshold' not in self._errors \
+            and ('band_low_threshold' not in self.cleaned_data
+            or self.cleaned_data['band_low_threshold'] == None):
+                # Create an error saying that the field is required.
+                self._errors['band_low_threshold'] = self.error_class(
+                                                            [required_msg])
+        # If the band low subscription box isn't checked.
+        else:
+            # If there are errors for band_low_threshold, then ignore them.
+            if 'band_low_threshold' in self._errors:
+                del self._errors['band_low_threshold']
+            # If there are errors for band_low_grace_pd, then ignore them.
+            if 'band_low_grace_pd' in self._errors:
+                del self._errors['band_low_grace_pd']
 
-    grace_pd = forms.IntegerField(widget=forms.TextInput(attrs={'size':'25'}))
+       # Ensures that at least one subscription must be checked.
+        if not (self.cleaned_data['get_node_down'] or
+                self.cleaned_data['get_out_of_date'] or
+                self.cleaned_data['get_band_low'] or
+                self.cleaned_data['get_t_shirt']):
+            raise forms.ValidationError('You must choose at least one \
+                                         type of subscription!')
 
-    def clean_grace_pd(self):
-        """Ensures an error message is displayed to the user if they try to
-        enter a downtime grace period outside the range of 1-8760 hours."""
-        grace_pd = self.cleaned_data.get('grace_pd')
-        if grace_pd < 1 or grace_pd > 8760:
-            raise forms.ValidationError("You must enter a number between "
-                                        + "1 and 8760.")
-        return grace_pd
+        return self.cleaned_data
 
+    def save_subscriptions(self, subscriber):
+        # Create the various subscriptions if they are specified.
+        if self.cleaned_data['get_node_down']:
+            node_down_sub = NodeDownSub(subscriber=subscriber,
+                    grace_pd=self.cleaned_data['node_down_grace_pd'])
+            node_down_sub.save()
+        if self.cleaned_data['get_out_of_date']:
+            out_of_date_sub = VersionSub(subscriber=subscriber,
+                    threshold=self.cleaned_data['out_of_date_threshold'],
+                    #grace_pd=self.cleaned_data['out_of_date_grace_pd']
+                    )
+            out_of_date_sub.save()
+        if self.cleaned_data['get_band_low']:
+            band_low_sub = LowBandwidthSub(subscriber=subscriber,
+                    threshold=self.cleaned_data['band_low_threshold'],
+                    grace_pd=self.cleaned_data['band_low_grace_pd'])
+            band_low_sub.save()
+        if self.cleaned_data['get_t_shirt']:
+            t_shirt_sub = TShirtSub(subscriber=subscriber)
+            t_shirt_sub.save()
+
+class SubscribeForm(GenericForm):
+    email_1 = forms.EmailField(label='Enter Email:',
+            max_length=75)
+    email_2 = forms.EmailField(label='Re-enter Email:',
+            max_length=75)
+    fingerprint = forms.CharField(label='Node Fingerprint:',
+            max_length=50)
+
+    def clean(self):
+        # Makes sure email_1 and email_2 match and creates error messages
+        # if they don't as well as deleting the cleaned data so that it isn't
+        # erroneously used.
+        if 'email_1' in self.cleaned_data and 'email_2' in self.cleaned_data:
+            email_1 = self.cleaned_data['email_1']
+            email_2 = self.cleaned_data['email_2']
+
+            if not email_1 == email_2:
+                msg = 'Email addresses must match.'
+                self._errors['email_1'] = self.error_class([msg])
+                self._errors['email_2'] = self.error_class([msg])
+                
+                del self.cleaned_data['email_1']
+                del self.cleaned_data['email_2']
+       
+        return self.cleaned_data
+
+    def clean_fingerprint(self):
+        """Uses Django's built-in 'clean' form processing functionality to
+        test whether the fingerprint entered is a router we have in the
+        current database, and presents an appropriate error message if it
+        isn't (along with helpful information).
+        """
+        fingerprint = self.cleaned_data.get('fingerprint')
+        fingerprint.replace(' ', '')
+
+        if self.is_valid_router(fingerprint):
+            return fingerprint
+        else:
+            info_extension = Urls.get_fingerprint_info_ext(fingerprint)
+            msg = 'We could not locate a Tor node with that fingerprint. \
+                   (<a href=%s>More info</a>)' % info_extension
+            raise forms.ValidationError(msg)
+
+    def is_valid_router(self, fingerprint):
+        """Helper function to check if a router exists in the database.
+        """
+        router_query_set = Router.objects.filter(fingerprint=fingerprint)
+
+        if router_query_set.count() == 0:
+            return False
+        else:
+            return True
+
+    def save_subscriber(self):
+        """Attempts to save the new subscriber, but throws a catchable error
+        if a subscriber already exists with the given email and fingerprint.
+        PRE-CONDITION: fingerprint is a valid fingerprint for a 
+        router in the Router database.
+        """
+
+        email = self.cleaned_data['email_1']
+        fingerprint = self.cleaned_data['fingerprint']
+        router = Router.objects.get(fingerprint=fingerprint)
+
+        # Get all subscribers that have both the email and fingerprint
+        # entered in the form. 
+        subscriber_query_set = Subscriber.objects.filter(email=email, 
+                                    router__fingerprint=fingerprint)
+        
+        # Redirect the user if such a subscriber exists, else create one.
+        if subscriber_query_set.count() > 0:
+            subscriber = subscriber_query_set[0]
+            url_extension = Urls.get_error_ext('already_subscribed', 
+                                               subscriber.pref_auth)
+            raise Exception(url_extension)
+            #raise UserAlreadyExistsError(url_extension)
+        else:
+            subscriber = Subscriber(email=email, router=router)
+            subscriber.save()
+            return subscriber
+            
+class PreferencesForm(GenericForm):
+   pass 

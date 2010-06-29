@@ -17,7 +17,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'weather.settings'
 
 #very basic log setup
 logging.basicConfig(format = '%(asctime) - 15s (%(process)d) %(message)s',
-                    level = logging.INFO, logfile = './weather.log')
+                    level = logging.INFO, filename = './weather.log')
 
 class MyEventHandler(TorCtl.EventHandler):
     def new_consensus_event(self, event):
