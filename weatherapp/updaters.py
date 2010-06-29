@@ -139,6 +139,15 @@ def check_earn_tshirt(email_list):
             subscription.emailed = True
 
     return email_list
+
+def check_version():
+    """Check/update all C{VersionSub} subscriptions and send emails as
+    necessary."""
+
+    subs = VersionSub.objects.all()
+
+    for sub in subs:
+        
                 
 def check_all_subs(email_list):
     """Check/update all subscriptions
