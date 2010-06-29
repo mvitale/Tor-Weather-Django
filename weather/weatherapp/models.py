@@ -287,12 +287,56 @@ class SubscriberAlreadyExistsError(Exception):
         return repr(self.url)
 
 class GenericForm(forms.Form):
+    """The basic form class that is inherited by the SubscribeForm class
+    and the PreferencesForm class.
+    
+    @type _MAX_NODE_DOWN_GRACE_PD: int
+    @cvar _MAX_NODE_DOWN_GRACE_PD: The maximum node down grace period in hours
+    @type _MIN_NODE_DOWN_GRACE_PD: int
+    @cvar _MIN_NODE_DOWN_GRACE_PD: The minimum node down grace period in hours
+    @type _MAX_BAND_LOW_GRACE_PD: int
+    @cvar _MAX_BAND_LOW_GRACE_PD: The maximum low bandwidth grace period in 
+        hours
+    @type _MIN_BAND_LOW_GRACE_PD: int
+    @cvar _MIN_BAND_LOW_GRACE_PD: The minimum low bandwidth grace period in 
+        hours
+    @type _INIT_BAND_LOW_THRESHOLD: int
+    @cvar _INIT_BAND_LOW_THRESHOLD: The initial low bandwidth threshold (KB/s)
+    @type _MIN_BAND_LOW_THRESHOLD: int
+    @cvar _MIN_BAND_LOW_THRESHOLD: The minimum low bandwidth threshold (KB/s)
+    @type _MAX_BAND_LOW_THRESHOLD: int
+    @cvar _MAX_BAND_LOW_THRESHOLD: The maximum low bandwidth threshold (KB/s)
+    @type get_node_down: bool
+    @ivar get_node_down: C{True} if the user wants to subscribe to node down 
+        notifications, C{False} if not.
+    @type node_down_grace_pd: int
+    @ivar node_down_grace_pd: Time before receiving a node down notification in 
+        hours. Default = 1. Range = 1-4500.
+    @type get_out_of_date: bool
+    @ivar get_out_of_date: C{True} if the user wants to receive version 
+        notifications about their router, C{False} if not.
+    @type out_of_date_threshold: str
+    @ivar out_of_date_threshold: The type of version notifications the user 
+        wants
+    @type get_band_low: bool
+    @ivar get_band_low: C{True} if the user wants to receive low bandwidth 
+        notifications, C{False} if not.
+    @type band_low_threshold: int
+    @ivar band_low_threshold: The user's threshold (in KB/s) for low bandwidth
+        notifications. Default = 20 KB/s.
+    @type band_low_grace_pd: int
+    @ivar band_low_grace_pd: The number of hours of low bandwidth below 
+        threshold for sending a notification. Default = 1. Range = 1-4500.
+    @type get_t_shirt: bool
+    @ivar get_t_shirt: C{True} if the user wants to receive a t-shirt 
+        notification, C{False} if not.
+    """
     _MAX_NODE_DOWN_GRACE_PD = 4500
     _MIN_NODE_DOWN_GRACE_PD = 1
     _MAX_BAND_LOW_GRACE_PD = 4500
     _MIN_BAND_LOW_GRACE_PD = 1
     _INIT_BAND_LOW_THRESHOLD = 20
-    _MIN_BAND_LOW_THRESHOLD = 1
+    _MIN_BAND_LOW_THRESHOLD = 0
     _MAX_BAND_LOW_THRESHOLD = 100000
 
     get_node_down = forms.BooleanField(initial=True, required=False,
@@ -444,6 +488,18 @@ class GenericForm(forms.Form):
             t_shirt_sub.save()
 
 class SubscribeForm(GenericForm):
+    """Inherits from L{GenericForm}. The SubscribeForm class contains
+    all the fields in the GenericForm class and additional fields for 
+    the user's email and the fingerprint of the router the user wants to
+    monitor.
+    
+    @type email_1: EmailField
+    @ivar email_1: A field for the user's email 
+    @type email_2: EmailField
+    @ivar email_2: A field for the user's email (enter twice for security)
+    @ivar fingerprint: The fingerprint of the router the user wants to 
+        monitor.
+    """
     email_1 = forms.EmailField(label='Enter Email:',
             max_length=75)
     email_2 = forms.EmailField(label='Re-enter Email:',
@@ -452,6 +508,7 @@ class SubscribeForm(GenericForm):
             max_length=50)
 
     def clean(self):
+        """"""
         
         # Calls the same helper methods used in the GenericForm clean() method.
         data = self.cleaned_data
