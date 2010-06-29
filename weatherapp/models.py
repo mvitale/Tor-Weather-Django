@@ -18,8 +18,7 @@ from django import forms
 class Router(models.Model):
     """A model that stores information about every router on the Tor network.
     If a router hasn't been seen on the network for at least one year, it is
-    removed from the database.
-    
+    removed from the database.  
     @type fingerprint: str
     @ivar fingerprint: The router's fingerprint.
     @type name: str
@@ -163,7 +162,7 @@ class Subscription(models.Model):
     """
     subscriber = models.ForeignKey(Subscriber)
     emailed = models.BooleanField(default=False)
-    triggered = models.BooleanField(default=False)
+    
     
 
     # In Django, Manager objects handle table-wide methods (i.e filtering)
@@ -178,28 +177,27 @@ class NodeDownSub(Subscription):
     @ivar grace_pd: The amount of time (hours) before a notification is sent
         after a node is seen down.
     """
+    triggered = models.BooleanField(default=False)
     grace_pd = models.IntegerField()
     last_changed = models.DateTimeField(default=datetime.now)
 
-    def __unicode__(self):
-        return self.subscriber.email + ": Node Down Sub"
-
-    def should_email():
-        """Returns a bool representing whether or not the Subscriber should
-        be emailed about their node being down.
-
+    def is_grace_passed(self):
+        """Check if the grace period has passed for this subscription
+        
         @rtype: bool
-        @return: True if the Subscriber should be emailed because their node
-            is down and the grace period has passed, False otherwise.
+        @return: C{True} if C{triggered} and 
+        C{SubscriptionManager.hours_since_changed()}, otherwise C{False}.
         """
-        hours_since_changed = \
-            SubscriptionManager.hours_since_changed(last_changed)
-        if triggered and not emailed and \
-                     (hours_since_changed > grace_pd):
+
+        if triggered and SubscriptionManager.hours_since_changed() >= grace_pd:
             return True
         else:
             return False
 
+    def __unicode__(self):
+        return self.subscriber.email + ": Node Down Sub"
+
+        
 class VersionSub(Subscription):
     """
 
@@ -210,11 +208,11 @@ class VersionSub(Subscription):
 # -----------------------------------------------------------------------
 # FILL IN LATER, FIX DOCUMENTATION
 # -----------------------------------------------------------------------
-    threshold = models.CharField(max_length=250)
 
-    def should_email():
-        """
-        """
+    #only send notifications if the version is of type notify_type
+    notify_type = models.CharField(max_length=250)
+
+
 
 
 class BandwidthSub(Subscription):    
@@ -222,6 +220,21 @@ class BandwidthSub(Subscription):
     """
     grace_pd = models.IntegerField(default = 1)
     last_changed = models.DateTimeField(default=datetime.now)
+    triggered = models.BooleanField(default=False)
+    threshold = models.IntegerField(default = 20)
+
+    def is_grace_passed(self):
+        """Check if the grace period has passed for this subscription
+
+        @rtype: bool
+        @return: C{True} if C{triggered} and 
+        C{SubscriptionManager.hours_since_changed()}, otherwise C{False}.
+        """
+
+        if triggered and SubscriptionManager.hours_since_changed() >= grace_pd:
+            return True
+        else:
+            return False
 
 class TShirtSub(Subscription):
     """A subscription class for T-shirt notifications. An email is sent
@@ -234,8 +247,10 @@ class TShirtSub(Subscription):
     @ivar avg_bandwidth: The router's average bandwidth
     @type hours_since_triggered: int
     @ivar hours_since_triggered: The hours this router has been up"""
+
     avg_bandwidth = models.IntegerField(default = 0)
     hours_since_triggered = models.IntegerField(default = 0)
+    triggered = models.BooleanField(default=False)
 
     def should_email():
         """Returns true if the router being watched has been up for 1464 hours
