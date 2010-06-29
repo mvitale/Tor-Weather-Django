@@ -1,8 +1,8 @@
 """
-The models module handles the bulk of Tor Weather. The module contains three
-models that correspond to database tables (L{Subscriber}, L{Subscription}, and 
-L{Router}) as well as two form classes (L{SubscribeForm} and
-L{PreferencesForm}), which specify the fields to appear on the sign-up
+The models module handles the bulk of Tor Weather's database management. The 
+module contains three models that correspond to database tables (L{Subscriber}, 
+L{Subscription}, and L{Router}) as well as two form classes (L{SubscribeForm} 
+and L{PreferencesForm}), which specify the fields to appear on the sign-up 
 and change preferences pages.
 """
 from datetime import datetime

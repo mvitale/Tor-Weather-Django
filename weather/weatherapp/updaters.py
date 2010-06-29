@@ -7,6 +7,10 @@ notification is indicated, a tuple with the email subject, message, sender, and
 recipient is added to the list of email tuples. Once all updates are complete, 
 Django's send_mass_mail method is called, passing in the emails tuple as a 
 parameter.
+
+@type ctl_util: CtlUtil
+@var ctl_util: A CtlUtil object for the module to handle the connection to and
+    communication with TorCtl.
 """
 import socket, sys, os
 import threading
@@ -218,8 +222,3 @@ def run_all():
     email_list = check_all_subs(email_list)
     tupl = tuple(email_list)
     send_mass_mail(tupl, fail_silently=True)
-
-if __name__ == "__main__":
-    run_all()
-
-

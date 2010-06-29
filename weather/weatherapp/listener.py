@@ -1,18 +1,19 @@
 """A module for listening to TorCtl for new consensus events. When one occurs,
-initializes checker"""
+initializes the checker/updater cascade in the updaters module."""
 
 import sys, os
+import logging
+import socket
 
+from weather.weatherapp import config, updaters
+from weather import settings
+from TorCtl import TorCtl
+
+from django.core.management import setup_environ
+
+setup_environ(settings)
 sys.path.append(os.path.abspath('../..'))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'weather.settings'
-from weather import settings
-from django.core.management import setup_environ
-setup_environ(settings)
-
-from TorCtl import TorCtl
-import socket
-from weather.weatherapp import config, updaters
-import logging
 
 #very basic log setup
 logging.basicConfig(format = '%(asctime) - 15s (%(process)d) %(message)s',
@@ -23,6 +24,9 @@ class MyEventHandler(TorCtl.EventHandler):
         updaters.run_all()
 
 def main():
+    """Sets up a connection to TorCtl and launches a thread to listen for
+    new consensus events.
+    """
     ctrl_host = "127.0.0.1"
     ctrl_port = 9051
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

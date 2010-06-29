@@ -1,12 +1,50 @@
 """The emails module contains methods to send individual confirmation and confirmed emails as well as methods to return tuples needed by Django's 
-send_mass_mail() method, which is called after all notification checks are run 
-to send necessary emails. 
+send_mass_mail() method. Emails are sent after all database checks/updates. 
 
-@var
+@type _SENDER: str
+@var _SENDER: The email address for the Tor Weather emailer
+@type _SUBJECT_HEADER: str
+@var _SUBJECT_HEADER: The base for all email headers.
+@type _CONFIRMATION_SUBJ: str
+@var _CONFIRMATION_SUBJ: The subject line for the confirmation mail
+@type _CONFIRMATION_MAIL: str
+@var _CONFIRMATION_MAIL: The email message sent upon first 
+    subscribing. The email contains a link to the user-specific confirmation
+    page, which the user must follow to confirm.
+@type _CONFIRMED_SUBJ: str
+@var _CONFIRMED_SUBJ: The subject line for the confirmed email
+@type _CONFIRMED_MAIL: str
+@var _CONFIRMED_MAIL: The email message sent after the user follows the 
+    link in the confirmation email. Contains links to preferences and 
+    unsubscribe.
+@type _NODE_DOWN_SUBJ: str
+@var _NODE_DOWN_SUBJ: The subject line for the node down notification
+@type _NODE_DOWN_MAIL: str
+@var _NODE_DOWN_MAIL: The email message for the node down notification.
+@type _OUT_OF_DATE_SUBJ: str
+@var _OUT_OF_DATE_SUBJ: The subject line for an out-of-date version notification
+@type _OUT_OF_DATE_MAIL: str
+@var _OUT_OF_DATE_MAIL: The email message for an out-of-date version 
+    notification
+@type _T_SHIRT_SUBJ: str
+@var _T_SHIRT_SUBJ: The subject line for the T-Shirt notification
+@type _T_SHIRT_MAIL: str
+@var _T_SHIRT_MAIL: The email message for the T-Shirt notification (includes 
+    uptime and avg bandwidth over that period)
+@type _WELCOME_SUBJ: str
+@var _WELCOME_SUBJ: The subject line for the welcome email
+@type _WELCOME_MAIL: str
+@var _WELCOME_MAIL: The message in the welcome email. This message is sent to
+    all node operators running a stable node (assuming we can parse their 
+    email). It welcomes the user to Tor, describes Tor Weather, and provides 
+    legal information if the user is running an exit node.
+@type _LEGAL_INFO: str
+@var _LEGAL_INFO: Legal information to assist exit node operators. This is 
+    appended to the welcome email if the recipient runs an exit node.
 """
-# --------- DOCUMENT THE VARS ---------------------------
-from django.core.mail import send_mail
 from weather.config import url_helper
+
+from django.core.mail import send_mail
 
 _SENDER = 'tor-ops@torproject.org'
 _SUBJECT_HEADER = '[Tor Weather] '
@@ -84,15 +122,13 @@ _WELCOME_MAIL = "Hello and welcome to Tor!\n\n" +\
     "with no subject and a body of \"subscribe or-announce\". \n\n"+\
     "Thank you again for your contribution to the Tor network! "+\
     "We won't send you any further emails unless you subscribe.\n\n"+\
-    "Disclaimer: If you have no idea why you're receiving this email, we "+\
+    "%sDisclaimer: If you have no idea why you're receiving this email, we "+\
     "sincerely apologize! You shouldn't hear from us again.\n"
 
 # ------------ FORMAT LINK IN WELCOME MAIL --------------------------
 
-_LEGAL_SUBJ = 'Welcome to Tor! Thanks for agreeing to be an exit node!'
-_LEGAL_MAIL = """
-    Legal mumbo jumbo
-    """
+# -------------- WRITE THIS!!!!! --------------------------------------
+_LEGAL_INFO = "Legal stuff!! \n\n"
 
 def send_confirmation(recipient,
                       fingerprint,
@@ -112,9 +148,9 @@ def send_confirmation(recipient,
     @param confirm_auth: The user's unique confirmation authorization key.
     """
     confirm_url = url_helper.get_confirm_url(confirm_auth)
-    msg = Emailer._CONFIRMATION_MAIL % (fingerprint, confirm_url)
-    sender = Emailer._SENDER
-    subj = Emailer._SUBJECT_HEADER + Emailer._CONFIRMATION_SUBJ
+    msg = _CONFIRMATION_MAIL % (fingerprint, confirm_url)
+    sender = _SENDER
+    subj = _SUBJECT_HEADER + _CONFIRMATION_SUBJ
     send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
 def send_confirmed(recipient,
@@ -135,11 +171,11 @@ def send_confirmed(recipient,
     @type pref_auth: str
     @param pref_auth: The user's unique preferences auth key
     """
-    subj = Emailer._SUBJECT_HEADER + Emailer._CONFIRMED_SUBJ
-    sender = Emailer._SENDER
+    subj = _SUBJECT_HEADER + _CONFIRMED_SUBJ
+    sender = _SENDER
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
-    msg = Emailer._CONFIRMED_MAIL % (fingerprint, unsubURL, prefURL) 
+    msg = _CONFIRMED_MAIL % (fingerprint, unsubURL, prefURL) 
     send_mail(subj, msg, sender, [recipient], fail_silently=False)
 
 def node_down_tuple(recipient, fingerprint, grace_pd, unsubs_auth, pref_auth):
@@ -160,11 +196,11 @@ def node_down_tuple(recipient, fingerprint, grace_pd, unsubs_auth, pref_auth):
     @return: A tuple listing information about the email to be sent, which is
         used by the send_mass_mail method in updaters.
     """
-    subj = Emailer._SUBJECT_HEADER + Emailer._NODE_DOWN_SUBJ
-    sender = Emailer._SENDER
+    subj = _SUBJECT_HEADER + _NODE_DOWN_SUBJ
+    sender = _SENDER
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
-    msg = Emailer._NODE_DOWN_MAIL % (fingerprint, grace_pd, unsubURL,   
+    msg = _NODE_DOWN_MAIL % (fingerprint, grace_pd, unsubURL,   
                                      prefURL)
     return (subj, msg, sender, [recipient])
 
@@ -199,17 +235,17 @@ def t_shirt_tuple(recipient,
         node_type += ' as an exit node'
     days_running = hours_since_triggered / 24
     avg_bandwidth = avg_bandwidth / 1000
-    subj = Emailer._SUBJECT_HEADER + Emailer._T_SHIRT_SUBJ
-    sender = Emailer._SENDER
+    subj = _SUBJECT_HEADER + _T_SHIRT_SUBJ
+    sender = _SENDER
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
-    msg = Emailer._T_SHIRT_MAIL % (stable_message, days_running, 
+    msg = _T_SHIRT_MAIL % (stable_message, days_running, 
                                    avg_bandwidth, unsubURL, prefURL)
     return (subj, msg, sender, [recipient])
 
 def welcome_tuple(recipient, fingerprint, exit):
-# ---------- CONFIGURE LEGAL INFO  --------------------------------
-    """Returns a tuple for the welcome email.
+    """Returns a tuple for the welcome email. If the operator runs an exit
+    node, legal information is appended to the welcome mail.
 
     @type recipient: str
     @param recipient: The user's email address.
@@ -227,15 +263,11 @@ def welcome_tuple(recipient, fingerprint, exit):
     name = ''
     if router_name != 'Unnamed':
         name = router_name + ', ' 
-    subj = Emailer._SUBJECT_HEADER + Emailer._WELCOME_SUBJ
-    sender = Emailer._SENDER
-    msg = Emailer._WELCOME_MAIL % (name, router.fingerprint)
+    subj = _SUBJECT_HEADER + _WELCOME_SUBJ
+    sender = _SENDER
+    append = ''
+    # if the router is an exit node, append legal info 
+    if exit:
+        append = _LEGAL_INFO
+    msg = _WELCOME_MAIL % (name, router.fingerprint, append)
     return (subj, msg, sender, [recipient])
-
-def send_legal(recipient):
-               # PUT REQUIRED NUMBER OF % PARAMETERS HERE
-    """"""
-    subj = Emailer._SUBJECT_HEADER + Emailer._WELCOME_SUBJ
-    sender = Emailer._SENDER
-    msg = Emailer._LEGAL_MAIL #% PUT PARAMETERS HERE
-    send_mail(subj, msg, sender, [recipient], fail_silently=True)

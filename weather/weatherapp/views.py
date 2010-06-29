@@ -26,7 +26,7 @@ baseURL = "http://localhost:8000"
 
 def home(request):
     """Displays a home page for Tor Weather with basic information about
-        the application."""
+    the application."""
     url_extension = url_helper.get_subscribe_ext()
     return render_to_response(templates.home, {'sub' : url_extension})
 
@@ -102,8 +102,12 @@ def subscribe(request):
 
 def pending(request, confirm_auth):
     """The user views the pending page after submitting a registration form.
-        The page tells the user that a confirmation email has been sent to 
-        the address the user provided."""
+    The page tells the user that a confirmation email has been sent to 
+    the address the user provided.
+    
+    @type confirm_auth: str
+    @param confirm_auth: The user's confirmation authorization key.
+    """
     user = get_object_or_404(Subscriber, confirm_auth=confirm_auth)
 
     if not user.confirmed:
@@ -115,7 +119,11 @@ def pending(request, confirm_auth):
 
 def confirm(request, confirm_auth):
     """The confirmation page, which is displayed when the user follows the
-        link sent to them in the confirmation email"""
+    link sent to them in the confirmation email.
+    
+    @type confirm_auth: str
+    @param confirm_auth: The user's confirmation authorization key.
+    """
     user = get_object_or_404(Subscriber, confirm_auth=confirm_auth)
     router = user.router
 
@@ -125,7 +133,8 @@ def confirm(request, confirm_auth):
         user.save()
     else:
         # the user is already confirmed, send to an error page
-        error_url_ext = url_helper.get_error_ext('already_confirmed', confirm_auth)
+        error_url_ext = url_helper.get_error_ext('already_confirmed',    
+                                                 confirm_auth)
         return HttpResponseRedirect(error_url_ext)
 
     # get the urls for the user's unsubscribe and prefs pages to add links
@@ -152,8 +161,11 @@ def confirm(request, confirm_auth):
 def unsubscribe(request, unsubscribe_auth):
     """The unsubscribe page, which displays a message informing the user
     that they will no longer receive emails at their email address about
-    the given Tor node."""
+    the given Tor node.
     
+    @type unsubscribe_auth: str
+    @param unsubscribe_auth: The user's unsubscribe authorization key.
+    """
     # Get the user and router.
     user = get_object_or_404(Subscriber, unsubs_auth = unsubscribe_auth)
     router = user.router
@@ -183,7 +195,11 @@ def unsubscribe(request, unsubscribe_auth):
 
 def preferences(request, pref_auth):
     """The preferences page, which contains the preferences form initially
-        populated by user-specific data"""
+    populated by user-specific data
+    
+    @type pref_auth: str
+    @param pref_auth: The user's preferences authorization key.
+    """
     user = get_object_or_404(Subscriber, pref_auth=pref_auth)
     if not user.confirmed:
         # the user hasn't confirmed, send them to an error page
@@ -239,7 +255,11 @@ def preferences(request, pref_auth):
     return render_to_response(template, c)
 
 def confirm_pref(request, pref_auth):
-    """The page confirming that preferences have been changed."""
+    """The page confirming that preferences have been changed.
+    
+    @type pref_auth: str
+    @param pref_auth: The user's preferences authorization key.
+    """
     user = get_object_or_404(Subscriber, pref_auth = pref_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
     unsubURL = url_helper.get_unsubscribe_url(user.unsubs_auth)
@@ -253,7 +273,11 @@ def confirm_pref(request, pref_auth):
 
 def resend_conf(request, confirm_auth):
     """The page informing the user that the confirmation email containing
-    the link to finalize the subscription has been resent."""
+    the link to finalize the subscription has been resent.
+    
+    @type confirm_auth: str
+    @param confirm_auth: The user's confirmation authorization key.
+    """
     user = get_object_or_404(Subscriber, confirm_auth = confirm_auth)
     router = user.router
     template = templates.resend_conf
@@ -268,10 +292,11 @@ def resend_conf(request, confirm_auth):
 
 
 def fingerprint_not_found(request, fingerprint):
-    """The page that is displayed when a user gets more info about the 
-    'fingerprint not found' validation enter (if they try to subscribe to
-    a node that isn't in our database)
-    
+    """Displays the fingerprint not found page when a user follows a link for 
+    more info in the 'fingerprint not found' validation error. This error is 
+    displayed on the subscribe form if the user tries to subscribe to a node 
+    that isn't in our database.
+
     @type fingerprint: str
     @param fingerprint: The fingerprint the user entered in the subscribe form.
     """

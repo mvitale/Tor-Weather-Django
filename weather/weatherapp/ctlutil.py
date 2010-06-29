@@ -1,3 +1,10 @@
+"""This module contains the CtlUtil class. CtlUtil objects set up a connection
+to TorCtl and handle communication concerning consensus documents and 
+descriptor files.
+
+@var debugfile: A log file.
+"""
+
 import socket
 from TorCtl import TorCtl
 import config
