@@ -187,7 +187,8 @@ class NodeDownSub(Subscription):
         C{SubscriptionManager.hours_since_changed()}, otherwise C{False}.
         """
 
-        if triggered and SubscriptionManager.hours_since_changed() >= grace_pd:
+        if self.triggered and SubscriptionManager.hours_since_changed() >= \
+                grace_pd:
             return True
         else:
             return False
@@ -227,7 +228,8 @@ class BandwidthSub(Subscription):
         C{SubscriptionManager.hours_since_changed()}, otherwise C{False}.
         """
 
-        if triggered and SubscriptionManager.hours_since_changed() >= grace_pd:
+        if self.triggered and SubscriptionManager.hours_since_changed() >= \
+                grace_pd:
             return True
         else:
             return False
@@ -248,20 +250,31 @@ class TShirtSub(Subscription):
 
     def get_hours_since_triggered(self):
         """Returns the time in hours that the router has been up."""
+        if self.triggered == False:
+            return 0
+        time_since_triggered = datetime.now() - self.last_changed
+        # timedelta objects only store days, seconds, and microseconds :(
+        hours = time_since_triggered.seconds / 3600 + \
+                time_since_triggered.days * 24
+        return hours
 
-    def should_email():
+    def should_email(hours_up):
         """Returns true if the router being watched has been up for 1464 hours
         (61 days, or approx 2 months). If it's an exit node, the avg bandwidth
         must be above 100 KB/s. If not, it must be > 500 KB/s.
         
+        @type hours_up: int
+        @param hours_up: The hours that this router has been up (0 if the
+            router was last seen down)
         @rtype: bool
-        @return: C{True} if the user earned a T-shirt, C{False} if not."""
-        if not emailed and triggered and hours_since_triggered > 1464:
-            if subscriber.router.exit:
-                if avg_bandwidth > 100000:
+        @return: C{True} if the user earned a T-shirt, C{False} if not.
+        """
+        if not self.emailed and self.triggered and hours_up >= 1464:
+            if self.subscriber.router.exit:
+                if self.avg_bandwidth > 100000:
                     return True
             else:
-                if avg_bandwidth > 500000:
+                if self.avg_bandwidth > 500000:
                     return True
         return False
 
@@ -455,7 +468,7 @@ class SubscribeForm(GenericForm):
         if self.is_valid_router(fingerprint):
             return fingerprint
         else:
-            info_extension = Urls.get_fingerprint_info_ext(fingerprint)
+            info_extension = url_helper.get_fingerprint_info_ext(fingerprint)
             msg = 'We could not locate a Tor node with that fingerprint. \
                    (<a href=%s>More info</a>)' % info_extension
             raise forms.ValidationError(msg)
@@ -489,7 +502,7 @@ class SubscribeForm(GenericForm):
         # Redirect the user if such a subscriber exists, else create one.
         if subscriber_query_set.count() > 0:
             subscriber = subscriber_query_set[0]
-            url_extension = Urls.get_error_ext('already_subscribed', 
+            url_extension = url_helper.get_error_ext('already_subscribed', 
                                                subscriber.pref_auth)
             raise Exception(url_extension)
             #raise UserAlreadyExistsError(url_extension)

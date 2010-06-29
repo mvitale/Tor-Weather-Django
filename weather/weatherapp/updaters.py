@@ -122,8 +122,8 @@ def check_earn_tshirt(email_list):
     @rtype: list
     @return: The updated list of tuples containing email info.
     """
-
-    subs = TShirtSub.objects.all()
+   
+    subs = TShirtSub.objects.filter(emailed = False)
 
     for sub in subs:
         # first, update the database 
@@ -134,7 +134,7 @@ def check_earn_tshirt(email_list):
             # reset the data if the node goes down
             sub.triggered = False
             sub.avg_bandwidth = 0
-            sub.hours_since_triggered = 0
+            sub.last_changed = datetime.now()
         else:
             descriptor = ctl_ultil.get_single_descriptor(fingerprint)
             current_bandwidth = ctl_util.get_bandwidth(descriptor)
@@ -142,30 +142,28 @@ def check_earn_tshirt(email_list):
             # router just came back, reset values
                 sub.triggered = True
                 sub.avg_bandwidth = current_bandwidth
-                sub.hours_since_triggered = 1
+                sub.last_changed = datetime.now()
             else:
             # update the avg bandwidth (arithmetic)
+                hours_up = sub.get_hours_since_triggered()
                 sub.avg_bandwidth = ctl_util.get_new_avg_bandwidth(
                                             sub.avg_bandwidth,
-                                            sub.hours_since_triggered,
+                                            hours_up,
                                             current_bandwidth)
-                sub.hours_since_triggered+=1
+                #send email if needed
+                if sub.should_email(hours_up):
+                    recipient = sub.subscriber.email
+                    avg_band = sub.avg_bandwidth
+                    time = sub.hours_since_triggered
+                    exit = sub.subscriber.router.exit
+                    unsubs_auth = sub.subscriber.unsubs_auth
+                    pref_auth = sub.subscriber.pref_auth
+                    
+                    email = emails.t_shirt_tuple(recipient, avg_band, time,
+                                    exit, unsubs_auth, pref_auth)
+                    email_list.append(email)
+                    sub.emailed = True
         sub.save()
-
-        # now send the email if it's needed
-        if sub.should_email():
-            recipient = sub.subscriber.email
-            avg_band = sub.avg_bandwidth
-            time = sub.hours_since_triggered
-            exit = sub.subscriber.router.exit
-            unsubs_auth = sub.subscriber.unsubs_auth
-            pref_auth = sub.subscriber.pref_auth
-            
-            email = emails.t_shirt_tuple(recipient, avg_band, time, exit, 
-                                         unsubs_auth, pref_auth)
-            email_list.append(email)
-            sub.emailed = True
-
     return email_list
 
 def check_version(email_list):
@@ -176,7 +174,7 @@ def check_version(email_list):
 
     for sub in subs:
         version_type = ctlutil.get_version_type(sub.subscriber.fingerprint)
-        if version_type == sub.notify_type and sub.subscriber.confirmed
+        if version_type == sub.notify_type and sub.subscriber.confirmed \
             and sub.emailed == False:
             fingerprint = sub.subscriber.fingerprint
             recipient = sub.subscriber.email
