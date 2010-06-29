@@ -17,6 +17,7 @@ import threading
 import datetime
 import time
 import logging
+from smtplib import SMTPException
 
 from weatherapp.ctlutil import CtlUtil
 from weatherapp.models import *
@@ -27,6 +28,7 @@ from django.core.mail import send_mass_mail
 
 #a CtlUtil instance module attribute
 ctl_util = CtlUtil()
+failed = open('failed_emails.txt', 'w')
 
 def check_node_down(email_list):
     """Check if all nodes with L{NodeDownSub} subs are up or down,
@@ -41,11 +43,10 @@ def check_node_down(email_list):
     subs = NodeDownSub.objects.all()
 
     for sub in subs:
-        #only check subs of confirmed subscribers
+        #only check subscriptions of confirmed subscribers
         if sub.subscriber.confirmed:
-            is_up = sub.subscriber.router.up 
 
-            if is_up:
+            if sub.subscriber.router.up:
                 if sub.triggered:
                    sub.triggered = False
                    sub.emailed = False
@@ -265,7 +266,12 @@ def run_all():
     mails = tuple(email_list)
 
     #-------commented out for safety!---------------
-    #send_mass_mail(mails, fail_silently=True)
+    #try:
+        #send_mass_mail(mails)
+    #except SMTPException, e:
+        #logging.INFO(e)
+        #failed.write(e + '\n')
+
 
 if __name__ == "__main__":
     run_all()

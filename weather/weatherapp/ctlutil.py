@@ -12,7 +12,8 @@ import logging
 import re
 import string
 
-debugfile = open("debug", "w")
+debugfile = open("log/debug.txt", "w")
+unparsable = open("log/unparsable_emails.txt")
 
 class CtlUtil:
     """A class that handles communication with the local Tor process via
@@ -499,7 +500,9 @@ class CtlUtil:
         #errormsg = ('Could not parse the following contact line:\n'+ line)
         #logging.error(errormsg)
         #print >> sys.stderr, errormsg
+            unparsable.write(contact + '\n')
             email = ""
+
         else:
             email = email.group()
             email = email.lower()
