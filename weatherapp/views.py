@@ -65,7 +65,7 @@ def subscribe(request):
                 email_thread.start()
         
                 # Redirect the user to the pending page.
-                url_extension = Urls.get_pending_ext(confirm_auth)
+                url_extension = url_helper.get_pending_ext(confirm_auth)
                 return HttpResponseRedirect(url_extension)
     else:
         # User hasn't submitted info, so just display empty subscribe form.

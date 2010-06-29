@@ -13,13 +13,13 @@ $(document).ready(function() {
 	showOrHide("#band-low-check input", "div#band-low-section");
 
 	$("#node-down-check input").click(function() {
-		$("div#node-down-section").slideToggle("fast");
+		$("div#node-down-section").toggle();
 	});
 	$("#out-of-date-check input").click(function() {
-		$("div#out-of-date-section").slideToggle("fast");
+		$("div#out-of-date-section").toggle();
 	});
 	$("#band-low-check input").click(function() {
-		$("div#band-low-section").slideToggle("fast");
+		$("div#band-low-section").toggle();
 	});
 });
 

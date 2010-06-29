@@ -37,7 +37,6 @@ _NEED_CONFIRMATION ="You have not yet confirmed your subscription to Tor "+\
 _DEFAULT = "Tor Weather has encountered an error in trying to redirect "+\
     "to this page."
 
-@staticmethod
 def get_error_message(error_type, key):
     """Returns an error message based on the error type and user-specific
     key. The error message contains HTML formatting and should be
@@ -55,7 +54,7 @@ def get_error_message(error_type, key):
         user = Subscriber.objects.get(confirm_auth = confirm_auth)
         pref_url = url_helper.get_preferences_url(user.pref_auth)
         unsubscribe_url = url_helper.get_unsubscribe_url(user.unsubs_auth)
-        message = ErrorMessages._ALREADY_CONFIRMED % (pref_url, pref_url, 
+        message = _ALREADY_CONFIRMED % (pref_url, pref_url, 
                                                       unsubscribe_url,
                                                       unsubscribe_url)
         return message
@@ -63,18 +62,18 @@ def get_error_message(error_type, key):
         # the key represents the user's pref_auth key
         pref_auth = key
         pref_url = url_helper.get_preferences_url(pref_auth)
-        message = ErrorMessages._ALREADY_SUBSCRIBED % pref_url
+        message = _ALREADY_SUBSCRIBED % pref_url
         return message
     elif error_type == 'need_confirmation':
         # the key represents the user's confirm_auth key
         confirm_auth = key
         user = Subscriber.objects.get(confirm_auth = confirm_auth)
         url_extension = url_helper.get_resend_ext(confirm_auth)
-        message = ErrorMessages._NEED_CONFIRMATION % (user.email, 
+        message = _NEED_CONFIRMATION % (user.email, 
                                                       url_extension)
         return message
     else:
         # the error type wasn't recognized, just return a default msg
-        message = ErrorMessages._DEFAULT
+        message = _DEFAULT
         return message
 
