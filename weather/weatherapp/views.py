@@ -7,12 +7,11 @@ page rendering/redirection.
 """
 import threading
 
-from models import Subscriber, NodeDownSub, Router, \
+from weatherapp.models import Subscriber, NodeDownSub, Router, \
                    SubscribeForm, PreferencesForm
 import emails
-from weather.config import url_helper
-from weather.config import templates
-from weather.weatherapp import error_messages
+import error_messages
+from config import url_helper, templates
 
 import django.views.static
 from django.db import models
