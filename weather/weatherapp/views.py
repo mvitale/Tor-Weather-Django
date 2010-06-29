@@ -20,7 +20,6 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponseRedirect, HttpRequest, Http404
 from django.http import HttpResponse
 from weather.weatherapp import error_messages
-from weather.weatherapp.models import SubscriberAlreadyExistsError
 
 # TO DO --------------------------------------------------------- EXTRA FEATURE
 # MOVE THIS TO A MORE GENERAL LOCATION ----------------------------------------
@@ -68,10 +67,7 @@ def subscribe(request):
                 return HttpResponseRedirect(url_extension)
     else:
         # User hasn't submitted info, so just display empty subscribe form.
-        form = SubscribeForm(initial={'get_node_down': True, 
-                                      'get_out_of_date': False, 
-                                      'get_band_low': False, 
-                                      'get_t_shirt': False})
+        form = SubscribeForm()
     c = {'form' : form}
 
     # For pages with POST methods, a Cross Site Request Forgery protection

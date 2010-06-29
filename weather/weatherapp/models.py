@@ -154,13 +154,6 @@ class Subscription(models.Model):
     @ivar emailed: True if the user has been emailed about the subscription
         (trigger must also be True), False if the user has not been emailed. 
         Default upon creation is C{False}.
-    @type triggered: bool
-    @ivar triggered: True if the threshold has been passed for this 
-        subscription/the conditions to send a notification are met, False
-        if not. Default upon creation is C{False}.
-    @type last_changed: datetime.datetime
-    @ivar last_changed: The most recent datetime when the trigger field 
-        was changed. Default upon creation is C{datetime.now()}.
     """
     subscriber = models.ForeignKey(Subscriber)
     emailed = models.BooleanField(default=False)
@@ -195,10 +188,6 @@ class NodeDownSub(Subscription):
         else:
             return False
 
-    def __unicode__(self):
-        return self.subscriber.email + ": Node Down Sub"
-
-        
 class VersionSub(Subscription):
     """
 
@@ -280,15 +269,12 @@ class TShirtSub(Subscription):
                     return True
         return False
 
-class SubscriberAlreadyExistsError(Exception):
-    def __init__(self, url):
-        self.url = url
-    def __str__(self):
-        return repr(self.url)
-
 class GenericForm(forms.Form):
+    
+    _INIT_NODE_DOWN_GRACE_PD = 1
     _MAX_NODE_DOWN_GRACE_PD = 4500
     _MIN_NODE_DOWN_GRACE_PD = 1
+    _INIT_BAND_LOW_GRACE_PD = 1
     _MAX_BAND_LOW_GRACE_PD = 4500
     _MIN_BAND_LOW_GRACE_PD = 1
     _INIT_BAND_LOW_THRESHOLD = 20
@@ -297,7 +283,8 @@ class GenericForm(forms.Form):
 
     get_node_down = forms.BooleanField(initial=True, required=False,
             label='Receive notifications when node is down')
-    node_down_grace_pd = forms.IntegerField(required=False,
+    node_down_grace_pd = forms.IntegerField(initial=_INIT_NODE_DOWN_GRACE_PD,
+            required=False,
             max_value=_MAX_NODE_DOWN_GRACE_PD,
             min_value=_MIN_NODE_DOWN_GRACE_PD,
             label='How many hours of downtime before \
@@ -306,12 +293,10 @@ class GenericForm(forms.Form):
     
     get_out_of_date = forms.BooleanField(initial=False, required=False,
             label='Receive notifications when node is out of date')
-    out_of_date_threshold = forms.ChoiceField(required=False,
-            choices=((u'c1', u'out of date lvl 1'),
-                     (u'c2', u'out of date lvl 2'),
-                     (u'c3', u'out of date lvl 3'),
-                     (u'c4', u'out of date lvl 4')),
-                label='How current would you like your version of Tor?')
+    out_of_date_type = forms.ChoiceField(required=False,
+            choices=((u'UNRECOMMENDED', u'Recommended Updates'),
+                     (u'OBSOLETE', u'Required Updates')),
+                label='For what kind of updates would you like to be notified?')
     
     get_band_low = forms.BooleanField(initial=False, required=False,
             label='Receive notifications when node has low bandwidth')
@@ -319,8 +304,8 @@ class GenericForm(forms.Form):
             required=False, max_value=_MAX_BAND_LOW_THRESHOLD,
             min_value=_MIN_BAND_LOW_THRESHOLD, label='What critical bandwidth \
             would you like to be informed of?')
-    band_low_grace_pd = forms.IntegerField(required=False,
-            max_value=_MAX_BAND_LOW_GRACE_PD,
+    band_low_grace_pd = forms.IntegerField(initial=_INIT_BAND_LOW_GRACE_PD,
+            required=False, max_value=_MAX_BAND_LOW_GRACE_PD,
             min_value=_MIN_BAND_LOW_GRACE_PD,
             label='How many hours of low bandwidth before \
                        we send a notification?',
@@ -330,9 +315,10 @@ class GenericForm(forms.Form):
     get_t_shirt = forms.BooleanField(initial=False, required=False,
             label='Receive notification when node has earned a t-shirt')
 
-    def get_errors(self, data, errors):
+    def set_blanks(self, data, errors):
         """Returns the dictionary of errors raised by the form validation that
-        checks for required fields. Abstracted out of clean() so that form
+        checks for required fields; main purpose is to set empty fields to 
+        their default valies. Abstracted out of clean() so that form
         subclasses can get the error dictionary. Does not have any side effects
         on the data or errors dictionaries passed in as arguments."""
 
@@ -341,13 +327,13 @@ class GenericForm(forms.Form):
 
         required_msg = "This field is required."
 
-        # Only creates validation errors for required fields if their
-        # 'parent' checkbox is checked. That is, a validation error for
-        # fields pertinent to get_node_down are only thrown if get_node_down
-        # is checked. By default, all non-subscriber fields are not required.
-        # The reason for all this complication is that it doesn't seem possible
-        # to actually dynamically change Django's built-in required field
-        # functionality.
+        # Only sets default values for required fields if their
+        # 'parent' checkbox is checked. That is, a default value for fields
+        # pertinent to get_node_down is only saved if get_node_down is checked.
+        # Was constructed in this way when we wanted blank fields to throw 
+        # validation errors, not to submit a default value. It still slightly
+        # convenient this way to suppress errors in non-checked areas in case
+        # people enter a ridiculous value and then uncheck the box.
 
         # If the node down subscription box is checked.
         if data['get_node_down']:
@@ -356,26 +342,13 @@ class GenericForm(forms.Form):
             if 'node_down_grace_pd' not in err \
             and ('node_down_grace_pd' not in data
             or data['node_down_grace_pd'] == None):
-                # Create an error saying that the field is required.
-                err['node_down_grace_pd'] = self.error_class([required_msg])
+                # Sets the value to the default 
+                data['node_down_grace_pd'] = \
+                SubscribeForm._INIT_NODE_DOWN_GRACE_PD
         # If the node down subscription box isn't checked, and there are
         # errors for node_down_grace_pd, then ignore them.
         elif 'node_down_grace_pd' in err:
             del err['node_down_grace_pd']
-
-        # If the out of date subscription box is checked.
-        if data['get_out_of_date']:
-            # If there are no other errors for the out_of_date_threshold field
-            # and it is empty (either not in cleaned data or in it as None).
-            if 'out_of_date_threshold' not in err \
-            and ('out_of_date_threshold' not in data
-            or data['out_of_date_threshold'] == None):
-                # Create an error saying that the field is required.
-                err['out_of_date_threshold'] = self.error_class([required_msg])
-        # If the out of date subscription box isn't checked, and there are 
-        # errors for out_of_date_threshold, then ignore them.
-        elif 'out_of_date_threshold' in err:     
-            del err['out_of_date_threshold']
 
         # If the band low subscription is checked.
         if data['get_band_low']:
@@ -384,15 +357,15 @@ class GenericForm(forms.Form):
             if 'band_low_grace_pd' not in err \
             and ('band_low_grace_pd' not in data
             or data['band_low_grace_pd'] == None):
-                # Create an error saying that the field is required.
-                err['band_low_grace_pd'] = self.error_class([required_msg])
+                # Sets the value to the default.
+                data['band_low_grace_pd'] = _INIT_BAND_LOW_GRACE_PD
             # If there are no errors for the band_low_threshold field and it is
             # empty (either not in claned_data or in it as None).
             if 'band_low_threshold' not in err \
             and ('band_low_threshold' not in data
             or data['band_low_threshold'] == None):
-                # Create an error saying that the field is required.
-                err['band_low_threshold'] = self.error_class([required_msg])
+                # Sets the value to the default.
+                data['band_low_threshold'] = _INIT_BAND_LOW_THRESHOLD
         # If the band low subscription box isn't checked.
         else:
             # If there are errors for band_low_threshold, then ignore them.
@@ -418,7 +391,7 @@ class GenericForm(forms.Form):
                                          type of subscription!')
 
     def clean(self):
-        self._errors = self.get_errors(self.cleaned_data, self._errors)
+        self._errors = self.set_blanks(self.cleaned_data, self._errors)
         
         self.check_if_sub_checked(self.cleaned_data)
 
@@ -432,7 +405,7 @@ class GenericForm(forms.Form):
             node_down_sub.save()
         if self.cleaned_data['get_out_of_date']:
             out_of_date_sub = VersionSub(subscriber=subscriber,
-                    threshold=self.cleaned_data['out_of_date_threshold'])
+                    notify_type=self.cleaned_data['out_of_date_type'])
             out_of_date_sub.save()
         if self.cleaned_data['get_band_low']:
             band_low_sub = LowBandwidthSub(subscriber=subscriber,
@@ -455,7 +428,7 @@ class SubscribeForm(GenericForm):
         
         # Calls the same helper methods used in the GenericForm clean() method.
         data = self.cleaned_data
-        self._errors = GenericForm.get_errors(self, data, self._errors)
+        self._errors = GenericForm.set_blanks(self, data, self._errors)
         GenericForm.check_if_sub_checked(self, data)
 
         # Makes sure email_1 and email_2 match and creates error messages
