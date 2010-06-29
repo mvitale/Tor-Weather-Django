@@ -9,16 +9,19 @@ import threading
 
 from models import Subscriber, NodeDownSub, Router, \
                    SubscribeForm, PreferencesForm
-from emails import Emailer
+import emails
 from weather.config import url_helper
 from weather.config import templates
 from weather.weatherapp import error_messages
 
+import django.views.static
 from django.db import models
 from django.core.context_processors import csrf
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponseRedirect, HttpRequest, Http404
 from django.http import HttpResponse
+from weather.weatherapp import error_messages
+from weather.weatherapp.models import SubscriberAlreadyExistsError
 
 # TO DO --------------------------------------------------------- EXTRA FEATURE
 # MOVE THIS TO A MORE GENERAL LOCATION ----------------------------------------
@@ -41,57 +44,35 @@ def subscribe(request):
         # handle the submitted form:
         form = SubscribeForm(request.POST)
 
-        # TO DO ------------------------------------------------- EXTRA FEATURE
-        # CHECK HOW DJANGO CHECKS EMAIL FIELD, POSSIBLY -----------------------
         if form.is_valid():
-            # gets the data from the form, ensuring the input conforms to the
-            # types specified in the SubscribeForm object
-            addr = form.cleaned_data['email']
-            # gets the fingerprint and removes any whitespace characters
-            fingerprint = form.cleaned_data['fingerprint']
-            grace_pd = form.cleaned_data['grace_pd']
-            
-            # gets the router object (we make sure it's there in the custom
-            # clean_fingerprint() method in the SubscribeForm class) 
-            router = Router.objects.get(fingerprint = fingerprint)
-            
-            user_query_set = Subscriber.objects.filter(email=addr,
-                                                       router=router) 
-            # if the Subscriber is in the set, the user is already subscribed 
-            # to this router, so we redirect them.
-            if len(user_query_set) > 0:
-                user = user_query_set[0]
+            # Tries to save the new subscriber, but redirects if saving the
+            # subscriber failed becuase of the subscriber already existing
+            try:
+                subscriber = form.save_subscriber()
+            except Exception, e:
+                return HttpResponseRedirect(e)
+            else:
+                form.save_subscriptions(subscriber)
 
-                url_extension = url_helper.get_error_ext('already_subscribed',
-                                                   user.pref_auth)
+                # Spawn a daemon to send the confirmation email.
+                confirm_auth = subscriber.confirm_auth
+                addr = subscriber.email
+                fingerprint = subscriber.router.fingerprint
+                email_thread = threading.Thread(
+                        target=emails.send_confirmation,
+                        args=[addr, fingerprint, confirm_auth])
+                email_thread.setDaemon(True)
+                email_thread.start()
+        
+                # Redirect the user to the pending page.
+                url_extension = Urls.get_pending_ext(confirm_auth)
                 return HttpResponseRedirect(url_extension)
-            
-            # Create the subscriber model for the user.
-            user = Subscriber(email=addr, router=router)
-
-            # Save the subscriber data to the database.
-            user.save()
-            
-# ---------------- Do this for every subscription --------------------------
-
-            # Create the node down subscription and save to db.
-            subscription = NodeDownSub(subscriber=user, grace_pd=grace_pd)
-            subscription.save()
-
-            # spawn a daemon to send the confirmation email
-            confirm_auth = user.confirm_auth
-            email_thread = threading.Thread(target=Emailer.send_confirmation,
-                                        args=[addr, fingerprint, confirm_auth])
-            email_thread.setDaemon(True)
-            email_thread.start()
-
-            # Send the user to the pending page.
-            url_extension = url_helper.get_pending_ext(confirm_auth)
-            return HttpResponseRedirect(url_extension)
-
     else:
         # User hasn't submitted info, so just display empty subscribe form.
-        form = SubscribeForm()
+        form = SubscribeForm(initial={'get_node_down': True, 
+                                      'get_out_of_date': False, 
+                                      'get_band_low': False, 
+                                      'get_t_shirt': False})
     c = {'form' : form}
 
     # For pages with POST methods, a Cross Site Request Forgery protection
@@ -134,7 +115,7 @@ def confirm(request, confirm_auth):
 
     # spawn a daemon to send an email confirming subscription and 
     #providing the links
-    email_thread=threading.Thread(target=Emailer.send_confirmed,
+    email_thread=threading.Thread(target=emails.send_confirmed,
                             args=[user.email, router.fingerprint, 
                                   user.unsubs_auth, user.pref_auth])
     email_thread.setDaemon(True)
@@ -259,7 +240,7 @@ def resend_conf(request, confirm_auth):
     template = templates.resend_conf
 
     # spawn a daemon to resend the confirmation email
-    email_thread=threading.Thread(target=Emailer.send_confirmation,
+    email_thread=threading.Thread(target=emails.send_confirmation,
                             args=[user.email, router.fingerprint, confirm_auth])
     email_thread.setDaemon(True)
     email_thread.start()
