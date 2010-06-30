@@ -272,7 +272,16 @@ class TShirtSub(Subscription):
 class GenericForm(forms.Form):
     """The basic form class that is inherited by the SubscribeForm class
     and the PreferencesForm class.
-    
+   
+    @type _INIT_GET_NODE_DOWN: Bool
+    @cvar _INIT_GET_NODE_DOWN: The initial value of the get_node_down checkbox
+        when the form is loaded.
+    @type _INIT_GET_VERSION: Bool
+    @cvar _INIT_GET_VERSION: The initial value of the get_version checkbox when
+        the form is loaded.
+    @type _INIT_GET_BAND_LOW: Bool
+    @cvar _INIT_GET_BAND_LOW: The initial value of the get_band_low checkbox
+        when the form is loaded.
     @type _MAX_NODE_DOWN_GRACE_PD: int
     @cvar _MAX_NODE_DOWN_GRACE_PD: The maximum node down grace period in hours
     @type _MIN_NODE_DOWN_GRACE_PD: int
@@ -315,6 +324,9 @@ class GenericForm(forms.Form):
         notification, C{False} if not.
     """
     
+    _INIT_GET_NODE_DOWN = True
+    _INIT_GET_VERSION = False
+    _INIT_GET_BAND_LOW = False
     _INIT_NODE_DOWN_GRACE_PD = 1
     _MAX_NODE_DOWN_GRACE_PD = 4500
     _MIN_NODE_DOWN_GRACE_PD = 1
@@ -325,7 +337,8 @@ class GenericForm(forms.Form):
     _MIN_BAND_LOW_THRESHOLD = 0
     _MAX_BAND_LOW_THRESHOLD = 100000
 
-    get_node_down = forms.BooleanField(initial=True, required=False,
+    get_node_down = forms.BooleanField(initial=_INIT_GET_NODE_DOWN,
+            required=False,
             label='Receive notifications when node is down')
     node_down_grace_pd = forms.IntegerField(initial=_INIT_NODE_DOWN_GRACE_PD,
             required=False,
@@ -335,14 +348,22 @@ class GenericForm(forms.Form):
                        we send a notifcation?',
             help_text='Enter a value between 1 and 4500 (roughly six months)')
     
-    get_version = forms.BooleanField(initial=False, required=False,
+    get_version = forms.BooleanField(initial=_INIT_GET_VERSION,
+            required=False,
             label='Receive notifications when node is out of date')
     version_type = forms.ChoiceField(required=False,
             choices=((u'UNRECOMMENDED', u'Recommended Updates'),
                      (u'OBSOLETE', u'Required Updates')),
-                label='For what kind of updates would you like to be notified?')
+                label='For what kind of updates would you like to be \
+                        notified?',
+                help_text='\'Recommended Updates\' will send a notification \
+                        when the node\'s version of Tor becomes \
+                        unrecommended; \'Required Updates\' \
+                        will send a notification when the \
+                        node\'s version of Tor becomes obsolete.')
     
-    get_band_low = forms.BooleanField(initial=False, required=False,
+    get_band_low = forms.BooleanField(initial=_INIT_GET_BAND_LOW,
+            required=False,
             label='Receive notifications when node has low bandwidth')
     band_low_threshold = forms.IntegerField(initial=_INIT_BAND_LOW_THRESHOLD,
             required=False, max_value=_MAX_BAND_LOW_THRESHOLD,
@@ -369,8 +390,6 @@ class GenericForm(forms.Form):
         # Copies the error dictionary so it doesn't cause any side-effects.
         err = copy(errors)
 
-        required_msg = "This field is required."
-
         # Only sets default values for required fields if their
         # 'parent' checkbox is checked. That is, a default value for fields
         # pertinent to get_node_down is only saved if get_node_down is checked.
@@ -382,7 +401,8 @@ class GenericForm(forms.Form):
         # If the node down subscription box is checked.
         if data['get_node_down']:
             # If there are no other errors for the node_down_grace_pd field and
-            # it is empty (either not in cleaned_data or in it as None).
+            # it is empty (either not in cleaned_data, meaning it had an error)
+            # or in it as None).
             if 'node_down_grace_pd' not in err \
             and ('node_down_grace_pd' not in data
             or data['node_down_grace_pd'] == None):
