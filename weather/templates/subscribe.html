@@ -83,7 +83,7 @@ Tor Weather - Sign Up!
 			<label for="id_get_band_low">{{ form.get_band_low.label }}</label>
 		</div>
 		<div class="collapse-section" id="band-low-section">
-			<div class="field-row" id="band-low-row">
+			<div class="field-row" id="band-low-threshold-row">
 				<label for="band_low_threshold" class="block">{{ form.band_low_threshold.label }}</label>
 				<div class="short-input">
 					{{ form.band_low_threshold }}
@@ -92,7 +92,7 @@ Tor Weather - Sign Up!
 					<em>{{ form.band_low_threshold.help_text }}</em>
 				</div>
 			</div>
-			<div class="field-row">
+			<div class="field-row" id="band-low-grace-pd-row">
 				<label for="band_low_grace_pd" class="block">{{ form.band_low_grace_pd.label }}</label>
 				<div class="short-input">
 					{{ form.band_low_grace_pd }}
