@@ -1,5 +1,6 @@
 """
-The test module.
+The test module. To run tests, cd to weather and run 'python manage.py
+test weatherapp'.
 """
 from models import Subscriber, Subscription, Router, NodeDownSub
 
@@ -16,7 +17,9 @@ class TestWeb(TestCase):
         response = c.post('/subscribe/', {'email' : 'name@place.com',
                                           'fingerprint' : '1234', 
                                           'grace_pd' : 1})
-        self.assertEqual(response.status_code, 200)
+
+        #we want to be redirected to the pending page
+        self.assertEqual(response.status_code, 302)
         self.assertEqual(response.template[0].name, 'pending.html')
 
     def test_subscribe_bad(self):
