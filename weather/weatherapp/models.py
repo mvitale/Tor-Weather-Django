@@ -244,7 +244,7 @@ class TShirtSub(Subscription):
     @ivar avg_bandwidth: The router's average bandwidth
     @type hours_since_triggered: int
     @ivar hours_since_triggered: The hours this router has been up"""
-    avg_bandwidth = models.IntegerField()
+    avg_bandwidth = models.IntegerField(default = 0)
     last_changed = models.DateTimeField(default = datetime.now)
 
     def get_hours_since_triggered(self):
