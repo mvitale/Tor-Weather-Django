@@ -1,8 +1,18 @@
 {% extends 'base.html' %}
+
+{% block header %}
+Tor Weather - Error
+{% endblock header %}
+
+{% block title %}
+Tor Weather - Oops
+{% endblock title %}
+
 {% block content %}
-	<h3>Error: </h3>
-	<p>
+<p class="error">
+	{% block error-text %}
+	{# '|safe' will cause any html in error_message to be rendered as html #}
 	{{ error_message|safe }}
-	<!-- |safe will cause any html in error_message to be rendered as such -->
-	</p>
+	{% endblock error-text %}
+</p>
 {% endblock content %}

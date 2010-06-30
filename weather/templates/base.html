@@ -1,40 +1,50 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <html>
+
 <head>
-	<title>Tor Weather</title>
+	<title>{% block header %}Tor Weather{% endblock %}</title>
 	<link rel="stylesheet" type="text/css" 
 	href="http://weather.torproject.org/stylesheet.css">
 	<link rel="stylesheet" type="text/css" href="/media/style.css">
-	<script type="text/javascript" src="/media/jquery.js"></script>
-	<script type="text/javascript" src="/media/script.js"></script>
+	{% block script %}{% endblock %}
 </head>
 
 <body>
 	
-<div class="center">
-<table class="banner" border="0" cellpadding="0" cellspacing="0" summary="">
-	<tr>
-		<td class="banner-left">
-			<a href="https://www.torproject.org/"><img src="http://weather.
-			torproject.org/top-left.png" alt="Click to go to home page"
-			width="193" height="79"></a>
-		</td>
-		<td class="banner-middle">
-			&nbsp;
-        </td>
-        <td class="banner-right">
-        </td>
-    </tr>
-</table>
+	<div class="center">
+		<table class="banner" border="0" cellpadding="0" cellspacing="0" summary="">
+			<tr>
+				<td class="banner-left">
+					<a href="https://www.torproject.org/"><img src="http://weather.torproject.org/top-left.png" alt="Click to go to home page" width="193" height="79"></a>
+				</td>
+				<td class="banner-middle">
+					&nbsp;
+				</td>
+			    <td class="banner-right">
+				</td>
+			</tr>
+		</table>
 
-<div class="main-column" class="center">
-<h2>Tor Weather</h2>
-<hr />
+		<div class="main-column" class="center">
+			<h1 id="page-title">{% block title %}Tor Weather{% endblock %}</h1>
 
-	{% block content %} {% endblock content %}
+			{% block content %}
+			{% endblock content %}
 
-</div>
-</div>
+			{% block footer %}
+			<div class="footer">
+				<p>
+					<em>
+						{% block footer-text %}
+						Please note that while we won't ever intentionally publish them, the address/node pairs sent to this server are not protected against SMTP eavesdropping, hacking, or lawyers.</em>
+						{% endblock footer-text %}
+					</em>
+				</p>
+			</div>
+			{% endblock footer %}
+		</div>
+	</div>
 </body>
+
 </html>
 
