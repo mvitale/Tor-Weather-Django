@@ -442,11 +442,14 @@ class CtlUtil:
         """
         desc = self.get_single_descriptor(fingerprint)
         desc_lines = desc.split('\n')
-        bandwidth = ''
+        bandwidth = 0
 
         for line in desc_lines:
-            if line.startswith('bandwidth '):
-                bandwidth = (int(line.split()[3])) / 1000
+            if 'read-history' in line:
+                line = re.sub('.*\)\s', '', line)
+                print line
+            #if line.startswith('bandwidth '):
+                #bandwidth = (int(line.split()[3])) / 1000
 
         return bandwidth
 
