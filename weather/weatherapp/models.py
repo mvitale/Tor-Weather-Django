@@ -195,9 +195,6 @@ class NodeDownSub(Subscription):
         else:
             return False
 
-    def __unicode__(self):
-        return self.subscriber.email + ": Node Down Sub"
-
         
 class VersionSub(Subscription):
     """

@@ -45,7 +45,7 @@ def subscribe(request):
 
         if form.is_valid():
             # Tries to save the new subscriber, but redirects if saving the
-            # subscriber failed becuase of the subscriber already existing
+            # subscriber failed because of the subscriber already existing
             try:
                 subscriber = form.save_subscriber()
             except Exception, e:
