@@ -498,6 +498,7 @@ class SubscribeForm(GenericForm):
     @ivar email_1: A field for the user's email 
     @type email_2: EmailField
     @ivar email_2: A field for the user's email (enter twice for security)
+    @type fingerprint: str
     @ivar fingerprint: The fingerprint of the router the user wants to 
         monitor.
     """
