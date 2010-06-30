@@ -2,15 +2,17 @@
 
 {% block header %}
 Tor Weather - Error
-{% endblock %}
+{% endblock header %}
 
 {% block title %}
 Tor Weather - Oops
-{% endblock %}
+{% endblock title %}
 
 {% block content %}
-<p>
-	{{ error_message|safe }}
+<p class="error">
+	{% block error-text %}
 	{# '|safe' will cause any html in error_message to be rendered as html #}
+	{{ error_message|safe }}
+	{% endblock error-text %}
 </p>
 {% endblock content %}

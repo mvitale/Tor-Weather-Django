@@ -1,12 +1,4 @@
-{% extends 'base.html' %}
-
-{% block header %}
-Tor Weather - Error
-{% endblock %}
-
-{% block title %}
-Tor Weather - Oops
-{% endblock %}
+{% extends 'error.html' %}
 
 {% block content %}
 <p>
@@ -24,4 +16,4 @@ Tor Weather - Oops
 		<li>The node you are trying to monitor is running on an out of date verion of Tor (version 0.1.0.5 or earlier) and doesn't publish its fingerprint to the directory authorities.</li> 
 	</ul>
 </p>
-{% endblock content %}
+{% endblock %}

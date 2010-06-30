@@ -40,14 +40,14 @@ div#sign-up-link {
 	background-color: white;
 }
 
-span.error {
+span.form-error {
 	padding-top: 3px;
 	padding-bottom: 3px;
 	color: red;
 	display: block;
 }
 
-span.big-error {
+span.big-form-error {
 	padding-top: 10px;
 	color: red;
 	display: block;
