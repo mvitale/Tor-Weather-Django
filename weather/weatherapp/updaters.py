@@ -137,7 +137,7 @@ def check_earn_tshirt(email_list):
             sub.last_changed = datetime.now()
         else:
             descriptor = ctl_ultil.get_single_descriptor(fingerprint)
-            current_bandwidth = ctl_util.get_bandwidth(descriptor)
+            current_bandwidth = ctl_util.get_bandwidth(fingerprint)
             if sub.triggered == False:
             # router just came back, reset values
                 sub.triggered = True

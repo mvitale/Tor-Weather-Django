@@ -348,24 +348,6 @@ class CtlUtil:
         
         return finger_list
 
-    def get_bandwidth(single_descriptor):
-        """Takes a descriptor for a single router and parses out the 
-        bandwidth.
-        
-        @type single_descriptor: str
-        @param single_descriptor: The descriptor for the router
-        @rtype: int 
-        @return: The router's 'observed' bandwidth, in B/s
-        """
-        bandwidth = 0
-        desc_lines = single_descriptor.split('\n')
-        for line in desc_lines:
-            if line.startswith('bandwidth'):
-                word_list = line.split()
-                # the 4th word in the line is the bandwidth-observed in B/s
-                bandwidth = int(word_list[3])
-        return bandwidth
-
     def get_new_avg_bandwidth(avg_bandwidth, hours_up, obs_bandwidth):
         """Calculates the new average bandwidth for a router.
         
