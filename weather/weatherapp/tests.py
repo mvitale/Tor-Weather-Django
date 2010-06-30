@@ -13,14 +13,21 @@ class TestWeb(TestCase):
         c = Client()
         r = Router(fingerprint = '1234', name = 'abc')
         r.save()
-        response = c.post('/subscribe/', {'email' : 'name@place.com',
-                                          'fingerprint' : '1234', 
-                                          'grace_pd' : 1})
-        self.assertEqual(response.status_code, 200)
+        response = c.post('/subscribe/', {'email_1' : 'name@place.com',
+                                          'email_2' : 'name@place.com',
+                                          'fingerprint' : '1234',
+                                          'get_node_down' : True,
+                                          'node_down_grace_pd' : 1,
+                                          'get_out_of_date' : False,
+                                          'get_band_low': False,
+                                          'get_t_shirt' : False})
+        #we want to be redirected to the pending page
+        self.assertEqual(response.status_code, 302)
         self.assertEqual(response.template[0].name, 'pending.html')
     def test_subscribe_bad(self):
         c = Client()
         response = c.post('/subscribe/', {'email' : 'name@place.com',
                                           'fingerprint' : '12345'})
+        #we want to stay on the same page (the subscribe form)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.template[0].name, 'subscribe.html')
