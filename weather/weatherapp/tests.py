@@ -3,7 +3,7 @@ The test module. To run tests, cd to weather and run 'python manage.py
 test weatherapp'.
 """
 from models import Subscriber, Subscription, Router, NodeDownSub, TShirtSub,\
-                   VersionSub
+                   VersionSub, BandwidthSub
 
 from django.test import TestCase
 from django.test.client import Client
@@ -14,7 +14,6 @@ class TestWeb(TestCase):
 
     def setUp(self):
         """Set up the test database with a dummy router"""
-        print 'set up db!'
         r = Router(fingerprint = '1234', name = 'abc')
         r.save()
 
