@@ -34,13 +34,11 @@ form select {
 }
 
 div.form-section {
-	border-top: 1px solid black;
-	border-bottom: 1px solid black;
 	padding-bottom: 5px;
 }
 
 div.collapse-section {
-	margin-left: 26px;
+	margin-left: 25px;
 }
 
 div#sign-up-link {

@@ -388,7 +388,7 @@ class GenericForm(forms.Form):
             or data['node_down_grace_pd'] == None):
                 # Sets the value to the default 
                 data['node_down_grace_pd'] = \
-                SubscribeForm._INIT_NODE_DOWN_GRACE_PD
+                        GenericForm._INIT_NODE_DOWN_GRACE_PD
         # If the node down subscription box isn't checked, and there are
         # errors for node_down_grace_pd, then ignore them.
         elif 'node_down_grace_pd' in err:
@@ -402,14 +402,16 @@ class GenericForm(forms.Form):
             and ('band_low_grace_pd' not in data
             or data['band_low_grace_pd'] == None):
                 # Sets the value to the default.
-                data['band_low_grace_pd'] = _INIT_BAND_LOW_GRACE_PD
+                data['band_low_grace_pd'] = \
+                        GenericForm._INIT_BAND_LOW_GRACE_PD
             # If there are no errors for the band_low_threshold field and it is
             # empty (either not in claned_data or in it as None).
             if 'band_low_threshold' not in err \
             and ('band_low_threshold' not in data
             or data['band_low_threshold'] == None):
                 # Sets the value to the default.
-                data['band_low_threshold'] = _INIT_BAND_LOW_THRESHOLD
+                data['band_low_threshold'] = \
+                        GenericForm._INIT_BAND_LOW_THRESHOLD
         # If the band low subscription box isn't checked.
         else:
             # If there are errors for band_low_threshold, then ignore them.
