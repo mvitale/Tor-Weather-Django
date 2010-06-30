@@ -1,15 +1,5 @@
-{% extends 'base.html' '%}
+{% extends 'error.html' %}
 
-{% block header %}
-Tor Weather - Error
-{% endblock %}
-
-{% block title %}
-Tor Weather - Ooops
-{% endblock %}
-
-{% block content %}
-<p>
-	404: Page Not Found
-</p>
-{% endblock content %}
+{% block error-text %}
+404: Page Not Found
+{% endblock error-text %}
