@@ -91,12 +91,25 @@ class CtlUtil:
         @type node_id: str
         @param node_id: Fingerprint of the node requested with no spaces.
         @rtype: str
-        @return: String representation of the single consensus entry.
+        @return: String representation of the single consensus entry or the
+                 empty string if the consensus entry cannot be retrieved.
         """
         # get_info method returns a dictionary with single mapping, with
         # all the info stored as the single value, so this extracts the string
-        return self.control.get_info("ns/id/" + node_id).values()[0]
+        cons = ''
+        try:
+            cons = self.control.get_info("ns/id/" + node_id).values()[0]
 
+        except TorCtl.ErrorReply, e:
+            #If we're getting here, we're likely seeing:
+            # ErrorReply: 552 Unrecognized key "ns/id/46D9..."
+            logging.error("ErrorReply: %s" % str(e))
+        except:
+            logging.error("Unknown exception in ctlutil.Ctlutil.CtlUtil.get_single_consensus()")
+
+        return cons
+
+        
     def get_full_consensus(self):
         """Get the entire consensus document for every router currently up.
 
@@ -244,9 +257,9 @@ class CtlUtil:
 
         return rec_version
 
-    def is_up(self, node_id):
+    def is_up(self, fingerprint):
         """Check if this node is up (actively running) by requesting a
-        consensus document for node C{node_id}. If a document is received
+        consensus document for node C{fingerprint}. If a document is received
         successfully, then the node is up; if a document is not received, then 
         the router is down. If a node is hiberanating, it will return C{False}.
 
@@ -255,19 +268,12 @@ class CtlUtil:
         @rtype: Bool
         @return: Whether the node is up or down.
         """
-        try:
-           info = self.get_single_consensus(node_id)
-        except TorCtl.ErrorReply, e:
-            #If we're getting here, we're likely seeing:
-            # ErrorReply: 552 Unrecognized key "ns/id/46D9..."
-            logging.error("ErrorReply: %s" % str(e))
+        
+        cons = self.get_single_consensus(fingerprint)
+        if cons == '':
             return False
-        except:
-            logging.error("Unknown exception in ctlutil.is_up()")
-            return False
-
-        # If we're here, we were able to fetch information about the router
-        return True
+        else:
+            return True
 
     def is_exit(self, node_id):
         """Check if this node is an exit node (accepts exits to port 80).
@@ -291,7 +297,7 @@ class CtlUtil:
             return False
         except:
             # some other error with the function
-            logging.error("Unknown exception in ctlutil.is_exit()")
+            logging.error("Unknown exception in ctlutil.Ctlutil.is_exit()")
 
     def get_finger_name_list(self):
         """Get a list of fingerprint and name pairs for all routers in the
@@ -394,7 +400,7 @@ class CtlUtil:
             logging.error("ErrorReply: %s" % str(e))
             return False
         except:
-            logging.error("Unknown exception in ctlutil.is_stable()")
+            logging.error("Unknown exception in ctlutil.Ctlutil.is_stable()")
             return False
 
     def is_hibernating(self, fingerprint):
