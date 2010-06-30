@@ -12,7 +12,6 @@ div#sign-up-link {
 	margin-bottom: 10px;
 }	
 
-
 h1 {
 	margin-top: 5px;
 	padding-bottom: 10px;
@@ -35,18 +34,40 @@ div.email-block input {
 
 div.email-block input {
 	margin-top: 2px;
+	margin-bottom: 3px;
 }
 
-div.short-input input {
+div.short-input {
 	margin-top: 2px;
+	margin-right: 5px;
+	width: 100px;
+	float: left;
+}
+
+div.after-short {
+	padding-top: 4px;
+	margin-left: 105px;
+}
+
+div.dropdown-input {
+	margin-top: 2px;
+	margin-right: 5px;
+	width: 149px;
+	float: left;
+}
+
+div.after-dropdown {
+	padding-top: 4px;
+	margin-left: 154px;
+}
+
+div.help-text em {
+	color: rgb()
 }
 
 div.long-input input {
 	margin-top: 2px;
-}
-
-div.dropdown-input select {
-	margin-top: 2px;
+	margin-bottom: 3px;
 }
 
 div.collapse-section {
@@ -57,10 +78,6 @@ div.collapse-section {
 
 div#subscriber-info {
 	margin-bottom: 10px;
-}
-
-div.notification-section {
-	margin-bottom: 2px;
 }
 
 span.form-error {
@@ -88,10 +105,6 @@ label.block {
 
 form {
 	font-size: 14px;
-}
-
-em.help-text {
-	color: rgb(75, 75, 75);
 }
 
 div.email-block {
