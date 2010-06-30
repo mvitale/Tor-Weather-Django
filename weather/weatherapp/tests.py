@@ -63,7 +63,7 @@ class TestWeb(TestCase):
                                           'fingerprint' : '1234',
                                           'get_node_down' : False,
                                           'get_out_of_date' : True,
-                                          'out_of_date_threshold' : 'c1',
+                                          'out_of_date_type' : 'UNRECOMMENDED',
                                           'get_band_low': False,
                                           'get_t_shirt' : False},
                                           follow = True)
@@ -87,11 +87,11 @@ class TestWeb(TestCase):
         # there should only be one subscription for this subscriber
         subscription_list = Subscription.objects.filter(subscriber = subscriber)
         self.assertEqual(len(subscription_list), 1)
+
+        #Verify that the subscription info was stored correctly
         version_sub = VersionSub.objects.get(subscriber = subscriber)
         self.assertEqual(version_sub.emailed, False)
-
-# --------- CONFIGURE VERSION TYPE -----------------------------------
-        ##self.assertEqual(version_sub.notify_type, '')
+        self.assertEqual(version_sub.notify_type, 'UNRECOMMENDED')
     
     def test_subscribe_bandwidth(self):
         """Test a bandwidth only subscription attempt"""
