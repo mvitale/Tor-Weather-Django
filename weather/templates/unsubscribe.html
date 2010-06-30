@@ -1,10 +1,15 @@
 {% extends "base.html" %}
 
+{% block header %}
+Tor Weather - Subscription Removed
+{% endblock %}
+
+{% block title %}
+Tor Weather - Subscription Removed
+{% endblock %}
+
 {% block content %}
 <p>
-Subscription deleted. You will no longer receive emails at {{ email }} from 
-Tor Weather about the node{{ name }} fingerprint = {{ fingerprint }}.
-If you change your mind, feel free to <a href='{{ subURL }}'>resubscribe</a>!
+	Subscription deleted. You will no longer receive emails at {{ email }} from Tor Weather about the node{{ name }} fingerprint = {{ fingerprint }}. If you change your mind, feel free to <a href='{{ subURL }}'>resubscribe</a>!
 </p>
-
 {% endblock content %}
