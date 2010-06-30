@@ -16,13 +16,14 @@ class TestWeb(TestCase):
 
     def setUp(self):
         """Set up the test database with a dummy router"""
+        self.client = Client()
         r = Router(fingerprint = '1234', name = 'abc')
         r.save()
 
     def test_subscribe_node_down(self):
         """Test a node down subscription (all other subscriptions off)"""
         c = Client()
-        response = c.post('/subscribe/', {'email_1' : 'name@place.com',
+        response = self.client.post('/subscribe/', {'email_1' : 'name@place.com',
                                           'email_2' : 'name@place.com',
                                           'fingerprint' : '1234',
                                           'get_node_down' : True,
@@ -60,7 +61,7 @@ class TestWeb(TestCase):
     def test_subscribe_version(self):
         """Test a version subscription (all other subscriptions off)"""
         c = Client()
-        response = c.post('/subscribe/', {'email_1' : 'name@place.com',
+        response = self.client.post('/subscribe/', {'email_1' : 'name@place.com',
                                           'email_2' : 'name@place.com',
                                           'fingerprint' : '1234',
                                           'get_node_down' : False,
@@ -98,7 +99,7 @@ class TestWeb(TestCase):
     def test_subscribe_bandwidth(self):
         """Test a bandwidth only subscription attempt"""
         c = Client()
-        response = c.post('/subscribe/', {'email_1' : 'name@place.com',
+        response = self.client.post('/subscribe/', {'email_1' : 'name@place.com',
                                           'email_2': 'name@place.com',
                                           'fingerprint' : '1234', 
                                           'get_node_down': False,
@@ -137,7 +138,7 @@ class TestWeb(TestCase):
     def test_subscribe_shirt(self):
         """Test a t-shirt only subscription attempt"""
         c = Client()
-        response = c.post('/subscribe/', {'email_1' : 'name@place.com',
+        response = self.client.post('/subscribe/', {'email_1' : 'name@place.com',
                                           'email_2' : 'name@place.com',
                                           'fingerprint' : '1234',
                                           'get_node_down' : False,
@@ -177,7 +178,7 @@ class TestWeb(TestCase):
         """Test a subscribe attempt to all subscription types, relying
         on default values."""
         c = Client()
-        response = c.post('/subscribe/', {'email_1' : 'name@place.com',
+        response = self.client.post('/subscribe/', {'email_1' : 'name@place.com',
                                           'email_2' : 'name@place.com',
                                           'fingerprint' : '1234',
                                           'get_node_down' : True,
@@ -230,7 +231,7 @@ class TestWeb(TestCase):
 
     def test_subscribe_bad(self):
         c = Client()
-        response = c.post('/subscribe/', {'email' : 'name@place.com',
+        response = self.client.post('/subscribe/', {'email' : 'name@place.com',
                                           'fingerprint' : '12345'})
         #we want to stay on the same page (the subscribe form)
         self.assertEqual(response.status_code, 200)

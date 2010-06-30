@@ -268,7 +268,6 @@ class CtlUtil:
         @rtype: Bool
         @return: Whether the node is up or down.
         """
-        
         cons = self.get_single_consensus(fingerprint)
         if cons == '':
             return False
