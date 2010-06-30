@@ -167,7 +167,7 @@ class Subscription(models.Model):
 
     # In Django, Manager objects handle table-wide methods (i.e filtering)
     objects = SubscriptionManager()
-    
+
 class NodeDownSub(Subscription):
     """A subscription class for node-down subscriptions, which send 
     notifications to the user if their node is down for the downtime grace
@@ -470,6 +470,7 @@ class GenericForm(forms.Form):
         if self.cleaned_data['get_node_down']:
             node_down_sub = NodeDownSub(subscriber=subscriber,
                     grace_pd=self.cleaned_data['node_down_grace_pd'])
+            print node_down_sub
             node_down_sub.save()
         if self.cleaned_data['get_out_of_date']:
             out_of_date_sub = VersionSub(subscriber=subscriber,
