@@ -2,6 +2,8 @@
 The test module. To run tests, cd to weather and run 'python manage.py
 test weatherapp'.
 """
+import time
+
 from models import Subscriber, Subscription, Router, NodeDownSub, TShirtSub,\
                    VersionSub, BandwidthSub
 
@@ -40,6 +42,7 @@ class TestWeb(TestCase):
         self.assertEqual(subscriber.confirmed, False)
         
         #Test that one message has been sent
+        time.sleep(1)
         self.assertEquals(len(mail.outbox), 1)
 
         #Verify that the subject of the message is correct.
@@ -71,6 +74,7 @@ class TestWeb(TestCase):
         self.assertEqual(response.template[0].name, 'pending.html')
 
         #Test that one message has been sent
+        time.sleep(1)
         self.assertEquals(len(mail.outbox), 1)
 
         #Verify that the subject of the message is correct.
@@ -110,6 +114,7 @@ class TestWeb(TestCase):
         self.assertEqual(response.template[0].name, 'pending.html')
         
         #Test that one message has been sent
+        time.sleep(1)
         self.assertEquals(len(mail.outbox), 1)
 
         #Verify that the subject of the message is correct.
@@ -146,6 +151,7 @@ class TestWeb(TestCase):
         self.assertEqual(response.template[0].name, 'pending.html')
         
         #Test that one message has been sent
+        time.sleep(1)
         self.assertEquals(len(mail.outbox), 1)
 
         #Verify that the subject of the message is correct.
@@ -186,6 +192,7 @@ class TestWeb(TestCase):
         self.assertEqual(response.template[0].name, 'pending.html')
 
         #Test that one message has been sent
+        time.sleep(1)
         self.assertEquals(len(mail.outbox), 1)
 
         #Verify that the subject of the message is correct.
@@ -230,4 +237,5 @@ class TestWeb(TestCase):
         self.assertEqual(response.template[0].name, 'subscribe.html')
 
         #Test that no messages have been sent
+        time.sleep(1)
         self.assertEquals(len(mail.outbox), 0)
