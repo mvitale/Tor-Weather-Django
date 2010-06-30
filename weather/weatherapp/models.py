@@ -477,10 +477,10 @@ class GenericForm(forms.Form):
             node_down_sub.save()
         if self.cleaned_data['get_out_of_date']:
             out_of_date_sub = VersionSub(subscriber=subscriber,
-                    threshold=self.cleaned_data['out_of_date_threshold'])
+                    notify_type = self.cleaned_data['out_of_date_threshold'])
             out_of_date_sub.save()
         if self.cleaned_data['get_band_low']:
-            band_low_sub = LowBandwidthSub(subscriber=subscriber,
+            band_low_sub = BandwidthSub(subscriber=subscriber,
                     threshold=self.cleaned_data['band_low_threshold'],
                     grace_pd=self.cleaned_data['band_low_grace_pd'])
             band_low_sub.save()
