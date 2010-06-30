@@ -85,6 +85,8 @@ class TestWeb(TestCase):
         # there should only be one subscription for this subscriber
         subscription_list = Subscription.objects.filter(subscriber = subscriber)
         self.assertEqual(len(subscription_list), 1)
+
+        #Verify that the subscription info was stored correctly
         version_sub = VersionSub.objects.get(subscriber = subscriber)
         self.assertEqual(version_sub.emailed, False)
         self.assertEqual(version_sub.notify_type, 'UNRECOMMENDED')
