@@ -20,29 +20,37 @@ form div {
 	margin-bottom: 5px;
 }
 
+form input {
+	margin-top: 2px;
+}
+
+form select {
+	margin-top: 2px;
+}
+
 .form-heading {
+	border-bottom: 1px solid gray;
+	margin-bottom: 6px;
+}
+
+div.form-section {
+	border-top: 1px solid black;
 	border-bottom: 1px solid black;
-	margin-bottom: 15px;
-	margin-top: 10px;
+	padding-bottom: 5px;
+}
+
+div.collapse-section {
+	margin-left: 26px;
 }
 
 div#sign-up-link {
 	font-size: 20px;
 	font-weight: bold;
-	padding-bottom: 10px;
+	margin-bottom: 10px;
 }	
 
-.form-heading span {
-	display: block;
-	margin-bottom: -15px;
-	padding-right: 5px;
-	float: left;
-	background-color: white;
-}
-
 span.form-error {
-	padding-top: 3px;
-	padding-bottom: 3px;
+	margin-top: 2px;
 	color: red;
 	display: block;
 }
@@ -61,18 +69,7 @@ input#subscribe-submit {
 
 label.block {
 	display: block;
-}
-
-.form-heading div {
 	clear: both;
-}
-
-div.form-section {
-	clear: both;
-}
-
-div.form-heading strong {
-	margin-right: 5px;
 }
 
 .form-section {
@@ -86,10 +83,6 @@ div.form-heading strong {
 div.email-block {
 	float: left;
 	margin-right: 15px;
-}
-
-div.long-input {
-	clear: both;
 }
 
 div.long-input input {
