@@ -446,7 +446,7 @@ class CtlUtil:
 
         for line in desc_lines:
             if line.startswith('bandwidth '):
-                bandwidth = (int(line.split()[3])) / 1000.0
+                bandwidth = (int(line.split()[3])) / 1000
 
         return bandwidth
 
