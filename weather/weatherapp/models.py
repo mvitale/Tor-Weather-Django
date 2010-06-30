@@ -299,8 +299,8 @@ class GenericForm(forms.Form):
     @type get_out_of_date: bool
     @ivar get_out_of_date: C{True} if the user wants to receive version 
         notifications about their router, C{False} if not.
-    @type out_of_date_threshold: str
-    @ivar out_of_date_threshold: The type of version notifications the user 
+    @type out_of_date_type: str
+    @ivar out_of_date_type: The type of version notifications the user 
         wants
     @type get_band_low: bool
     @ivar get_band_low: C{True} if the user wants to receive low bandwidth 
@@ -453,7 +453,7 @@ class GenericForm(forms.Form):
             node_down_sub.save()
         if self.cleaned_data['get_out_of_date']:
             out_of_date_sub = VersionSub(subscriber=subscriber,
-                    notify_type = self.cleaned_data['out_of_date_threshold'])
+                    notify_type = self.cleaned_data['out_of_date_type'])
             out_of_date_sub.save()
         if self.cleaned_data['get_band_low']:
             band_low_sub = BandwidthSub(subscriber=subscriber,

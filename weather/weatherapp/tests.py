@@ -56,18 +56,16 @@ class TestWeb(TestCase):
     
     def test_subscribe_version(self):
         """Test a version subscription (all other subscriptions off)"""
-
         c = Client()
         response = c.post('/subscribe/', {'email_1' : 'name@place.com',
                                           'email_2' : 'name@place.com',
                                           'fingerprint' : '1234',
                                           'get_node_down' : False,
                                           'get_out_of_date' : True,
-                                          'out_of_date_threshold' : 'c1',
+                                          'out_of_date_type' : 'UNRECOMMENDED',
                                           'get_band_low': False,
                                           'get_t_shirt' : False},
                                           follow = True)
-
         #we want to be redirected to the pending page
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.template[0].name, 'pending.html')
@@ -89,9 +87,7 @@ class TestWeb(TestCase):
         self.assertEqual(len(subscription_list), 1)
         version_sub = VersionSub.objects.get(subscriber = subscriber)
         self.assertEqual(version_sub.emailed, False)
-
-# --------- CONFIGURE VERSION TYPE -----------------------------------
-        ##self.assertEqual(version_sub.notify_type, '')
+        self.assertEqual(version_sub.notify_type, 'UNRECOMMENDED')
     
     def test_subscribe_bandwidth(self):
         """Test a bandwidth only subscription attempt"""
@@ -178,7 +174,7 @@ class TestWeb(TestCase):
                                           'fingerprint' : '1234',
                                           'get_node_down' : True,
                                           'get_out_of_date' : True,
-                                          'out_of_date_threshold' : 'c1',
+                                          'out_of_date_type' : 'UNRECOMMENDED',
                                           'get_band_low': True,
                                           'get_t_shirt' : True},
                                           follow = True)
