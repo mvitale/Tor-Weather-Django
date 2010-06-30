@@ -245,7 +245,7 @@ class TShirtSub(Subscription):
     @ivar avg_bandwidth: The router's average bandwidth in KB/s
     @type hours_since_triggered: int
     @ivar hours_since_triggered: The hours this router has been up"""
-    avg_bandwidth = models.IntegerField()
+    avg_bandwidth = models.IntegerField(default = 0)
     last_changed = models.DateTimeField(default = datetime.now)
 
     def get_hours_since_triggered(self):
@@ -475,7 +475,7 @@ class GenericForm(forms.Form):
             node_down_sub.save()
         if self.cleaned_data['get_out_of_date']:
             out_of_date_sub = VersionSub(subscriber=subscriber,
-                    notify_type=self.cleaned_data['out_of_date_threshold'])
+                    notify_type = self.cleaned_data['out_of_date_threshold'])
             out_of_date_sub.save()
         if self.cleaned_data['get_band_low']:
             band_low_sub = BandwidthSub(subscriber=subscriber,
