@@ -17,10 +17,10 @@ class TestWeb(TestCase):
                                           'fingerprint' : '1234', 
                                           'grace_pd' : 1})
         self.assertEqual(response.status_code, 200)
-        print response.content
+        self.assertEqual(response.template[0].name, 'pending.html')
     def test_subscribe_bad(self):
         c = Client()
         response = c.post('/subscribe/', {'email' : 'name@place.com',
                                           'fingerprint' : '12345'})
         self.assertEqual(response.status_code, 200)
-        print response.content
+        self.assertEqual(response.template[0].name, 'subscribe.html')
