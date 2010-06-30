@@ -10,7 +10,8 @@ from django.core import mail
 
 class TestWeb(TestCase):
     """Tests the Tor Weather application via post requests"""
-    def test_subscribe(self):
+    def test_subscribe_node_down(self):
+        """Test a node down only subscription attempt"""
         c = Client()
         r = Router(fingerprint = '1234', name = 'abc')
         r.save()
@@ -26,6 +27,26 @@ class TestWeb(TestCase):
         #we want to be redirected to the pending page
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.template[0].name, 'pending.html')
+
+    def test_subscribe_bandwidth(self):
+        """Test a bandwidth only subscription attempt"""
+        c = Client()
+        r = Router(fingerprint = '1234', name = 'abc')
+        r.save()
+        response = c.post('/subscribe/', {'email1' : 'name@place.com',
+                                          'email2': 'name@place.com',
+                                          'fingerprint' : '1234', 
+                                          'get_node_down': False,
+                                          'get_out_of_date' : False,
+                                          'get_band_low' : True,
+                                          'band_low_threshold' : 20,
+                                          'band_low_grace_pd' : 2,
+                                          'get_t_shirt' : False})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.template[0].name, 'pending.html')
+
+
 
     def test_subscribe_bad(self):
         c = Client()
