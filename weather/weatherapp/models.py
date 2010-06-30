@@ -295,11 +295,11 @@ class GenericForm(forms.Form):
     @type node_down_grace_pd: int
     @ivar node_down_grace_pd: Time before receiving a node down notification in 
         hours. Default = 1. Range = 1-4500.
-    @type get_out_of_date: bool
-    @ivar get_out_of_date: C{True} if the user wants to receive version 
+    @type get_version: bool
+    @ivar get_version: C{True} if the user wants to receive version 
         notifications about their router, C{False} if not.
-    @type out_of_date_threshold: str
-    @ivar out_of_date_threshold: The type of version notifications the user 
+    @type version_type: str
+    @ivar version_type: The type of version notifications the user 
         wants
     @type get_band_low: bool
     @ivar get_band_low: C{True} if the user wants to receive low bandwidth 
@@ -335,9 +335,9 @@ class GenericForm(forms.Form):
                        we send a notifcation?',
             help_text='Enter a value between 1 and 4500 (roughly six months)')
     
-    get_out_of_date = forms.BooleanField(initial=False, required=False,
+    get_version = forms.BooleanField(initial=False, required=False,
             label='Receive notifications when node is out of date')
-    out_of_date_type = forms.ChoiceField(required=False,
+    version_type = forms.ChoiceField(required=False,
             choices=((u'UNRECOMMENDED', u'Recommended Updates'),
                      (u'OBSOLETE', u'Required Updates')),
                 label='For what kind of updates would you like to be notified?')
@@ -430,7 +430,7 @@ class GenericForm(forms.Form):
 
         # Ensures that at least one subscription must be checked.
         if not (data['get_node_down'] or
-                data['get_out_of_date'] or
+                data['get_version'] or
                 data['get_band_low'] or
                 data['get_t_shirt']):
             raise forms.ValidationError('You must choose at least one \
@@ -450,10 +450,10 @@ class GenericForm(forms.Form):
                     grace_pd=self.cleaned_data['node_down_grace_pd'])
             print node_down_sub
             node_down_sub.save()
-        if self.cleaned_data['get_out_of_date']:
-            out_of_date_sub = VersionSub(subscriber=subscriber,
-                    notify_type = self.cleaned_data['out_of_date_threshold'])
-            out_of_date_sub.save()
+        if self.cleaned_data['get_version']:
+            version_sub = VersionSub(subscriber=subscriber,
+                    notify_type = self.cleaned_data['version_threshold'])
+            version_sub.save()
         if self.cleaned_data['get_band_low']:
             band_low_sub = BandwidthSub(subscriber=subscriber,
                     threshold=self.cleaned_data['band_low_threshold'],
