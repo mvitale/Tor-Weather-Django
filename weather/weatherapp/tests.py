@@ -7,14 +7,14 @@ from django.test import TestCase
 from django.test.client import Client
 from django.core import mail
 
-class WebTests(TestCase)
+class TestWeb(TestCase):
     """Tests the Tor Weather application via post requests"""
-    def subscribe_test(self)
+    def test_subscribe(self):
         c = Client()
         r = Router(fingerprint = '1234', name = 'abc')
         r.save()
         response = c.post('/subscribe/', {'email' : 'name@place.com',
                                           'fingerprint' : '1234', 
                                           'grace_pd' : 1})
-
- 
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.template[0].name, 'pending.html')
