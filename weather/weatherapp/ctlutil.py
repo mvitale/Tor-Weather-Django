@@ -165,8 +165,7 @@ class CtlUtil:
         """
         version_list = self.get_rec_version_list()
         for version in version_list:
-            if not version.find('alpha') == -1 or not version.find(
-            'beta') == -1:
+            if 'alpha' in version or 'beta' in version:
                 index = version_list.index(version)
                 version_list = version_list[:index]
                 break
@@ -209,8 +208,7 @@ class CtlUtil:
 
         current_stable_index = -1
         for version in version_list:
-            if not version.find('alpha') == -1 or not version.find('beta')\
-            == -1:
+            if 'alpha' in version or 'beta' in version:
                 current_stable_index = version_list.index(version) - 1
                 break
         
