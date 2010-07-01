@@ -163,6 +163,18 @@ class CtlUtil:
         # Individual descriptors are delimited by -----END SIGNATURE-----
         return self.get_full_descriptor().split("-----END SIGNATURE-----")
 
+    def get_extra_info(self, digest):
+        """Get an extra info document for the router whose hex digest key is
+        specified.
+        
+        @type digest: str
+        @param digest: The router's digest key, published in that router's
+            descriptor.
+        @rtype: str
+        @return: The extra info document for this router.
+        """
+        return self.control.get_info("extra-info/digest/" + digest)
+
     def get_rec_version_list(self):
         """Get a list of currently recommended versions sorted in ascending
         order."""
@@ -444,18 +456,67 @@ class CtlUtil:
         @return: The observed bandwidth for this Tor relay.
         """
         desc = self.get_single_descriptor(fingerprint)
-        desc_lines = desc.split('\n')
-        bandwidth = ''
+        bandwidth = 0
 
-        for line in desc_lines:
-            if line.startswith('bandwidth '):
-                bandwidth = (int(line.split()[3])) / 1000
+        has_band_hist = False
+        extra_info_digest = ''
+
+        if 'read-history' in desc:
+            bandwidth = self._parse_bandwidth(desc)
+        elif 'write-history' in desc:
+            # for whatever reason, only write history is documented, calculate
+            # bandwidth anyway.
+            bandwidth = self._parse_bandwidth(desc)
+        elif 'extra-info-digest' in desc:
+            digest = re.search('extra-info-digest\s.*\n', desc).group()
+            digest = digest.replace('extra-info-digest', '').strip()
+            try:
+                extra_info = self.get_extra_info(digest)
+            except TorCtl.ErrorReply, e:
+                logging.error("ErrorReply: %s" % str(e))
+            except:
+                logging.error("Unknown exception in CtlUtil" +
+                              "get_extra_info()")
+            else:
+                bandwidth = self._parse_bandwidth(extra_info)
 
         return bandwidth
 
+<<<<<<< HEAD:weather/weatherapp/ctlutil.py
     def get_extra_info_no(self, digest_no):
         return self.control.get_info('extra-info/digest/' + digest_no).values()[0]
         
+=======
+    def _parse_bandwidth(self, info):
+        """Parses the bandwidth from either the directory information for a 
+        router or from the extra info document for that router, whichever is 
+        provided. If there is no line in info containing either the str
+        'read-history' or 'write-history', 0 is returned.
+        
+        @type info: str
+        @param info: Either the directory information or the extra info document
+            for a router.
+        @rtype: int
+        @return: The average observed bandwidth for this router in KB/s.
+        """
+        bandwidth = 0
+        lines = info.split('\n')
+        for line in lines: 
+            if 'read-history' in line:
+                line = re.sub('.*\)\s', '', line)
+                numbers = line.split(',')
+                for number in numbers:
+                    print number
+                    bandwidth += int(number)
+            if 'write-history' in line:
+                line = re.sub('.*\)\s', '', line)
+                numbers = line.split(',')
+                for number in numbers:
+                    print number
+                    bandwidth += int(number)
+        return bandwidth / (2 * 86400)
+      
+>>>>>>> 0464affc7362410039462aec61beebeef2df2616:weather/weatherapp/ctlutil.py
     def _parse_email(self, desc):
         """Parse the email address from an individual router descriptor 
         string.
