@@ -140,10 +140,14 @@ _LEGAL_INFO = "Additionally, since you are running as an exit node, you " +\
 
 def _get_router_name(fingerprint):
     """"""
-    router = Router.objects.get(fingerprint = fingerprint)
     name = "(id: " + fingerprint + ")" 
-    if router.name != "Unnamed":
-        name = router.name + " ," + name
+    try:
+        router = Router.objects.get(fingerprint = fingerprint)
+    except:
+        pass
+    else:
+        if router.name != "Unnamed":
+            name = router.name + " ," + name
     return name
 
 def send_confirmation(recipient,
