@@ -80,7 +80,7 @@ _NODE_DOWN_MAIL = "This is a Tor Weather Report.\n\n" +\
 _VERSION_SUBJ = 'Node Out of Date!'
 _VERSION_MAIL = "This is a Tor Weather Report.\n\n"+\
     "It appears that a Tor node you elected to monitor (node id: %s) "+\
-    "is running an out of date version of Tor. You can download the "+\
+    "is running an %s date version of Tor. You can download the "+\
     "latest version of Tor at %s.\n\n You can unsubscribe from these "+\
     "reports at any time by visiting the following url:\n\n%s\n\n"+\
     "or change your Tor Weather notification preferences here:\n\n%s\n"
@@ -155,8 +155,9 @@ def send_confirmation(recipient,
     @type confirm_auth: str
     @param confirm_auth: The user's unique confirmation authorization key.
     """
+    name = _get_router_name(fingerprint)
     confirm_url = url_helper.get_confirm_url(confirm_auth)
-    msg = _CONFIRMATION_MAIL % (fingerprint, confirm_url)
+    msg = _CONFIRMATION_MAIL % (name, confirm_url)
     sender = _SENDER
     subj = _SUBJECT_HEADER + _CONFIRMATION_SUBJ
     send_mail(subj, msg, sender, [recipient], fail_silently=True)
@@ -179,19 +180,21 @@ def send_confirmed(recipient,
     @type pref_auth: str
     @param pref_auth: The user's unique preferences auth key
     """
+    name = _get_router_name(fingerprint)
     subj = _SUBJECT_HEADER + _CONFIRMED_SUBJ
     sender = _SENDER
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
-    msg = _CONFIRMED_MAIL % (fingerprint, unsubURL, prefURL) 
+    msg = _CONFIRMED_MAIL % (name, unsubURL, prefURL) 
     send_mail(subj, msg, sender, [recipient], fail_silently=False)
 
 def bandwidth_tuple(recipient, fingerprint, grace_pd, unsubs_auth, pref_auth):
+    name = _get_router_name(fingerprint)
     subj = _SUBJECT_HEADER + LOW_BANDWIDTH_SUBJ
     sender = _SENDER
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
-    msg = _LOW_BANDWIDTH_MAIL % (fingerprint, unsubURL, prefURL)
+    msg = _LOW_BANDWIDTH_MAIL % (name, unsubURL, prefURL)
 
     return (subj, msg, sender, [recipient])
 
@@ -212,14 +215,16 @@ def node_down_tuple(recipient, fingerprint, grace_pd, unsubs_auth, pref_auth):
     @return: A tuple listing information about the email to be sent, which is
         used by the send_mass_mail method in updaters.
     """
+    name = _get_router_name(fingerprint)
     subj = _SUBJECT_HEADER + _NODE_DOWN_SUBJ
     sender = _SENDER
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
-    msg = _NODE_DOWN_MAIL % (fingerprint, grace_pd, unsubURL,   
+    msg = _NODE_DOWN_MAIL % (name, grace_pd, unsubURL,   
                                      prefURL)
     return (subj, msg, sender, [recipient])
 
+#add fingerprint parameter
 def t_shirt_tuple(recipient,
                  avg_bandwidth,
                  hours_since_triggered,
@@ -274,21 +279,18 @@ def welcome_tuple(recipient, fingerprint, exit):
     @return: A tuple listing information about the email to be sent, which is
         used by the send_mass_mail method in updaters.
     """
-    router = Router.objects.get(fingerprint=fingerprint)
-    router_name = router.name
-    name = ''
-    if router_name != 'Unnamed':
-        name = router_name + ', ' 
+    name = _get_router_name(fingerprint)
     subj = _SUBJECT_HEADER + _WELCOME_SUBJ
     sender = _SENDER
     append = ''
     # if the router is an exit node, append legal info 
     if exit:
         append = _LEGAL_INFO
-    msg = _WELCOME_MAIL % (name, router.fingerprint, append)
+    msg = _WELCOME_MAIL % (name, append)
     return (subj, msg, sender, [recipient])
 
-def version_tuple(recipient, fingerprint, unsubs_auth, pref_auth):
+def version_tuple(recipient, fingerprint, unsubs_auth, pref_auth,
+                  version_type):
     """Returns a tuple for a version notification email.
 
     @type recipient: str
@@ -307,11 +309,12 @@ def version_tuple(recipient, fingerprint, unsubs_auth, pref_auth):
              an appropriate format for the C{send_mass_mail()} function in
              C{updaters}.
     """
-    router = Router.objects.get(fingerprint=fingerprint)
+    name = _get_router_name(fingerprint)
     subj = _SUBJECT_HEADER + _VERSION_SUBJ
     sender = _SENDER
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
     downloadURL = url_helper.get_download_url()
-    msg = _VERSION_MAIL % (fingerprint, downloadURL, unsubURL, prefURL)
+    msg = _VERSION_MAIL % (name, version_type, downloadURL, unsubURL,
+                           prefURL)
     return (subj, msg, sender, [recipient])
