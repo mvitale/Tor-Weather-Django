@@ -42,8 +42,8 @@ def subscribe(request):
         # Replaces fields in POST data of the form 'Default value is ---' with
         # just the integer value, so that the to_python() methods of the 
         # form validation don't go crazy.
-        request.POST = GenericForm.clean_default_strings(request.POST)
-
+        request.POST = GenericForm.clean_post_data(request.POST)
+        
         # handle the submitted form:
         form = SubscribeForm(request.POST)
 
