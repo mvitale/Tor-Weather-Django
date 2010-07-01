@@ -44,7 +44,7 @@ send_mass_mail() method. Emails are sent after all database checks/updates.
 """
 import re
 
-from weather.config import url_helper
+from config import url_helper
 
 from django.core.mail import send_mail
 
@@ -345,10 +345,6 @@ def _insert_fingerprint_spaces(fingerprint):
 
     @rtype: str
     @return: C{fingerprint} with spaces inserted every four characters.
-
-    >>>fingerprint = '1234123412341234123412341234123412341234'
-    >>>_insert_fingerprint_spaces(fingerprint)
-    '1234 1234 1234 1234 1234 1234 1234 1234 1234 1234'
     """
     fingerprint_list = re.findall('.{4}', fingerprint)
     return ' '.join(fingerprint_list)

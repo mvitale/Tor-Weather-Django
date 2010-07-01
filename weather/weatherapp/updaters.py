@@ -22,7 +22,7 @@ from smtplib import SMTPException
 from weatherapp.ctlutil import CtlUtil
 from weatherapp.models import *
 import weatherapp.emails
-import config.config 
+from config import config 
 
 from django.core.mail import send_mass_mail
 
