@@ -126,44 +126,47 @@ def check_earn_tshirt(email_list):
     subs = TShirtSub.objects.filter(emailed = False)
 
     for sub in subs:
-        # first, update the database 
-        router = sub.subscriber.router
-        is_up = router.up
-        fingerprint = router.fingerprint
-        if not is_up:
-            # reset the data if the node goes down
-            sub.triggered = False
-            sub.avg_bandwidth = 0
-            sub.last_changed = datetime.now()
-        else:
-            descriptor = ctl_ultil.get_single_descriptor(fingerprint)
-            current_bandwidth = ctl_util.get_bandwidth(fingerprint)
-            if sub.triggered == False:
-            # router just came back, reset values
-                sub.triggered = True
-                sub.avg_bandwidth = current_bandwidth
+        if sub.subscriber.confirmed:
+
+            # first, update the database 
+            router = sub.subscriber.router
+            is_up = router.up
+            fingerprint = router.fingerprint
+            if not is_up:
+                # reset the data if the node goes down
+                sub.triggered = False
+                sub.avg_bandwidth = 0
                 sub.last_changed = datetime.now()
             else:
-            # update the avg bandwidth (arithmetic)
-                hours_up = sub.get_hours_since_triggered()
-                sub.avg_bandwidth = ctl_util.get_new_avg_bandwidth(
-                                            sub.avg_bandwidth,
-                                            hours_up,
-                                            current_bandwidth)
-                #send email if needed
-                if sub.should_email(hours_up):
-                    recipient = sub.subscriber.email
-                    avg_band = sub.avg_bandwidth
-                    time = sub.hours_since_triggered
-                    exit = sub.subscriber.router.exit
-                    unsubs_auth = sub.subscriber.unsubs_auth
-                    pref_auth = sub.subscriber.pref_auth
-                    
-                    email = emails.t_shirt_tuple(recipient, avg_band, time,
-                                    exit, unsubs_auth, pref_auth)
-                    email_list.append(email)
-                    sub.emailed = True
-        sub.save()
+                descriptor = ctl_ultil.get_single_descriptor(fingerprint)
+                current_bandwidth = ctl_util.get_bandwidth(fingerprint)
+                if sub.triggered == False:
+                # router just came back, reset values
+                    sub.triggered = True
+                    sub.avg_bandwidth = current_bandwidth
+                    sub.last_changed = datetime.now()
+                else:
+                # update the avg bandwidth (arithmetic)
+                    hours_up = sub.get_hours_since_triggered()
+                    sub.avg_bandwidth = ctl_util.get_new_avg_bandwidth(
+                                                sub.avg_bandwidth,
+                                                hours_up,
+                                                current_bandwidth)
+
+                    #send email if needed
+                    if sub.should_email(hours_up):
+                        recipient = sub.subscriber.email
+                        avg_band = sub.avg_bandwidth
+                        time = sub.hours_since_triggered
+                        exit = sub.subscriber.router.exit
+                        unsubs_auth = sub.subscriber.unsubs_auth
+                        pref_auth = sub.subscriber.pref_auth
+                        
+                        email = emails.t_shirt_tuple(recipient, avg_band, time,
+                                        exit, unsubs_auth, pref_auth)
+                        email_list.append(email)
+                        sub.emailed = True
+            sub.save()
     return email_list
 
 def check_version(email_list):
@@ -174,20 +177,21 @@ def check_version(email_list):
 
     for sub in subs:
         version_type = ctlutil.get_version_type(sub.subscriber.fingerprint)
-        if version_type == sub.notify_type and sub.subscriber.confirmed \
-            and sub.emailed == False:
-            fingerprint = sub.subscriber.fingerprint
-            recipient = sub.subscriber.email
-            unsubs_auth = sub.subscriber.unsubs_auth
-            pref_auth = sub.subscriber.pref_auth
-            email_list.append(emails.version_tuple(recipient, fingerprint,
-                                                   unsubs_auth, pref_auth))
-            sub.emailed = True
+        if sub.subscriber.confirmed:
+            if version_type == sub.notify_type and sub.emailed == False:
+            
+                fingerprint = sub.subscriber.fingerprint
+                recipient = sub.subscriber.email
+                unsubs_auth = sub.subscriber.unsubs_auth
+                pref_auth = sub.subscriber.pref_auth
+                email_list.append(emails.version_tuple(recipient, fingerprint,
+                                                       unsubs_auth, pref_auth))
+                sub.emailed = True
 
         #if the user has their desired version type, we need to set emailed
-        #to False so that we can email them again if we need to
-        else:
-            sub.emailed = False
+        #to False so that we can email them in the future if we need to
+            else:
+                sub.emailed = False
 
         
                 
