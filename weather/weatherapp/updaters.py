@@ -174,20 +174,21 @@ def check_version(email_list):
 
     for sub in subs:
         version_type = ctlutil.get_version_type(sub.subscriber.fingerprint)
-        if version_type == sub.notify_type and sub.subscriber.confirmed \
-            and sub.emailed == False:
-            fingerprint = sub.subscriber.fingerprint
-            recipient = sub.subscriber.email
-            unsubs_auth = sub.subscriber.unsubs_auth
-            pref_auth = sub.subscriber.pref_auth
-            email_list.append(emails.version_tuple(recipient, fingerprint,
-                                                   unsubs_auth, pref_auth))
-            sub.emailed = True
+        if sub.subscriber.confirmed:
+            if version_type == sub.notify_type and sub.emailed == False:
+            
+                fingerprint = sub.subscriber.fingerprint
+                recipient = sub.subscriber.email
+                unsubs_auth = sub.subscriber.unsubs_auth
+                pref_auth = sub.subscriber.pref_auth
+                email_list.append(emails.version_tuple(recipient, fingerprint,
+                                                       unsubs_auth, pref_auth))
+                sub.emailed = True
 
         #if the user has their desired version type, we need to set emailed
-        #to False so that we can email them again if we need to
-        else:
-            sub.emailed = False
+        #to False so that we can email them in the future if we need to
+            else:
+                sub.emailed = False
 
         
                 
