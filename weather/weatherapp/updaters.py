@@ -22,7 +22,7 @@ from smtplib import SMTPException
 from weatherapp.ctlutil import CtlUtil
 from weatherapp.models import *
 import weatherapp.emails
-import config.config 
+from config import config 
 
 from django.core.mail import send_mass_mail
 
@@ -166,6 +166,7 @@ def check_earn_tshirt(email_list):
                                         exit, unsubs_auth, pref_auth)
                         email_list.append(email)
                         sub.emailed = True
+
             sub.save()
     return email_list
 
@@ -251,8 +252,7 @@ def update_all_routers(email_list):
                 router_data.up = True
                 router_data.exit = is_exit
                 #send a welcome email if indicated
-                if (router_data.welcomed == False and 
-                    ctl_util.is_stable(finger)):
+                if router_data.welcomed == False and ctl_util.is_stable(finger):
                     email = ctl_util.get_email(finger)
                     if not email == "":
                         email = emails.welcome_tuple(email, finger, is_exit)

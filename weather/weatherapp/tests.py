@@ -6,10 +6,17 @@ import time
 
 from models import Subscriber, Subscription, Router, NodeDownSub, TShirtSub,\
                    VersionSub, BandwidthSub
+import emails
 
 from django.test import TestCase
 from django.test.client import Client
 from django.core import mail
+
+#run doctests
+__test__={
+    "emails": emails
+    }
+
 
 class TestWeb(TestCase):
     """Tests the Tor Weather application via post requests"""
@@ -240,3 +247,5 @@ class TestWeb(TestCase):
         #Test that no messages have been sent
         time.sleep(1)
         self.assertEquals(len(mail.outbox), 0)
+
+

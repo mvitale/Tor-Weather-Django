@@ -42,7 +42,9 @@ send_mass_mail() method. Emails are sent after all database checks/updates.
 @var _LEGAL_INFO: Legal information to assist exit node operators. This is 
     appended to the welcome email if the recipient runs an exit node.
 """
-from weather.config import url_helper
+import re
+
+from config import url_helper
 
 from django.core.mail import send_mail
 
@@ -236,6 +238,7 @@ def node_down_tuple(recipient, fingerprint, grace_pd, unsubs_auth, pref_auth):
     msg = _NODE_DOWN_MAIL % (name, grace_pd, unsubURL, prefURL)
     return (subj, msg, sender, [recipient])
 
+#add fingerprint parameter
 def t_shirt_tuple(recipient,
                   fingerprint,
                   avg_bandwidth,
@@ -243,8 +246,7 @@ def t_shirt_tuple(recipient,
                   is_exit,
                   unsubs_auth,
                   pref_auth):
-    """Returns a tuple for a t-shirt earned email.
-    
+    """Returns a tuple for a t-shirt earned email.  
     @type recipient: str
     @param recipient: The user's email address
     @type fingerprint: str
@@ -328,5 +330,20 @@ def version_tuple(recipient, fingerprint, version_type, unsubs_auth, pref_auth):
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
     downloadURL = url_helper.get_download_url()
-    msg = _VERSION_MAIL % (name, , downloadURL, unsubURL, prefURL)
+    msg = _VERSION_MAIL % (name, version_type, downloadURL, unsubURL,
+                           prefURL)
     return (subj, msg, sender, [recipient])
+
+def _insert_fingerprint_spaces(fingerprint):
+    """Take a fingerprint, insert a space every four characters, and
+    return it
+
+    @type fingerprint: str
+    @param fingerprint: A Tor relay fingerprint with spaces removed.
+
+    @rtype: str
+    @return: C{fingerprint} with spaces inserted every four characters.
+    """
+    fingerprint_list = re.findall('.{4}', fingerprint)
+    return ' '.join(fingerprint_list)
+    
