@@ -7,13 +7,13 @@ descriptor files.
 
 import socket
 from TorCtl import TorCtl
-import config
+from config import config
 import logging
 import re
 import string
 
 debugfile = open("log/debug.txt", "w")
-unparsable = open("log/unparsable_emails.txt")
+unparsable = open("log/unparsable_emails.txt", "w")
 
 class CtlUtil:
     """A class that handles communication with the local Tor process via
@@ -453,6 +453,9 @@ class CtlUtil:
 
         return bandwidth
 
+    def get_extra_info_no(self, digest_no):
+        return self.control.get_info('extra-info/digest/' + digest_no).values()[0]
+        
     def _parse_email(self, desc):
         """Parse the email address from an individual router descriptor 
         string.
