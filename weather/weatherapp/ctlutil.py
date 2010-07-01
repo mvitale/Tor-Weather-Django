@@ -2,18 +2,19 @@
 to TorCtl and handle communication concerning consensus documents and 
 descriptor files.
 
-@var debugfile: A log file.
+@var debugfile: A log file for catching bugs.
+@var unparsable: A log file for contacts with unparsable emails.
 """
 
 import socket
 from TorCtl import TorCtl
-import config
+from config import config
 import logging
 import re
 import string
 
-debugfile = open("log/debug.txt", "w")
-unparsable = open("log/unparsable_emails.txt")
+debugfile = open('log/debug.txt', 'w')
+unparsable = open('log/unparsable_emails.txt', 'w')
 
 class CtlUtil:
     """A class that handles communication with the local Tor process via
@@ -30,13 +31,14 @@ class CtlUtil:
     @type control: TorCtl Connection
     @ivar control: Connection to TorCtl.
     """
-    _CONTROL_HOST = "127.0.0.1"
-    _CONTROL_PORT = 9051
+    _CONTROL_HOST = '127.0.0.1'
+    _CONTROL_PORT = 9055 #for testing only. This should really be 9051
     _AUTHENTICATOR = config.authenticator
     
     def __init__(self, control_host = _CONTROL_HOST, 
                 control_port = _CONTROL_PORT, sock = None, 
                 authenticator = _AUTHENTICATOR):
+        """Initialize the CtlUtil object, connect to TorCtl."""
                 
 
         self.sock = sock
@@ -53,10 +55,10 @@ class CtlUtil:
             self.sock.connect((self.control_host, self.control_port))
         except:
             errormsg = "Could not connect to Tor control port.\n" + \
-                       "Is Tor running on %s with its control port" + \
-                       "opened on %s?" % (control_host, control_port)
+            "Is Tor running on %s with its control port opened on %s?" %\
+            (control_host, control_port)
+
             logging.error(errormsg)
-            print
             raise
 
         
@@ -91,12 +93,26 @@ class CtlUtil:
         @type node_id: str
         @param node_id: Fingerprint of the node requested with no spaces.
         @rtype: str
-        @return: String representation of the single consensus entry.
+        @return: String representation of the single consensus entry or the
+                 empty string if the consensus entry cannot be retrieved.
         """
         # get_info method returns a dictionary with single mapping, with
         # all the info stored as the single value, so this extracts the string
-        return self.control.get_info("ns/id/" + node_id).values()[0]
+        cons = ''
+        try:
+            cons = self.control.get_info("ns/id/" + node_id).values()[0]
 
+        except TorCtl.ErrorReply, e:
+            #If we're getting here, we're likely seeing:
+            # ErrorReply: 552 Unrecognized key "ns/id/46D9..."
+            logging.error("ErrorReply: %s" % str(e))
+        except:
+            logging.error("Unknown exception in "+\
+                    "ctlutil.CtlUtil.get_single_consensus()")
+
+        return cons
+
+        
     def get_full_consensus(self):
         """Get the entire consensus document for every router currently up.
 
@@ -165,8 +181,7 @@ class CtlUtil:
         """
         version_list = self.get_rec_version_list()
         for version in version_list:
-            if not version.find('alpha') == -1 or not version.find(
-            'beta') == -1:
+            if 'alpha' in version or 'beta' in version:
                 index = version_list.index(version)
                 version_list = version_list[:index]
                 break
@@ -209,8 +224,7 @@ class CtlUtil:
 
         current_stable_index = -1
         for version in version_list:
-            if not version.find('alpha') == -1 or not version.find('beta')\
-            == -1:
+            if 'alpha' in version or 'beta' in version:
                 current_stable_index = version_list.index(version) - 1
                 break
         
@@ -235,7 +249,15 @@ class CtlUtil:
 
     def has_rec_version(self, fingerprint):
         """Check if a Tor relay is running a recommended version of the Tor
-        software."""
+        software.
+        
+        @type fingerprint: str
+        @param fingerprint: The router's fingerprint
+        
+        @rtype: bool
+        @return: C{True} if the router is running a recommended version, 
+            C{False} if not.
+        """
         rec_version_list = self.get_rec_version_list()
         node_version = self.get_version(fingerprint) 
         rec_version = False
@@ -246,30 +268,22 @@ class CtlUtil:
 
         return rec_version
 
-    def is_up(self, node_id):
+    def is_up(self, fingerprint):
         """Check if this node is up (actively running) by requesting a
-        consensus document for node C{node_id}. If a document is received
+        consensus document for node C{fingerprint}. If a document is received
         successfully, then the node is up; if a document is not received, then 
         the router is down. If a node is hiberanating, it will return C{False}.
 
-        @type node_id: str
-        @param node_id: Fingerprint of the node in question.
-        @rtype: Bool
-        @return: Whether the node is up or down.
+        @type fingerprint: str
+        @param fingerprint: Fingerprint of the node in question.
+        @rtype: bool
+        @return: C{True} if the node is up, C{False} if it's down.
         """
-        try:
-           info = self.get_single_consensus(node_id)
-        except TorCtl.ErrorReply, e:
-            #If we're getting here, we're likely seeing:
-            # ErrorReply: 552 Unrecognized key "ns/id/46D9..."
-            logging.error("ErrorReply: %s" % str(e))
+        cons = self.get_single_consensus(fingerprint)
+        if cons == '':
             return False
-        except:
-            logging.error("Unknown exception in ctlutil.is_up()")
-            return False
-
-        # If we're here, we were able to fetch information about the router
-        return True
+        else:
+            return True
 
     def is_exit(self, node_id):
         """Check if this node is an exit node (accepts exits to port 80).
@@ -293,7 +307,7 @@ class CtlUtil:
             return False
         except:
             # some other error with the function
-            logging.error("Unknown exception in ctlutil.is_exit()")
+            logging.error("Unknown exception in ctlutil.Ctlutil.is_exit()")
 
     def get_finger_name_list(self):
         """Get a list of fingerprint and name pairs for all routers in the
@@ -351,10 +365,16 @@ class CtlUtil:
     def get_new_avg_bandwidth(avg_bandwidth, hours_up, obs_bandwidth):
         """Calculates the new average bandwidth for a router.
         
-        @param avg_bandwidth: The current average bandwidth for the router
+        @type avg_bandwidth: int
+        @param avg_bandwidth: The current average bandwidth for the router in
+            KB/s.
+        @type hours_up: int
         @param hours_up: The number of hours this router has been up 
-        @param obs_bandwidth: The observed bandwidth taken from the most 
-            recent descriptor file for this router
+        @type obs_bandwidth: int
+        @param obs_bandwidth: The observed bandwidth in KB/s taken from the 
+            most recent descriptor file for this router
+        @rtype: int
+        @return: The average bandwidth for this router in KB/s
         """
         new_avg = ((hours_up * avg_bandwidth) + obs_bandwidth) / (hours_up + 1)
         return new_avg
@@ -396,7 +416,7 @@ class CtlUtil:
             logging.error("ErrorReply: %s" % str(e))
             return False
         except:
-            logging.error("Unknown exception in ctlutil.is_stable()")
+            logging.error("Unknown exception in ctlutil.Ctlutil.is_stable()")
             return False
 
     def is_hibernating(self, fingerprint):
@@ -436,20 +456,19 @@ class CtlUtil:
 
         @type fingerprint: str
         @param fingerprint: The fingerprint of the Tor relay to check
-
         @rtype: float
         @return: The observed bandwidth for this Tor relay.
         """
         desc = self.get_single_descriptor(fingerprint)
+        bandwidth = 0	  	
         desc_lines = desc.split('\n')
-        bandwidth = ''
-
         for line in desc_lines:
-            if line.startswith('bandwidth '):
-                bandwidth = (int(line.split()[3])) / 1000
-
+            if line.startswith('bandwidth'):
+                word_list = line.split()
+                # the 4th word in the line is the bandwidth-observed in B/s
+                bandwidth = int(word_list[3]) / 1000
         return bandwidth
-
+        
     def _parse_email(self, desc):
         """Parse the email address from an individual router descriptor 
         string.
