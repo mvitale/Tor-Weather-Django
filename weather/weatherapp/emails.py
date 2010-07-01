@@ -147,7 +147,7 @@ def _get_router_name(fingerprint):
         pass
     else:
         if router.name != "Unnamed":
-            name = router.name + " ," + name
+        name = router.name + " ," + name
     return name
 
 def send_confirmation(recipient,
@@ -304,7 +304,7 @@ def welcome_tuple(recipient, fingerprint, exit):
     msg = _WELCOME_MAIL % (name, append)
     return (subj, msg, sender, [recipient])
 
-def version_tuple(recipient, fingerprint, unsubs_auth, pref_auth):
+def version_tuple(recipient, fingerprint, version_type, unsubs_auth, pref_auth):
     """Returns a tuple for a version notification email.
 
     @type recipient: str
@@ -312,11 +312,9 @@ def version_tuple(recipient, fingerprint, unsubs_auth, pref_auth):
     @type fingerprint: str
     @param fingerprint: The fingerprint for the router this user is subscribed
                         to.
-    @type version: str
-    @param version: The version of the Tor software this router is running.
-    @type current_version: str
-    @param current_version: The version number of the most recent stable
-                            release.
+    @type version_type: str
+    @param version_type: Either 'UNRECOMMENDED' or 'OBSOLETE', depending on the
+        user's preferences for this notification type.
 
     @rtype: tuple
     @return: A tuple containing information about the email to be sent in
@@ -326,8 +324,9 @@ def version_tuple(recipient, fingerprint, unsubs_auth, pref_auth):
     name = _get_router_name(fingerprint)
     subj = _SUBJECT_HEADER + _VERSION_SUBJ
     sender = _SENDER
+    version_type = lower(version_type)
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
     downloadURL = url_helper.get_download_url()
-    msg = _VERSION_MAIL % (name, downloadURL, unsubURL, prefURL)
+    msg = _VERSION_MAIL % (name, , downloadURL, unsubURL, prefURL)
     return (subj, msg, sender, [recipient])

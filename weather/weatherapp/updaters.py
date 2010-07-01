@@ -35,9 +35,9 @@ def check_node_down(email_list):
     and send emails and update sub data as necessary.
     
     @type email_list: list
-    @param email_list: The list of tuples containing email info.
+    @param email_list: The list of tuples representing emails to send.
     @rtype: list
-    @return: The updated list of tuples containing email info.
+    @return: The updated list of tuples representing emails to send.
     """
     #All node down subs
     subs = NodeDownSub.objects.all()
@@ -73,13 +73,13 @@ def check_node_down(email_list):
     return email_list
 
 def check_low_bandwidth(email_list):
-    """Checks all L{LowBandwidthSub} subscriptions, updates the information,
+    """Checks all L{BandwidthSub} subscriptions, updates the information,
     determines if an email should be sent, and updates email_list.
 
     @type email_list: list
-    @param email_list: The list of tuples containing email info.
+    @param email_list: The list of tuples representing emails to send.
     @rtype: list
-    @return: The updated list of tuples containing email info.
+    @return: The updated list of tuples representing emails to send.
     """
     subs = BandwidthSub.objects.all()
 
@@ -118,9 +118,9 @@ def check_earn_tshirt(email_list):
     should_email method in the TShirtSub class.
     
     @type email_list: list
-    @param email_list: The list of tuples containing email info.
+    @param email_list: The list of tuples representing emails to send.
     @rtype: list
-    @return: The updated list of tuples containing email info.
+    @return: The updated list of tuples representing emails to send.
     """
    
     subs = TShirtSub.objects.filter(emailed = False)
@@ -171,7 +171,12 @@ def check_earn_tshirt(email_list):
 
 def check_version(email_list):
     """Check/update all C{VersionSub} subscriptions and send emails as
-    necessary."""
+    necessary.
+    
+    @type email_list: list
+    @param email_list: The list of tuples representing emails to send.
+    @rtype: list
+    @return: The updated list of tuples representing emails to send."""
 
     subs = VersionSub.objects.all()
 
@@ -185,6 +190,7 @@ def check_version(email_list):
                 unsubs_auth = sub.subscriber.unsubs_auth
                 pref_auth = sub.subscriber.pref_auth
                 email_list.append(emails.version_tuple(recipient, fingerprint,
+                                                       version_type, 
                                                        unsubs_auth, pref_auth))
                 sub.emailed = True
 
@@ -199,14 +205,13 @@ def check_all_subs(email_list):
     """Check/update all subscriptions
     
     @type email_list: list
-    @param email_list: The list of tuples containing email info.
+    @param email_list: The list of tuples representing emails to send.
     @rtype: list
-    @return: The updated list of tuples containing email info.
+    @return: The updated list of tuples representing emails to send.
     """
 
     email_list = check_node_down(email_list)
-    #---Add when implemented---
-    #check_version(email_list)
+    check_version(email_list)
     check_low_bandwidth(email_list)
     email_list = check_earn_tshirt(email_list)
     return email_list
@@ -217,9 +222,9 @@ def update_all_routers(email_list):
     email should be sent and add the email tuples to the list.
     
     @type email_list: list
-    @param email_list: The list of tuples containing email info.
+    @param email_list: The list of tuples representing emails to send.
     @rtype: list
-    @return: The updated list of tuples containing email info.
+    @return: The updated list of tuples representing emails to send.
     """
 
     #set the 'up' flag to False for every router in the DB
