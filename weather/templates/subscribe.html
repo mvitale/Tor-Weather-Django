@@ -15,7 +15,7 @@ Tor Weather - Sign Up!
 
 {% block content %}
 
-<form method="post" action="/subscribe/">{% csrf_token %}
+<form method="post" action="/subscribe/" id="subscribe-form">{% csrf_token %}
 <p>
 	You can use this form to request status updates to tell you when a particular Tor node has become unreachable for a sustained period of time.
 </p>
@@ -31,7 +31,7 @@ Tor Weather - Sign Up!
 		{% for error in form.email_2.errors %}<span class="form-error">{{ error }}</span>{% endfor %}
 		{{ form.email_2 }}
 	</div>
-	<div class="long-input" class="block">
+	<div class="block">
 		<label for="id_fingerprint" class="block">{{ form.fingerprint.label }}</label>
 		{% for error in form.fingerprint.errors %}<span class="form-error">{{ error|safe}}</span>{% endfor %}
 		{{ form.fingerprint }}
@@ -42,84 +42,91 @@ Tor Weather - Sign Up!
 
 <div id="notification-info">
 	<div class="notification-section">
-		<div id="node-down-check">
-			{{ form.get_node_down }}
-			<label for="id_get_node_down">{{ form.get_node_down.label }}</label>
-		</div>
+		{{ form.get_node_down }}
+		<label for="id_get_node_down">{{ form.get_node_down.label }}</label>
 		<div class="collapse-section" id="node-down-section">
+			<div class="section-help-text">
+				{{ form.node_down_text.label }}
+				<span id="node-down-extra-info">
+					{{ form.node_down_text.help_text }}
+				</span>
+			</div>
 			<div class="field-row" id="node-down-grace-pd-row">
-				<label for="node_down_grace_pd_id" class="block">{{ form.node_down_grace_pd.label }}</label>
+				<label for="id_node_down_grace_pd" class="block">{{ form.node_down_grace_pd.label }}</label>
 				{% for error in form.node_down_grace_pd.errors %}<span class="form-error">{{ error }}</span>{% endfor %}
-				<div class="short-input">
-					{{ form.node_down_grace_pd }}
-				</div>
-				<div class="help-text after-short">
+				{{ form.node_down_grace_pd }}
+				<span class="help-text after-short">
 					<em>{{ form.node_down_grace_pd.help_text }}</em>
-				</div>
-				<input type="hidden" id="node_down_grace_pd_manipulated" value="off" />
+				</span>
 			</div>
 		</div>
 	</div>
 
 	<div class="notification-section">
-		<div id="version-check">
-			{{form.get_version }}
-			<label for="id_get_version">{{ form.get_version.label }}</label>
-		</div>
+		{{ form.get_version }}
+		<label for="id_get_version">{{ form.get_version.label }}</label>
 		<div class="collapse-section" id="version-section">
+			<div class="section-help-text">
+				{{ form.version_text.label }}
+				<span id="version-extra-info">
+					{{ form.version_text.help_text }}
+				</span>
+			</div>
 			<div class="field-row" id="version-type-row">
 				<label for="id_version_type" class="block">{{ form.version_type.label }}</label>
 				{% for error in form.version_type.errors %}<span class="form-error">{{ error }}</span>{% endfor %}
-				<div class="dropdown-input">
-					{{ form.version_type }}
-				</div>
-				<div class="help-text after-dropdown">
+				{{ form.version_type }}
+				<span class="help-text after-dropdown">
 					<em>{{ form.version_type.help_text }}</em>
-				</div>
+				</span>
 			</div>
 		</div>
 	</div>
 
 	<div class="notification-section">
-		<div id="band-low-check">
-			{{ form.get_band_low }}
-			<label for="id_get_band_low">{{ form.get_band_low.label }}</label>
-		</div>
+		{{ form.get_band_low }}
+		<label for="id_get_band_low">{{ form.get_band_low.label }}</label>
 		<div class="collapse-section" id="band-low-section">
+			<div class="section-help-text">
+				{{ form.band_low_text.label }}
+				<span id="band-low-extra-info">
+					{{ form.band_low_text.help_text }}
+				</span>
+			</div>
 			<div class="field-row" id="band-low-threshold-row">
 				<label for="band_low_threshold" class="block">{{ form.band_low_threshold.label }}</label>
 				{% for error in form.band_low_threshold.errors %}<span class="form-error">{{ error }}</span>{% endfor %}
-				<div class="short-input">
-					{{ form.band_low_threshold }}
-				</div>
-				<div class="help-text after-short">
+				{{ form.band_low_threshold }}
+				<span class="help-text after-short">
 					<em>{{ form.band_low_threshold.help_text }}</em>
-				</div>
-				<input type="hidden" id="band_low_threshold_manipulated" value="off" />
+				</span>
 			</div>
 			<div class="field-row" id="band-low-grace-pd-row">
 				<label for="band_low_grace_pd" class="block">{{ form.band_low_grace_pd.label }}</label>
 				{% for error in form.band_low_grace_pd.errors %}<span class="form-error">{{ error }}</span>{% endfor %}
-				<div class="short-input">
-					{{ form.band_low_grace_pd }}
-				</div>
-				<div class="help-text after-short">
+				{{ form.band_low_grace_pd }}
+				<span class="help-text after-short">
 					<em>{{ form.band_low_grace_pd.help_text }}</em>
-				</div>
-				<input type="hidden" id="band_low_grace_pd_manipulated" value="off" />
+				</span>
 			</div>
 		</div>
 	</div>
 
 	<div class="notification-section">
-		<div id="get-t-shirt-check">
-			{{ form.get_t_shirt }}
-			<label for="get_t_shirt">{{ form.get_t_shirt.label }}</label>
+		{{ form.get_t_shirt }}
+		<label for="get_t_shirt">{{ form.get_t_shirt.label }}</label>
+		<div class="collapse-section" id="t-shirt-section">
+			<div class="section-help-text">
+				{{ form.t_shirt_text.label }}
+				<span id="t-shirt-extra-info">
+					{{ form.t_shirt_text.help_text }}
+				</span>
+			</div>
 		</div>
 	</div>
 </div>
 
-<input type="submit" id="subscribe-submit" value="Subscribe to Tor Weather!" name="sa" />
+<input type="submit" value="Subscribe to Tor Weather!" name="sa" />
 <br />
 </form>
 
