@@ -75,8 +75,6 @@ Updating and Notifying
 ..........................
 Updating the database and sending email notifications is handled by the updaters module. Within updaters, the Router table is first populated and updated by scanning the consensus document for all router fingerprints therein. If a router isn't stored in the database, it's added. Relevant information for existing routers in the database is updated using descriptor information. If a router in the database is flagged as stable in the consensus document, a welcome email is sent to the node operator after parsing their email from the descriptor file. The welcome email contains information about Tor Weather and legal information if the node functions as an exit node.
 
-Next, each Subscription in the database is updated, and emails are sent to the Subscriber's email if the conditions indicate a notification should be sent.
-
-Finally, 
+Each Subscription in the database is updated, and emails are sent to the Subscriber's email if the conditions indicate a notification should be sent. 
 
 .. _Django: http://docs.djangoproject.com/en/1.2/intro/overview/
