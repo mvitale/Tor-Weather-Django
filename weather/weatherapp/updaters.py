@@ -127,6 +127,7 @@ def check_earn_tshirt(email_list):
 
     for sub in subs:
         if sub.subscriber.confirmed:
+
             # first, update the database 
             router = sub.subscriber.router
             is_up = router.up
@@ -151,6 +152,7 @@ def check_earn_tshirt(email_list):
                                                 sub.avg_bandwidth,
                                                 hours_up,
                                                 current_bandwidth)
+
                     #send email if needed
                     if sub.should_email(hours_up):
                         recipient = sub.subscriber.email
