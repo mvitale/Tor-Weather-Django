@@ -18,6 +18,10 @@ h1 {
 	border-bottom: 1px solid black;
 }
 
+h2 {
+	font-size: 18px;
+}
+
 div.footer {
 	padding-top: 5px;
 	margin-top: 50px;
@@ -129,4 +133,11 @@ div.email-block {
 	margin-right: 15px;
 }
 
+a.more-info-link {
+	display: none;
+	font-size: 12px;
+}
 
+span.more-info-text {
+	display: inline;
+}
