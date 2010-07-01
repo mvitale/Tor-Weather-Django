@@ -336,11 +336,13 @@ class GenericForm(forms.Form):
     _INIT_BAND_LOW_THRESHOLD = 20
     _MIN_BAND_LOW_THRESHOLD = 0
     _MAX_BAND_LOW_THRESHOLD = 100000
+    _INIT_PREFIX = 'Default value is '
 
     get_node_down = forms.BooleanField(initial=_INIT_GET_NODE_DOWN,
             required=False,
             label='Receive notifications when node is down')
-    node_down_grace_pd = forms.IntegerField(initial=_INIT_NODE_DOWN_GRACE_PD,
+    node_down_grace_pd = forms.IntegerField(
+            initial=_INIT_PREFIX + str(_INIT_NODE_DOWN_GRACE_PD),
             required=False,
             max_value=_MAX_NODE_DOWN_GRACE_PD,
             min_value=_MIN_NODE_DOWN_GRACE_PD,
@@ -365,11 +367,13 @@ class GenericForm(forms.Form):
     get_band_low = forms.BooleanField(initial=_INIT_GET_BAND_LOW,
             required=False,
             label='Receive notifications when node has low bandwidth')
-    band_low_threshold = forms.IntegerField(initial=_INIT_BAND_LOW_THRESHOLD,
+    band_low_threshold = forms.IntegerField(
+            initial=_INIT_PREFIX + str(_INIT_BAND_LOW_THRESHOLD),
             required=False, max_value=_MAX_BAND_LOW_THRESHOLD,
-            min_value=_MIN_BAND_LOW_THRESHOLD, label='What critical bandwidth \
-            would you like to be informed of?')
-    band_low_grace_pd = forms.IntegerField(initial=_INIT_BAND_LOW_GRACE_PD,
+            min_value=_MIN_BAND_LOW_THRESHOLD, label='For what critical \
+            bandwidth, in kbps, should we send notifications?')
+    band_low_grace_pd = forms.IntegerField(
+            initial=_INIT_PREFIX + str(_INIT_BAND_LOW_GRACE_PD),
             required=False, max_value=_MAX_BAND_LOW_GRACE_PD,
             min_value=_MIN_BAND_LOW_GRACE_PD,
             label='How many hours of low bandwidth before \
@@ -379,6 +383,45 @@ class GenericForm(forms.Form):
     
     get_t_shirt = forms.BooleanField(initial=False, required=False,
             label='Receive notification when node has earned a t-shirt')
+
+    @staticmethod
+    def clean_default_strings(post_data):
+        """Checks if POST data contains fields that still say "Default value 
+        is C{-DEFAULT-VALUE-}" or are left blank and returns a POST dictionary
+        with those fields replaced with just C{-DEFAULT-VALUE-}. Has no 
+        side-effects on the original POST dictionary passed as an argument.
+        The output POST data is meant to be passed into the GenericForm being
+        created.
+        
+        @type post_data: QueryDict
+        @param post_data: POST request data.
+        @rtype: QueryDict
+        @return: POST request data with "Default value is C{-DEFAULT-VALUE-}
+            replaced with C{-DEFAULT-VALUE-}.
+        """
+
+        data = copy(post_data)
+
+        if data['node_down_grace_pd'] == \
+                GenericForm._INIT_PREFIX + \
+                str(GenericForm._INIT_NODE_DOWN_GRACE_PD) \
+                or data['node_down_grace_pd'] == '':
+            data['node_down_grace_pd'] = GenericForm._INIT_NODE_DOWN_GRACE_PD
+
+        if data['band_low_threshold'] == \
+                GenericForm._INIT_PREFIX + \
+                str(GenericForm._INIT_BAND_LOW_THRESHOLD) \
+                or data['band_low_threshold'] == '':
+            data['band_low_threshold'] = GenericForm._INIT_BAND_LOW_THRESHOLD
+        
+        if data['band_low_grace_pd'] ==  \
+                GenericForm._INIT_PREFIX + \
+                str(GenericForm._INIT_BAND_LOW_GRACE_PD) \
+                or data['band_low_grace_pd'] == '':
+            data['band_low_grace_pd'] = GenericForm._INIT_BAND_LOW_GRACE_PD
+
+        return data
+ 
 
     def set_blanks(self, data, errors):
         """Returns the dictionary of errors raised by the form validation that

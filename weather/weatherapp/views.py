@@ -8,7 +8,7 @@ page rendering/redirection.
 import threading
 
 from weatherapp.models import Subscriber, NodeDownSub, Router, \
-                   SubscribeForm, PreferencesForm
+                   GenericForm, SubscribeForm, PreferencesForm
 import emails
 import error_messages
 from config import url_helper, templates
@@ -39,6 +39,11 @@ def subscribe(request):
     an error page."""
     
     if request.method == 'POST':
+        # Replaces fields in POST data of the form 'Default value is ---' with
+        # just the integer value, so that the to_python() methods of the 
+        # form validation don't go crazy.
+        request.POST = GenericForm.clean_default_strings(request.POST)
+
         # handle the submitted form:
         form = SubscribeForm(request.POST)
 
