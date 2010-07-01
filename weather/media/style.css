@@ -28,6 +28,10 @@ div.footer p {
 	color: rgb(75,75,75);
 }
 
+div.help-text em {
+	color: rgb(75, 75, 75);
+}
+
 div.email-block input {
 	width: 143px;
 }
