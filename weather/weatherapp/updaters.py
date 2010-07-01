@@ -166,6 +166,7 @@ def check_earn_tshirt(email_list):
                                         exit, unsubs_auth, pref_auth)
                         email_list.append(email)
                         sub.emailed = True
+
             sub.save()
     return email_list
 
