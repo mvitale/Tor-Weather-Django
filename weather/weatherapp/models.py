@@ -484,8 +484,6 @@ class GenericForm(forms.Form):
                                          type of subscription!')
 
     def clean(self):
-        self._errors = self.set_blanks(self.cleaned_data, self._errors)
-        
         self.check_if_sub_checked(self.cleaned_data)
 
         return self.cleaned_data
@@ -538,7 +536,6 @@ class SubscribeForm(GenericForm):
         
         # Calls the same helper methods used in the GenericForm clean() method.
         data = self.cleaned_data
-        self._errors = GenericForm.set_blanks(self, data, self._errors)
         GenericForm.check_if_sub_checked(self, data)
 
         # Makes sure email_1 and email_2 match and creates error messages
