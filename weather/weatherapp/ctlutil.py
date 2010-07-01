@@ -33,6 +33,7 @@ class CtlUtil:
     _CONTROL_HOST = "127.0.0.1"
     _CONTROL_PORT = 9051
     _AUTHENTICATOR = config.authenticator
+    _BANDWIDTH_CONVERTER = 2 * 86400 * 1000
     
     def __init__(self, control_host = _CONTROL_HOST, 
                 control_port = _CONTROL_PORT, sock = None, 
@@ -56,7 +57,6 @@ class CtlUtil:
                        "Is Tor running on %s with its control port" + \
                        "opened on %s?" % (control_host, control_port)
             logging.error(errormsg)
-            print
             raise
 
         
@@ -105,7 +105,8 @@ class CtlUtil:
             # ErrorReply: 552 Unrecognized key "ns/id/46D9..."
             logging.error("ErrorReply: %s" % str(e))
         except:
-            logging.error("Unknown exception in ctlutil.Ctlutil.CtlUtil.get_single_consensus()")
+            logging.error("Unknown exception in "+\
+                    "ctlutil.CtlUtil.get_single_consensus()")
 
         return cons
 
@@ -479,7 +480,7 @@ class CtlUtil:
                               "get_extra_info()")
             else:
                 bandwidth = self._parse_bandwidth(extra_info)
-
+        
         return bandwidth
 
     def _parse_bandwidth(self, info):
@@ -501,15 +502,14 @@ class CtlUtil:
                 line = re.sub('.*\)\s', '', line)
                 numbers = line.split(',')
                 for number in numbers:
-                    print number
                     bandwidth += int(number)
             if 'write-history' in line:
                 line = re.sub('.*\)\s', '', line)
                 numbers = line.split(',')
                 for number in numbers:
-                    print number
                     bandwidth += int(number)
-        return bandwidth / (2 * 86400)
+        bandwidth = int(bandwidth / self._BANDWIDTH_CONVERTER)
+        return bandwidth
       
     def _parse_email(self, desc):
         """Parse the email address from an individual router descriptor 
