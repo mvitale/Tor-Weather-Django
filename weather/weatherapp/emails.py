@@ -79,13 +79,8 @@ _NODE_DOWN_MAIL = "This is a Tor Weather Report.\n\n" +\
 
 _VERSION_SUBJ = 'Node Out of Date!'
 _VERSION_MAIL = "This is a Tor Weather Report.\n\n"+\
-<<<<<<< HEAD:weather/weatherapp/emails.py
-    "It appears that a Tor node you elected to monitor (node id: %s) "+\
-    "is running an %s date version of Tor. You can download the "+\
-=======
     "It appears that a Tor node %s you elected to monitor "+\
     "is running an %s version of Tor. You can download the "+\
->>>>>>> df4933d4bc7707cec9a12787e4ead0230d8ae3e6:weather/weatherapp/emails.py
     "latest version of Tor at %s.\n\n You can unsubscribe from these "+\
     "reports at any time by visiting the following url:\n\n%s\n\n"+\
     "or change your Tor Weather notification preferences here:\n\n%s\n"
