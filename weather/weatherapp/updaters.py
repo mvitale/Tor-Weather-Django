@@ -22,7 +22,7 @@ from smtplib import SMTPException
 from weatherapp.ctlutil import CtlUtil
 from weatherapp.models import *
 import weatherapp.emails
-import config.config 
+from config import config 
 
 from django.core.mail import send_mass_mail
 
@@ -35,9 +35,9 @@ def check_node_down(email_list):
     and send emails and update sub data as necessary.
     
     @type email_list: list
-    @param email_list: The list of tuples containing email info.
+    @param email_list: The list of tuples representing emails to send.
     @rtype: list
-    @return: The updated list of tuples containing email info.
+    @return: The updated list of tuples representing emails to send.
     """
     #All node down subs
     subs = NodeDownSub.objects.all()
@@ -73,13 +73,13 @@ def check_node_down(email_list):
     return email_list
 
 def check_low_bandwidth(email_list):
-    """Checks all L{LowBandwidthSub} subscriptions, updates the information,
+    """Checks all L{BandwidthSub} subscriptions, updates the information,
     determines if an email should be sent, and updates email_list.
 
     @type email_list: list
-    @param email_list: The list of tuples containing email info.
+    @param email_list: The list of tuples representing emails to send.
     @rtype: list
-    @return: The updated list of tuples containing email info.
+    @return: The updated list of tuples representing emails to send.
     """
     subs = BandwidthSub.objects.all()
 
@@ -118,76 +118,87 @@ def check_earn_tshirt(email_list):
     should_email method in the TShirtSub class.
     
     @type email_list: list
-    @param email_list: The list of tuples containing email info.
+    @param email_list: The list of tuples representing emails to send.
     @rtype: list
-    @return: The updated list of tuples containing email info.
+    @return: The updated list of tuples representing emails to send.
     """
    
     subs = TShirtSub.objects.filter(emailed = False)
 
     for sub in subs:
-        # first, update the database 
-        router = sub.subscriber.router
-        is_up = router.up
-        fingerprint = router.fingerprint
-        if not is_up:
-            # reset the data if the node goes down
-            sub.triggered = False
-            sub.avg_bandwidth = 0
-            sub.last_changed = datetime.now()
-        else:
-            descriptor = ctl_ultil.get_single_descriptor(fingerprint)
-            current_bandwidth = ctl_util.get_bandwidth(descriptor)
-            if sub.triggered == False:
-            # router just came back, reset values
-                sub.triggered = True
-                sub.avg_bandwidth = current_bandwidth
+        if sub.subscriber.confirmed:
+
+            # first, update the database 
+            router = sub.subscriber.router
+            is_up = router.up
+            fingerprint = router.fingerprint
+            if not is_up:
+                # reset the data if the node goes down
+                sub.triggered = False
+                sub.avg_bandwidth = 0
                 sub.last_changed = datetime.now()
             else:
-            # update the avg bandwidth (arithmetic)
-                hours_up = sub.get_hours_since_triggered()
-                sub.avg_bandwidth = ctl_util.get_new_avg_bandwidth(
-                                            sub.avg_bandwidth,
-                                            hours_up,
-                                            current_bandwidth)
-                #send email if needed
-                if sub.should_email(hours_up):
-                    recipient = sub.subscriber.email
-                    avg_band = sub.avg_bandwidth
-                    time = sub.hours_since_triggered
-                    exit = sub.subscriber.router.exit
-                    unsubs_auth = sub.subscriber.unsubs_auth
-                    pref_auth = sub.subscriber.pref_auth
-                    
-                    email = emails.t_shirt_tuple(recipient, avg_band, time,
-                                    exit, unsubs_auth, pref_auth)
-                    email_list.append(email)
-                    sub.emailed = True
-        sub.save()
+                descriptor = ctl_ultil.get_single_descriptor(fingerprint)
+                current_bandwidth = ctl_util.get_bandwidth(fingerprint)
+                if sub.triggered == False:
+                # router just came back, reset values
+                    sub.triggered = True
+                    sub.avg_bandwidth = current_bandwidth
+                    sub.last_changed = datetime.now()
+                else:
+                # update the avg bandwidth (arithmetic)
+                    hours_up = sub.get_hours_since_triggered()
+                    sub.avg_bandwidth = ctl_util.get_new_avg_bandwidth(
+                                                sub.avg_bandwidth,
+                                                hours_up,
+                                                current_bandwidth)
+
+                    #send email if needed
+                    if sub.should_email(hours_up):
+                        recipient = sub.subscriber.email
+                        avg_band = sub.avg_bandwidth
+                        time = sub.hours_since_triggered
+                        exit = sub.subscriber.router.exit
+                        unsubs_auth = sub.subscriber.unsubs_auth
+                        pref_auth = sub.subscriber.pref_auth
+                        
+                        email = emails.t_shirt_tuple(recipient, avg_band, time,
+                                        exit, unsubs_auth, pref_auth)
+                        email_list.append(email)
+                        sub.emailed = True
+
+            sub.save()
     return email_list
 
 def check_version(email_list):
     """Check/update all C{VersionSub} subscriptions and send emails as
-    necessary."""
+    necessary.
+    
+    @type email_list: list
+    @param email_list: The list of tuples representing emails to send.
+    @rtype: list
+    @return: The updated list of tuples representing emails to send."""
 
     subs = VersionSub.objects.all()
 
     for sub in subs:
         version_type = ctlutil.get_version_type(sub.subscriber.fingerprint)
-        if version_type == sub.notify_type and sub.subscriber.confirmed \
-            and sub.emailed == False:
-            fingerprint = sub.subscriber.fingerprint
-            recipient = sub.subscriber.email
-            unsubs_auth = sub.subscriber.unsubs_auth
-            pref_auth = sub.subscriber.pref_auth
-            email_list.append(emails.version_tuple(recipient, fingerprint,
-                                                   unsubs_auth, pref_auth))
-            sub.emailed = True
+        if sub.subscriber.confirmed:
+            if version_type == sub.notify_type and sub.emailed == False:
+            
+                fingerprint = sub.subscriber.fingerprint
+                recipient = sub.subscriber.email
+                unsubs_auth = sub.subscriber.unsubs_auth
+                pref_auth = sub.subscriber.pref_auth
+                email_list.append(emails.version_tuple(recipient, fingerprint,
+                                                       version_type, 
+                                                       unsubs_auth, pref_auth))
+                sub.emailed = True
 
         #if the user has their desired version type, we need to set emailed
-        #to False so that we can email them again if we need to
-        else:
-            sub.emailed = False
+        #to False so that we can email them in the future if we need to
+            else:
+                sub.emailed = False
 
         
                 
@@ -195,14 +206,13 @@ def check_all_subs(email_list):
     """Check/update all subscriptions
     
     @type email_list: list
-    @param email_list: The list of tuples containing email info.
+    @param email_list: The list of tuples representing emails to send.
     @rtype: list
-    @return: The updated list of tuples containing email info.
+    @return: The updated list of tuples representing emails to send.
     """
 
     email_list = check_node_down(email_list)
-    #---Add when implemented---
-    #check_version(email_list)
+    check_version(email_list)
     check_low_bandwidth(email_list)
     email_list = check_earn_tshirt(email_list)
     return email_list
@@ -213,9 +223,9 @@ def update_all_routers(email_list):
     email should be sent and add the email tuples to the list.
     
     @type email_list: list
-    @param email_list: The list of tuples containing email info.
+    @param email_list: The list of tuples representing emails to send.
     @rtype: list
-    @return: The updated list of tuples containing email info.
+    @return: The updated list of tuples representing emails to send.
     """
 
     #set the 'up' flag to False for every router in the DB
@@ -242,8 +252,7 @@ def update_all_routers(email_list):
                 router_data.up = True
                 router_data.exit = is_exit
                 #send a welcome email if indicated
-                if (router_data.welcomed == False and 
-                    ctl_util.is_stable(finger)):
+                if router_data.welcomed == False and ctl_util.is_stable(finger):
                     email = ctl_util.get_email(finger)
                     if not email == "":
                         email = emails.welcome_tuple(email, finger, is_exit)

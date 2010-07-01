@@ -225,6 +225,7 @@ class BandwidthSub(Subscription):
         else:
             return False
 
+
 class TShirtSub(Subscription):
     """A subscription class for T-shirt notifications. An email is sent
     to the user if the router they're monitoring has earned them a T-shirt.
@@ -233,7 +234,7 @@ class TShirtSub(Subscription):
     least 500 KB/s.
     
     @type avg_bandwidth: int
-    @ivar avg_bandwidth: The router's average bandwidth
+    @ivar avg_bandwidth: The router's average bandwidth in KB/s
     @type hours_since_triggered: int
     @ivar hours_since_triggered: The hours this router has been up"""
     avg_bandwidth = models.IntegerField(default = 0)
@@ -252,7 +253,7 @@ class TShirtSub(Subscription):
     def should_email(hours_up):
         """Returns true if the router being watched has been up for 1464 hours
         (61 days, or approx 2 months). If it's an exit node, the avg bandwidth
-        must be above 100 KB/s. If not, it must be > 500 KB/s.
+        must be at or above 100 KB/s. If not, it must be >= 500 KB/s.
         
         @type hours_up: int
         @param hours_up: The hours that this router has been up (0 if the
@@ -262,10 +263,10 @@ class TShirtSub(Subscription):
         """
         if not self.emailed and self.triggered and hours_up >= 1464:
             if self.subscriber.router.exit:
-                if self.avg_bandwidth > 100000:
+                if self.avg_bandwidth >= 100:
                     return True
             else:
-                if self.avg_bandwidth > 500000:
+                if self.avg_bandwidth >= 500:
                     return True
         return False
 
@@ -494,7 +495,6 @@ class GenericForm(forms.Form):
         if self.cleaned_data['get_node_down']:
             node_down_sub = NodeDownSub(subscriber=subscriber,
                     grace_pd=self.cleaned_data['node_down_grace_pd'])
-            print node_down_sub
             node_down_sub.save()
         if self.cleaned_data['get_version']:
             version_sub = VersionSub(subscriber=subscriber,

@@ -1,20 +1,85 @@
 Tor Weather Design Documentation
 ================================
+.. This file is written in reStructuredText. A .pdf version should be generated.
 
 Django
 ------------
-Tor Weather was ported to 'Django'_ (v1.2) to take advantage of the framework's object relational mapper for database access. Data can be directly accessed by way of Django's models, each of which maps to a table in the database and can be utilized as an object. Django's adaptation of the model-view-controller schema is a bit confusing: controllers are stored in a module named views.py and views are called templates (but models are still, thankfully, called models).
+Tor Weather was ported to 'Django (v1.2)'_ to take advantage of the framework's object relational mapper for database access. Data can be directly accessed by way of Django's models, each of which maps to a table in the database and can be utilized as an object. Django's adaptation of the model-view-controller schema is a bit confusing: controllers are stored in a module named views.py and views are called templates (but models are still, thankfully, called models).
 
 Directory Structure
 -------------------------
 Directory structure in Django involves an outer directory, weather, with four 
-default files: __init__.py (empty), manage.py (we leave this alone--it syncs the database and runs the server), settings.py (a config file), and urls.py (stores url patterns to recognize and the corresponding controller to direct to). The next level is the application's folder, weatherapp. By default, application folders in Django contain four default files: __init__.py (empty), 'models.py'_ (a module for the models), tests.py (a module for application tests), and 'views.py'_ (a module for the controllers).
+default files: __init__.py (empty), manage.py (we leave this alone--it syncs the database and runs the server), settings.py (a config file), and urls.py (stores url patterns to recognize and the corresponding controller to direct to). The next level is the application's folder, weatherapp. By default, application folders in Django contain four default files: __init__.py (empty), models.py (a module for the models), tests.py (a module for application tests), and views.py (a module for the controllers).
 
 Within the main directory (weather/), we included a directory for docs (including a README and licensing information), a templates directory including all of the Tor Weather views, and a config directory. In the templates directory, the file base.html is the main template with the Tor banner, and all other template files 'extend' this template (a Django funtionality). The config directory contains a module (templates.py) for mapping template filenames to variables and a module (url_helper.py) for accessing url extensions. Should the template file names or url path extensions in urls.py ever be changed, these need only be updated in the config directory.
 
+---------------------------------------------------------------------------
+
+Tor Weather Notification Types
+----------------------------------
+The original Tor Weather implementation handled only node-down notifications. You could sign up to receive notifications if a node went down by providing its fingerprint, your email, and a downtime grace period. This implementation of Tor Weather adds three new notification types: T-Shirt notifications, low bandwidth notifications, and version notifications. The user must sign up
+for these notifications in order to receive the corresponding emails; by 
+default, they will only receive the standard node down notifications.
+
+Node Down Notifications
+.........................
+    This is the default notification type. A router is considered "down" if it
+    does not appear in the consensus documents *and* does not have a hibernating
+    flag set to True in its descriptor file. These subscriptions are checked 
+    hourly, and an email is sent if a node has been down for at least as long
+    as the user's specified grace period.
+
+
+T-Shirt Notifications
+.......................
+    According to the 'Tor T-shirt page'_, running a relay can earn the 
+    operator a T-shirt in two cases: the router must either allow exits to port 
+    80 and average 100 KB/s of traffic for two months of uptime, or average 500
+    KB/s traffic for two months of uptime (no exit requirement). If the user 
+    signs up for T-Shirt notifications, we send the notification if their router
+    has been seen up for at least 1464 hours (61 days, or roughly 2 months)
+    with an average bandwidth of 500 KB/s or 100 KB/s if the router allows 
+    exits to port 80. The observed bandwidth listed in the descriptor file. 
+    According to the 'directory specifications'_, the listed observed bandwidth
+    "is an estimate of the capacity this server can handle. The server 
+    remembers the max bandwidth sustained output over any ten second period in 
+    the past day, and another sustained input. The 'observed' value is the 
+    lesser of these two numbers." Each hour, this observed bandwidth is 
+    used to recalculate the average bandwidth for the router being watched. 
+
+Low Bandwidth Notifications
+.............................
+    We added a notification type to alert users if their router crosses some
+    threshold for minimum bandwidth. By default, this threshold is set to 
+    20 KB/s, which Tor defines as the minimum bandwidth for a router. Our 
+    implementation uses the observed bandwidth listed in the descriptor file
+    (see description under T-Shirt Notifications). By this implementation, the 
+    notification signals that the router hasn't been able to sustain the 
+    minimum threshold for any 10-second period in the past 24 hours.
+    
+    *For development: Fine-tune low bandwidth notifications and implement
+    a high bandwidth notification to warn users if traffic through their router
+    exceeds some ceiling they indicate.*
+
+Version Notifications
+........................
+    A list of "recommended" Tor versions can be obtained via communication with
+    TorCtl. The list contains all stable versions of Tor that are not considered
+    obsolete and includes some alpha versions. There are two version 
+    notification types to choose from: unrecommended and obsolete.
+        
+        -Unrecommended: If the router's version does not appear in the list of
+        recommended versions, the user will receive an email notification. 
+
+        -Recommended: If the router's version is not the most recent stable
+        (non-alpha/beta) version in the list, the user will receive an email
+        notification. 
+
+
+------------------------------------------------------------------------
+
 Modules in weatherapp
 --------------------------
-.. _models.py
 models.py
 ..........
 To add flexibility, the Tor Weather model structure was expanded to include
@@ -22,18 +87,34 @@ three main models: Router, Subscriber, and Subscription.
 
 Router
 ,,,,,,,
-The Router table stores information about every router in the Tor network that a)posts its fingerprint to the directory authorities and b)has been seen up either within the past year or since the new Tor Weather has been running (whichever is more recent). That way, Tor Weather can send welcome notifications to all new relay operators once their node is flagged stable, assuming we can parse their email.
+    The Router table stores information about every router in the Tor network 
+    that a)posts its fingerprint to the directory authorities and b)has been 
+    seen up either within the past year or since the new Tor Weather has been 
+    running (whichever is more recent). That way, Tor Weather can send welcome 
+    notifications to all new relay operators once their node is flagged stable, 
+    assuming we can parse their email.
 
 Subscriber
 ,,,,,,,,,,,,
-The Subscriber maps to a single router by a many-to-one foreign key relation (multiple users can subscribe to a single router, but if a user wants to subscribe to more than one router they will be represented by multiple Subscriber objects in the table). Each object stores unique authorization keys that are used to access user-specific pages (i.e. preferences, unsubscribe, etc).
+    The Subscriber maps to a single router by a many-to-one foreign key 
+    relation (multiple users can subscribe to a single router, but if a user 
+    wants to subscribe to more than one router they will be represented by 
+    multiple Subscriber objects in the table). Each object stores unique 
+    authorization keys that are used to access user-specific pages (i.e. 
+    preferences, unsubscribe, etc).
 
 Subscription
 ,,,,,,,,,,,,,
-We decided to create separate Subscription models to improve flexibility: with new "subscription types", each Subscriber can have multiple Subscriptions to a 
-Router. The subscription types (each of which inherits from the Subscription model) include NodeDownSub (sends an email if the Router is down), TShirtSub (sends an email if the Router earned the Subscriber--ideally the operator--a t-shirt), LowBandwidthSub (sends an email if the Router's bandwidth drops below 50 KB/s, Tor's minimum for being a functional node), and VersionSub (sends an email if the Router is running an out-of-date version of Tor).
+    We decided to create separate Subscription models to improve flexibility: 
+    with new "subscription types", each Subscriber can have multiple 
+    Subscriptions to a Router. The subscription types (each of which inherits 
+    from the Subscription model) include NodeDownSub (sends an email if the 
+    Router is down), TShirtSub (sends an email if the Router earned the 
+    Subscriber--ideally the operator--a t-shirt), LowBandwidthSub (sends an 
+    email if the Router's bandwidth drops below 50 KB/s, Tor's minimum for 
+    being a functional node), and VersionSub (sends an email if the Router is 
+    running an out-of-date version of Tor).
 
-.. _views.py
 views.py
 ............
 The module stores all of the controllers for the web interface.
@@ -63,6 +144,9 @@ updaters.py
 .............
 Calls methods for checking each Subscription in the database and populating/updating the Router table.
 
+
+-------------------------------------------------------------------------
+
 Event Flow
 ------------------
 The arrival of a new consensus document triggers a cascade of events. First, the Router table is populated and updated, and welcome emails are sent to new stable relay operators. Next, each Subscription is checked to determine if a Tor Weather notification should be sent. Finally, all of the necessary emails are sent out.
@@ -75,8 +159,8 @@ Updating and Notifying
 ..........................
 Updating the database and sending email notifications is handled by the updaters module. Within updaters, the Router table is first populated and updated by scanning the consensus document for all router fingerprints therein. If a router isn't stored in the database, it's added. Relevant information for existing routers in the database is updated using descriptor information. If a router in the database is flagged as stable in the consensus document, a welcome email is sent to the node operator after parsing their email from the descriptor file. The welcome email contains information about Tor Weather and legal information if the node functions as an exit node.
 
-Next, each Subscription in the database is updated, and emails are sent to the Subscriber's email if the conditions indicate a notification should be sent.
-
-Finally, 
+Each Subscription in the database is updated, and emails are sent to the Subscriber's email if the conditions indicate a notification should be sent. 
 
 .. _Django: http://docs.djangoproject.com/en/1.2/intro/overview/
+.. _Tor T-Shirt page: http://www.torproject.org/tshirt.html.en
+.. _directory specifications: https://svn.torproject.org/svn/tor/trunk/doc/spec/dir-spec.txt
