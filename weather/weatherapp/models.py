@@ -298,30 +298,42 @@ class GenericForm(forms.Form):
     @cvar _MIN_BAND_LOW_THRESHOLD: The minimum low bandwidth threshold (KB/s)
     @type _MAX_BAND_LOW_THRESHOLD: int
     @cvar _MAX_BAND_LOW_THRESHOLD: The maximum low bandwidth threshold (KB/s)
-    @type get_node_down: bool
+    @type get_node_down: BooleanField
     @ivar get_node_down: C{True} if the user wants to subscribe to node down 
         notifications, C{False} if not.
-    @type node_down_grace_pd: int
+    @type node_down_grace_pd: IntegerField, processed into int
     @ivar node_down_grace_pd: Time before receiving a node down notification in 
         hours. Default = 1. Range = 1-4500.
-    @type get_version: bool
+    @type node_down_text: BooleanField
+    @ivar node_down_text: Hidden field; used to display extra text in the form
+        template without having to hardcode the text into the template.
+    @type get_version: BooleanField, processed into Bool
     @ivar get_version: C{True} if the user wants to receive version 
         notifications about their router, C{False} if not.
-    @type version_type: str
+    @type version_type: ChoiceField, processed into str
     @ivar version_type: The type of version notifications the user 
         wants
-    @type get_band_low: bool
+    @type version_text: BooleanField
+    @ivar version_text: Hidden field; used to display extra text in the form
+        template without having to hardcode the text into the template.
+    @type get_band_low: BooleanField, processed into Bool
     @ivar get_band_low: C{True} if the user wants to receive low bandwidth 
         notifications, C{False} if not.
-    @type band_low_threshold: int
+    @type band_low_threshold: IntegerField, processed into int
     @ivar band_low_threshold: The user's threshold (in KB/s) for low bandwidth
         notifications. Default = 20 KB/s.
-    @type band_low_grace_pd: int
+    @type band_low_grace_pd: IntegerField, processed into int
     @ivar band_low_grace_pd: The number of hours of low bandwidth below 
         threshold for sending a notification. Default = 1. Range = 1-4500.
-    @type get_t_shirt: bool
+    @type band_low_text: BooleanField
+    @ivar band_low_text: Hidden field; used to display extra text in the form
+        template without having to hardcode the text into the template.
+    @type get_t_shirt: BooleanField, processed into Bool
     @ivar get_t_shirt: C{True} if the user wants to receive a t-shirt 
         notification, C{False} if not.
+    @type t_shirt_text: BooleanField
+    @ivar get_t_shirt: Hidden field; used to display extra text in the form
+        template without having to hardcode the text into the template.
     """
     
     _INIT_GET_NODE_DOWN = True
@@ -340,7 +352,14 @@ class GenericForm(forms.Form):
 
     get_node_down = forms.BooleanField(initial=_INIT_GET_NODE_DOWN,
             required=False,
-            label='Receive notifications when node is down')
+            label='Receive notifications when node is down',
+            widget=forms.CheckboxInput(attrs={'id':'node-down-check'}))
+    node_down_text = forms.BooleanField(required=False,
+            label='Notifications will be sent when the node goes offline \
+                   from the Tor network. Nodes that are in hibernation are \
+                   not considered offline; in other words, hibernation will \
+                   not trigger a notification.',
+            help_text='Bla bla technical details.')
     node_down_grace_pd = forms.IntegerField(
             initial=_INIT_PREFIX + str(_INIT_NODE_DOWN_GRACE_PD),
             required=False,
@@ -348,50 +367,74 @@ class GenericForm(forms.Form):
             min_value=_MIN_NODE_DOWN_GRACE_PD,
             label='How many hours of downtime before \
                        we send a notifcation?',
-            help_text='Enter a value between 1 and 4500 (roughly six months)')
+            help_text='Enter a value between 1 and 4,500 (roughly six months)',
+            widget=forms.TextInput(attrs={'class':'short-input'}))
     
     get_version = forms.BooleanField(initial=_INIT_GET_VERSION,
             required=False,
-            label='Receive notifications when node is out of date')
+            label='Receive notifications when node is out of date',
+            widget=forms.CheckboxInput(attrs={'id':'version-check'}))
+    version_text = forms.BooleanField(required=False,
+            label='General info.',
+            help_text='\'Recommended Updates\' will send a notification \
+                        when the node\'s version of Tor becomes \
+                        unrecommended; \'Required Updates\' \
+                        will send a notification when the \
+                        node\'s version of Tor becomes obsolete.')
     version_type = forms.ChoiceField(required=False,
             choices=((u'UNRECOMMENDED', u'Recommended Updates'),
                      (u'OBSOLETE', u'Required Updates')),
                 label='For what kind of updates would you like to be \
                         notified?',
-                help_text='\'Recommended Updates\' will send a notification \
-                        when the node\'s version of Tor becomes \
-                        unrecommended; \'Required Updates\' \
-                        will send a notification when the \
-                        node\'s version of Tor becomes obsolete.')
+                
+            widget=forms.Select(attrs={'class':'dropdown-input'}))
     
     get_band_low = forms.BooleanField(initial=_INIT_GET_BAND_LOW,
             required=False,
-            label='Receive notifications when node has low bandwidth')
+            label='Receive notifications when node has low bandwidth',
+            widget=forms.CheckboxInput(attrs={'id':'band-low-check'}))
+    band_low_text = forms.BooleanField(required=False,
+            label='General info.',
+            help_text='Bla bla technical details.')
     band_low_threshold = forms.IntegerField(
             initial=_INIT_PREFIX + str(_INIT_BAND_LOW_THRESHOLD),
             required=False, max_value=_MAX_BAND_LOW_THRESHOLD,
-            min_value=_MIN_BAND_LOW_THRESHOLD, label='For what critical \
-            bandwidth, in kbps, should we send notifications?')
+            min_value=_MIN_BAND_LOW_THRESHOLD, 
+            label='For what critical bandwidth, in kbps, should we send \
+                   notifications?',
+            help_text='Enter a value between 0 and 100,000',
+            widget=forms.TextInput(attrs={'class':'short-input'}))
     band_low_grace_pd = forms.IntegerField(
             initial=_INIT_PREFIX + str(_INIT_BAND_LOW_GRACE_PD),
             required=False, max_value=_MAX_BAND_LOW_GRACE_PD,
             min_value=_MIN_BAND_LOW_GRACE_PD,
             label='How many hours of low bandwidth before \
                        we send a notification?',
-            help_text='Enter a value between 1 and 4500 (roughly six \
-                       months); default value is 1 hour.')
+            help_text='Enter a value between 1 and 4,500 (roughly six \
+                       months)',
+            widget=forms.TextInput(attrs={'class':'short-input'}))
     
     get_t_shirt = forms.BooleanField(initial=False, required=False,
-            label='Receive notification when node has earned a t-shirt')
+            label='Receive notification when node has earned a t-shirt',
+            widget=forms.CheckboxInput(attrs={'id':'t-shirt-check'}))
+    t_shirt_text = forms.BooleanField(required=False,
+            label='General info.',
+            help_text='Bla bla technical details.')
 
     @staticmethod
     def clean_default_strings(post_data):
         """Checks if POST data contains fields that still say "Default value 
         is C{-DEFAULT-VALUE-}" or are left blank and returns a POST dictionary
-        with those fields replaced with just C{-DEFAULT-VALUE-}. Has no 
-        side-effects on the original POST dictionary passed as an argument.
-        The output POST data is meant to be passed into the GenericForm being
-        created.
+        with those fields replaced with just C{-DEFAULT-VALUE-}. Also sets
+        the field_name_manipulated fields to C{on} or C{off} depending on
+        whether POST data has been manipulated at this stage (there is a
+        hidden form field that stores this value, and the template renders
+        a hidden input field, with val='true' if the hidden form field is true,
+        and val='false' if the hidden form field is false; the javascript then
+        will know to put 'Default value is _' for that field by referring to
+        the hidden input field). Has no side-effects on the original POST 
+        dictionary passed as an argument. The output POST data is meant to be 
+        passed into the GenericForm being created.
         
         @type post_data: QueryDict
         @param post_data: POST request data.
@@ -422,7 +465,7 @@ class GenericForm(forms.Form):
 
         return data
  
-
+    # I think this is obsolete now.
     def set_blanks(self, data, errors):
         """Returns the dictionary of errors raised by the form validation that
         checks for required fields; main purpose is to set empty fields to 
@@ -541,11 +584,14 @@ class SubscribeForm(GenericForm):
         monitor.
     """
     email_1 = forms.EmailField(label='Enter Email:',
+            widget=forms.TextInput(attrs={'class':'email-input'}),
             max_length=75)
     email_2 = forms.EmailField(label='Re-enter Email:',
+            widget=forms.TextInput(attrs={'class':'email-input'}),
             max_length=75)
     fingerprint = forms.CharField(label='Node Fingerprint:',
-            max_length=50)
+            widget=forms.TextInput(attrs={'class':'long-input'}),
+            max_length=40)
 
     def clean(self):
         """"""

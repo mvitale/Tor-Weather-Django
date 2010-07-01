@@ -21,57 +21,62 @@ h1 {
 div.footer {
 	padding-top: 5px;
 	margin-top: 50px;
-	border-top: 1px solid rgb(75,75,75);
+	border-top: 1px solid rgb(100,100,100);
 }
 
 div.footer p {
-	color: rgb(75,75,75);
+	color: rgb(100,100,100);
 }
 
-div.help-text em {
-	color: rgb(75, 75, 75);
+div.notification-section {
+	clear: both;
 }
 
-div.email-block input {
-	width: 143px;
-}
-
-div.email-block input {
+input.email-input {
 	margin-top: 2px;
 	margin-bottom: 3px;
+	width: 185px;
 }
 
-div.short-input {
+input.short-input {
 	margin-top: 2px;
 	margin-right: 5px;
 	width: 100px;
 	float: left;
 }
 
-div.after-short {
+span.after-short {
 	padding-top: 4px;
 	margin-left: 105px;
+	display: block;
 }
 
-div.dropdown-input {
+select.dropdown-input {
 	margin-top: 2px;
 	margin-right: 5px;
 	width: 149px;
 	float: left;
 }
 
-div.after-dropdown {
+span.after-dropdown {
 	padding-top: 4px;
 	margin-left: 154px;
+	display: block;
 }
 
-div.help-text em {
-	color: rgb()
+span.help-text {
+	padding-top: 3px;
+	display: block;
 }
 
-div.long-input input {
+span.help-text em {
+	color: rgb(100, 100, 100);
+}
+
+input.long-input {
 	margin-top: 2px;
 	margin-bottom: 3px;
+	width: 385px;
 }
 
 div.collapse-section {
@@ -90,6 +95,14 @@ span.form-error {
 	display: block;
 }
 
+div.section-help-text {
+	margin-bottom: 5px;
+}
+
+div.field-row {
+	margin-bottom: 5px;
+}
+
 span.big-form-error {
 	padding-top: 10px;
 	color: red;
@@ -97,12 +110,12 @@ span.big-form-error {
 	font-weight: bold;
 }
 
-input#subscribe-submit {
+form#subscribe-form input[type='submit'] {
 	margin-top: 20px;
 	font-size: 18px;
 }
 
-label.block {
+.block {
 	display: block;
 	clear: both;
 }
@@ -116,10 +129,4 @@ div.email-block {
 	margin-right: 15px;
 }
 
-div.long-input input {
-	width: 300px;
-}
 
-div.short-input input {
-	width: 100px;
-}
