@@ -335,7 +335,10 @@ class GenericForm(forms.Form):
     @ivar get_t_shirt: Hidden field; used to display extra text in the form
         template without having to hardcode the text into the template.
     """
-    
+   
+    # NOTE: Most places inherit the min, max, and default values for fields
+    # from here, but one notable exception is in the javascript file when
+    # checking if textboxes haven't been altered.
     _INIT_GET_NODE_DOWN = True
     _INIT_GET_VERSION = False
     _INIT_GET_BAND_LOW = False
@@ -465,70 +468,6 @@ class GenericForm(forms.Form):
 
         return data
  
-    # I think this is obsolete now.
-    def set_blanks(self, data, errors):
-        """Returns the dictionary of errors raised by the form validation that
-        checks for required fields; main purpose is to set empty fields to 
-        their default valies. Abstracted out of clean() so that form
-        subclasses can get the error dictionary. Does not have any side effects
-        on the data or errors dictionaries passed in as arguments."""
-
-        # Copies the error dictionary so it doesn't cause any side-effects.
-        err = copy(errors)
-
-        # Only sets default values for required fields if their
-        # 'parent' checkbox is checked. That is, a default value for fields
-        # pertinent to get_node_down is only saved if get_node_down is checked.
-        # Was constructed in this way when we wanted blank fields to throw 
-        # validation errors, not to submit a default value. It still slightly
-        # convenient this way to suppress errors in non-checked areas in case
-        # people enter a ridiculous value and then uncheck the box.
-
-        # If the node down subscription box is checked.
-        if data['get_node_down']:
-            # If there are no other errors for the node_down_grace_pd field and
-            # it is empty (either not in cleaned_data, meaning it had an error)
-            # or in it as None).
-            if 'node_down_grace_pd' not in err \
-            and ('node_down_grace_pd' not in data
-            or data['node_down_grace_pd'] == None):
-                # Sets the value to the default 
-                data['node_down_grace_pd'] = \
-                        GenericForm._INIT_NODE_DOWN_GRACE_PD
-        # If the node down subscription box isn't checked, and there are
-        # errors for node_down_grace_pd, then ignore them.
-        elif 'node_down_grace_pd' in err:
-            del err['node_down_grace_pd']
-
-        # If the band low subscription is checked.
-        if data['get_band_low']:
-            # If there are no errors for the band_low_grace_pd field and it is
-            # empty (either not in cleaned_data or in it as None).
-            if 'band_low_grace_pd' not in err \
-            and ('band_low_grace_pd' not in data
-            or data['band_low_grace_pd'] == None):
-                # Sets the value to the default.
-                data['band_low_grace_pd'] = \
-                        GenericForm._INIT_BAND_LOW_GRACE_PD
-            # If there are no errors for the band_low_threshold field and it is
-            # empty (either not in claned_data or in it as None).
-            if 'band_low_threshold' not in err \
-            and ('band_low_threshold' not in data
-            or data['band_low_threshold'] == None):
-                # Sets the value to the default.
-                data['band_low_threshold'] = \
-                        GenericForm._INIT_BAND_LOW_THRESHOLD
-        # If the band low subscription box isn't checked.
-        else:
-            # If there are errors for band_low_threshold, then ignore them.
-            if 'band_low_threshold' in err:
-                del err['band_low_threshold']
-            # If there are errors for band_low_grace_pd, then ignore them.
-            if 'band_low_grace_pd' in err:
-                del err['band_low_grace_pd']
-
-        return err
-
     def check_if_sub_checked(self, data):
         """Throws a validation error if no subscriptions are checked. 
         Abstracted out of clean() so that there isn't any redundancy in 
