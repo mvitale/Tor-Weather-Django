@@ -42,6 +42,8 @@ send_mass_mail() method. Emails are sent after all database checks/updates.
 @var _LEGAL_INFO: Legal information to assist exit node operators. This is 
     appended to the welcome email if the recipient runs an exit node.
 """
+import re
+
 from weather.config import url_helper
 
 from django.core.mail import send_mail
@@ -318,3 +320,21 @@ def version_tuple(recipient, fingerprint, unsubs_auth, pref_auth,
     msg = _VERSION_MAIL % (name, version_type, downloadURL, unsubURL,
                            prefURL)
     return (subj, msg, sender, [recipient])
+
+def _insert_fingerprint_spaces(fingerprint):
+    """Take a fingerprint, insert a space every four characters, and
+    return it
+
+    @type fingerprint: str
+    @param fingerprint: A Tor relay fingerprint with spaces removed.
+
+    @rtype: str
+    @return: C{fingerprint} with spaces inserted every four characters.
+
+    >>>fingerprint = '1234123412341234123412341234123412341234'
+    >>>_insert_fingerprint_spaces(fingerprint)
+    '1234 1234 1234 1234 1234 1234 1234 1234 1234 1234'
+    """
+    fingerprint_list = re.findall('.{4}', fingerprint)
+    return ' '.join(fingerprint_list)
+    
