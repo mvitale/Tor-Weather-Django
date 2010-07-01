@@ -449,7 +449,6 @@ class GenericForm(forms.Form):
         if self.cleaned_data['get_node_down']:
             node_down_sub = NodeDownSub(subscriber=subscriber,
                     grace_pd=self.cleaned_data['node_down_grace_pd'])
-            print node_down_sub
             node_down_sub.save()
         if self.cleaned_data['get_out_of_date']:
             out_of_date_sub = VersionSub(subscriber=subscriber,

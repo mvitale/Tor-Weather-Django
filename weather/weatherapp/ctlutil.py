@@ -12,8 +12,8 @@ import logging
 import re
 import string
 
-debugfile = open("log/debug.txt", "w")
-unparsable = open("log/unparsable_emails.txt", "w")
+debugfile = open('log/debug.txt', 'w')
+unparsable = open('log/unparsable_emails.txt', 'w')
 
 class CtlUtil:
     """A class that handles communication with the local Tor process via
@@ -30,7 +30,7 @@ class CtlUtil:
     @type control: TorCtl Connection
     @ivar control: Connection to TorCtl.
     """
-    _CONTROL_HOST = "127.0.0.1"
+    _CONTROL_HOST = '127.0.0.1'
     _CONTROL_PORT = 9051
     _AUTHENTICATOR = config.authenticator
     
@@ -482,11 +482,6 @@ class CtlUtil:
 
         return bandwidth
 
-<<<<<<< HEAD:weather/weatherapp/ctlutil.py
-    def get_extra_info_no(self, digest_no):
-        return self.control.get_info('extra-info/digest/' + digest_no).values()[0]
-        
-=======
     def _parse_bandwidth(self, info):
         """Parses the bandwidth from either the directory information for a 
         router or from the extra info document for that router, whichever is 
@@ -516,7 +511,6 @@ class CtlUtil:
                     bandwidth += int(number)
         return bandwidth / (2 * 86400)
       
->>>>>>> 0464affc7362410039462aec61beebeef2df2616:weather/weatherapp/ctlutil.py
     def _parse_email(self, desc):
         """Parse the email address from an individual router descriptor 
         string.
