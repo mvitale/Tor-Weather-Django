@@ -2,7 +2,8 @@
 to TorCtl and handle communication concerning consensus documents and 
 descriptor files.
 
-@var debugfile: A log file.
+@var debugfile: A log file for catching bugs.
+@var unparsable: A log file for contacts with unparsable emails.
 """
 
 import socket
@@ -37,6 +38,7 @@ class CtlUtil:
     def __init__(self, control_host = _CONTROL_HOST, 
                 control_port = _CONTROL_PORT, sock = None, 
                 authenticator = _AUTHENTICATOR):
+        """Initialize the CtlUtil object, connect to TorCtl."""
                 
 
         self.sock = sock
@@ -163,18 +165,6 @@ class CtlUtil:
         # Individual descriptors are delimited by -----END SIGNATURE-----
         return self.get_full_descriptor().split("-----END SIGNATURE-----")
 
-    def get_extra_info(self, digest):
-        """Get an extra info document for the router whose hex digest key is
-        specified.
-        
-        @type digest: str
-        @param digest: The router's digest key, published in that router's
-            descriptor.
-        @rtype: str
-        @return: The extra info document for this router.
-        """
-        return self.control.get_info("extra-info/digest/" + digest)
-
     def get_rec_version_list(self):
         """Get a list of currently recommended versions sorted in ascending
         order."""
@@ -258,7 +248,15 @@ class CtlUtil:
 
     def has_rec_version(self, fingerprint):
         """Check if a Tor relay is running a recommended version of the Tor
-        software."""
+        software.
+        
+        @type fingerprint: str
+        @param fingerprint: The router's fingerprint
+        
+        @rtype: bool
+        @return: C{True} if the router is running a recommended version, 
+            C{False} if not.
+        """
         rec_version_list = self.get_rec_version_list()
         node_version = self.get_version(fingerprint) 
         rec_version = False
@@ -275,10 +273,10 @@ class CtlUtil:
         successfully, then the node is up; if a document is not received, then 
         the router is down. If a node is hiberanating, it will return C{False}.
 
-        @type node_id: str
-        @param node_id: Fingerprint of the node in question.
-        @rtype: Bool
-        @return: Whether the node is up or down.
+        @type fingerprint: str
+        @param fingerprint: Fingerprint of the node in question.
+        @rtype: bool
+        @return: C{True} if the node is up, C{False} if it's down.
         """
         cons = self.get_single_consensus(fingerprint)
         if cons == '':
@@ -366,10 +364,16 @@ class CtlUtil:
     def get_new_avg_bandwidth(avg_bandwidth, hours_up, obs_bandwidth):
         """Calculates the new average bandwidth for a router.
         
-        @param avg_bandwidth: The current average bandwidth for the router
+        @type avg_bandwidth: int
+        @param avg_bandwidth: The current average bandwidth for the router in
+            KB/s.
+        @type hours_up: int
         @param hours_up: The number of hours this router has been up 
-        @param obs_bandwidth: The observed bandwidth taken from the most 
-            recent descriptor file for this router
+        @type obs_bandwidth: int
+        @param obs_bandwidth: The observed bandwidth in KB/s taken from the 
+            most recent descriptor file for this router
+        @rtype: int
+        @return: The average bandwidth for this router in KB/s
         """
         new_avg = ((hours_up * avg_bandwidth) + obs_bandwidth) / (hours_up + 1)
         return new_avg
