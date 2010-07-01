@@ -56,7 +56,6 @@ class CtlUtil:
                        "Is Tor running on %s with its control port" + \
                        "opened on %s?" % (control_host, control_port)
             logging.error(errormsg)
-            print
             raise
 
         
