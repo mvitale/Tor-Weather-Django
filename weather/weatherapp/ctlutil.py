@@ -33,7 +33,6 @@ class CtlUtil:
     _CONTROL_HOST = '127.0.0.1'
     _CONTROL_PORT = 9051
     _AUTHENTICATOR = config.authenticator
-    _BANDWIDTH_CONVERTER = 2 * 86400 * 1000
     
     def __init__(self, control_host = _CONTROL_HOST, 
                 control_port = _CONTROL_PORT, sock = None, 
@@ -452,65 +451,19 @@ class CtlUtil:
 
         @type fingerprint: str
         @param fingerprint: The fingerprint of the Tor relay to check
-
         @rtype: float
         @return: The observed bandwidth for this Tor relay.
         """
         desc = self.get_single_descriptor(fingerprint)
-        bandwidth = 0
-
-        has_band_hist = False
-        extra_info_digest = ''
-
-        if 'read-history' in desc:
-            bandwidth = self._parse_bandwidth(desc)
-        elif 'write-history' in desc:
-            # for whatever reason, only write history is documented, calculate
-            # bandwidth anyway.
-            bandwidth = self._parse_bandwidth(desc)
-        elif 'extra-info-digest' in desc:
-            digest = re.search('extra-info-digest\s.*\n', desc).group()
-            digest = digest.replace('extra-info-digest', '').strip()
-            try:
-                extra_info = self.get_extra_info(digest)
-            except TorCtl.ErrorReply, e:
-                logging.error("ErrorReply: %s" % str(e))
-            except:
-                logging.error("Unknown exception in CtlUtil" +
-                              "get_extra_info()")
-            else:
-                bandwidth = self._parse_bandwidth(extra_info)
-        
+        bandwidth = 0	  	
+        desc_lines = desc.split('\n')
+        for line in desc_lines:
+            if line.startswith('bandwidth'):
+                word_list = line.split()
+                # the 4th word in the line is the bandwidth-observed in B/s
+                bandwidth = int(word_list[3]) / 1000
         return bandwidth
-
-    def _parse_bandwidth(self, info):
-        """Parses the bandwidth from either the directory information for a 
-        router or from the extra info document for that router, whichever is 
-        provided. If there is no line in info containing either the str
-        'read-history' or 'write-history', 0 is returned.
         
-        @type info: str
-        @param info: Either the directory information or the extra info document
-            for a router.
-        @rtype: int
-        @return: The average observed bandwidth for this router in KB/s.
-        """
-        bandwidth = 0
-        lines = info.split('\n')
-        for line in lines: 
-            if 'read-history' in line:
-                line = re.sub('.*\)\s', '', line)
-                numbers = line.split(',')
-                for number in numbers:
-                    bandwidth += int(number)
-            if 'write-history' in line:
-                line = re.sub('.*\)\s', '', line)
-                numbers = line.split(',')
-                for number in numbers:
-                    bandwidth += int(number)
-        bandwidth = int(bandwidth / self._BANDWIDTH_CONVERTER)
-        return bandwidth
-      
     def _parse_email(self, desc):
         """Parse the email address from an individual router descriptor 
         string.
