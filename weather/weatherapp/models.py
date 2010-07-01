@@ -425,7 +425,7 @@ class GenericForm(forms.Form):
             help_text='Bla bla technical details.')
 
     @staticmethod
-    def clean_default_strings(post_data):
+    def clean_post_data(post_data):
         """Checks if POST data contains fields that still say "Default value 
         is C{-DEFAULT-VALUE-}" or are left blank and returns a POST dictionary
         with those fields replaced with just C{-DEFAULT-VALUE-}. Also sets
@@ -436,8 +436,9 @@ class GenericForm(forms.Form):
         and val='false' if the hidden form field is false; the javascript then
         will know to put 'Default value is _' for that field by referring to
         the hidden input field). Has no side-effects on the original POST 
-        dictionary passed as an argument. The output POST data is meant to be 
-        passed into the GenericForm being created.
+        dictionary passed as an argument (which is immutable anyway). The 
+        output POST data is meant to be passed into the GenericForm being
+        created.
         
         @type post_data: QueryDict
         @param post_data: POST request data.
