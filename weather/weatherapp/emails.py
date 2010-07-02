@@ -21,11 +21,15 @@ send_mass_mail() method. Emails are sent after all database checks/updates.
 @var _NODE_DOWN_SUBJ: The subject line for the node down notification
 @type _NODE_DOWN_MAIL: str
 @var _NODE_DOWN_MAIL: The email message for the node down notification.
-@type _OUT_OF_DATE_SUBJ: str
-@var _OUT_OF_DATE_SUBJ: The subject line for an out-of-date version notification
-@type _OUT_OF_DATE_MAIL: str
-@var _OUT_OF_DATE_MAIL: The email message for an out-of-date version 
+@type _VERSION_SUBJ: str
+@var _VERSION_SUBJ: The subject line for an out-of-date version notification
+@type _VERSION_MAIL: str
+@var _VERSION_MAIL: The email message for an out-of-date version 
     notification
+@type _LOW_BANDWIDTH_SUBJ: str
+@var _LOW_BANDWIDTH_SUBJ: The subject line for the low bandwidth notification. 
+@type _LOW_BANDWIDTH_MAIL: str
+@var _LOW_BANDWIDTH_MAIL: The email message for the low bandwidth notification.
 @type _T_SHIRT_SUBJ: str
 @var _T_SHIRT_SUBJ: The subject line for the T-Shirt notification
 @type _T_SHIRT_MAIL: str
@@ -88,8 +92,8 @@ _VERSION_MAIL = "This is a Tor Weather Report.\n\n"+\
 _LOW_BANDWIDTH_SUBJ = 'Low bandwidth!'
 _LOW_BANDWIDTH_MAIL = "The is a Tor Weather Report.\n\n"+\
     "It appears that a tor node %s you elected to monitor "+\
-    "has had an observed bandwidth of less than 50KB/s for at least %s "+\
-    "hours(s). You may wish to look at it to see why.\n\n You can "+\
+    "has an observed bandwidth capacity of less than %KB/s. "+\
+    "You may wish to look at it to see why.\n\n You can "+\
     "unsubscribe from these reports at any time by visiting the "+\
     "following url:\n\n%s\n\n or change your Tor Weather notification "\
     "preferences here:\n\n%s\n"
@@ -202,8 +206,20 @@ def send_confirmed(recipient,
     msg = _CONFIRMED_MAIL % (name, unsubURL, prefURL) 
     send_mail(subj, msg, sender, [recipient], fail_silently=False)
 
-def bandwidth_tuple(recipient, fingerprint, grace_pd, unsubs_auth, pref_auth):
-    """"""
+def bandwidth_tuple(recipient, fingerprint, threshold, unsubs_auth, pref_auth):
+    """Returns the tuple for a low bandwidth email.
+    @type recipient: str
+    @param recipient: The user's email address
+    @type fingerprint: str
+    @param fingerprint: The fingerprint of the node this user wishes to
+        monitor.
+    @type threshold: int
+    @param threshold: The user's specified threshold for low bandwidth (KB/s)
+    @type unsubs_auth: str
+    @param unsubs_auth: The user's unique unsubscribe auth key
+    @type pref_auth: str
+    @param pref_auth: The user's unique preferences auth key
+    """
     name = _get_router_name(fingerprint)
     subj = _SUBJECT_HEADER + LOW_BANDWIDTH_SUBJ
     sender = _SENDER

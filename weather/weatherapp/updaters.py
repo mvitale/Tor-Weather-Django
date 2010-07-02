@@ -11,6 +11,7 @@ parameter.
 @type ctl_util: CtlUtil
 @var ctl_util: A CtlUtil object for the module to handle the connection to and
     communication with TorCtl.
+@var failed: A log file for parsed email addresses that were non-functional. 
 """
 import socket, sys, os
 import threading
@@ -88,25 +89,18 @@ def check_low_bandwidth(email_list):
         if sub.subscriber.confirmed:
             if self.ctlutil.get_bandwidth(fingerprint) < sub.threshold and\
             sub.emailed == False:
-                if sub.triggered and sub.is_grace_passed():
-                    recipient = sub.subscriber.email
-                    grace_pd = sub.grace_pd
-                    unsubs_auth = sub.subscriber.unsubs_auth
-                    pref_auth = sub.subscriber.pref_auth
+                recipient = sub.subscriber.email
+                threshold = sub.threshold
+                unsubs_auth = sub.subscriber.unsubs_auth
+                pref_auth = sub.subscriber.pref_auth
 
-                    email_list.append(emails.bandwidth_tuple(recipient,         
-                    grace_pd, unsubs_auth, pref_auth)) 
+                email_list.append(emails.bandwidth_tuple(recipient, fingerprint,
+                                  threshold, unsubs_auth, pref_auth)) 
 
-                    sub.emailed = True
+                sub.emailed = True
 
-                elif not sub.triggered:
-                    sub.triggered = True
-                    sub.last_changed = datetime.now()
             else:
-                if sub.triggered:
-                    sub.triggered = False
-                    sub.emailed = False
-                    sub.last_changed = datetime.now()
+                sub.emailed = False
 
             sub.save()
     return email_list
@@ -132,12 +126,12 @@ def check_earn_tshirt(email_list):
             router = sub.subscriber.router
             is_up = router.up
             fingerprint = router.fingerprint
-            if not is_up:
+            if not is_up and sub.triggered:
                 # reset the data if the node goes down
                 sub.triggered = False
                 sub.avg_bandwidth = 0
                 sub.last_changed = datetime.now()
-            else:
+            elif is_up:
                 descriptor = ctl_ultil.get_single_descriptor(fingerprint)
                 current_bandwidth = ctl_util.get_bandwidth(fingerprint)
                 if sub.triggered == False:
