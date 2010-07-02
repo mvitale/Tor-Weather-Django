@@ -21,11 +21,15 @@ send_mass_mail() method. Emails are sent after all database checks/updates.
 @var _NODE_DOWN_SUBJ: The subject line for the node down notification
 @type _NODE_DOWN_MAIL: str
 @var _NODE_DOWN_MAIL: The email message for the node down notification.
-@type _OUT_OF_DATE_SUBJ: str
-@var _OUT_OF_DATE_SUBJ: The subject line for an out-of-date version notification
-@type _OUT_OF_DATE_MAIL: str
-@var _OUT_OF_DATE_MAIL: The email message for an out-of-date version 
+@type _VERSION_SUBJ: str
+@var _VERSION_SUBJ: The subject line for an out-of-date version notification
+@type _VERSION_MAIL: str
+@var _VERSION_MAIL: The email message for an out-of-date version 
     notification
+@type _LOW_BANDWIDTH_SUBJ: str
+@var _LOW_BANDWIDTH_SUBJ: The subject line for the low bandwidth notification. 
+@type _LOW_BANDWIDTH_MAIL: str
+@var _LOW_BANDWIDTH_MAIL: The email message for the low bandwidth notification.
 @type _T_SHIRT_SUBJ: str
 @var _T_SHIRT_SUBJ: The subject line for the T-Shirt notification
 @type _T_SHIRT_MAIL: str
