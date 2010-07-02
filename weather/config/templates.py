@@ -38,4 +38,5 @@ preferences = 'preferences.html'
 resend_conf = 'resend_conf.html'
 subscribe = 'subscribe.html'
 unsubscribe = 'unsubscribe.html'
+notification_info = 'notification_info.html'
 
