@@ -287,12 +287,6 @@ class GenericForm(forms.Form):
     @cvar _MAX_NODE_DOWN_GRACE_PD: The maximum node down grace period in hours
     @type _MIN_NODE_DOWN_GRACE_PD: int
     @cvar _MIN_NODE_DOWN_GRACE_PD: The minimum node down grace period in hours
-    @type _MAX_BAND_LOW_GRACE_PD: int
-    @cvar _MAX_BAND_LOW_GRACE_PD: The maximum low bandwidth grace period in 
-        hours
-    @type _MIN_BAND_LOW_GRACE_PD: int
-    @cvar _MIN_BAND_LOW_GRACE_PD: The minimum low bandwidth grace period in 
-        hours
     @type _INIT_BAND_LOW_THRESHOLD: int
     @cvar _INIT_BAND_LOW_THRESHOLD: The initial low bandwidth threshold (KB/s)
     @type _MIN_BAND_LOW_THRESHOLD: int
@@ -323,9 +317,6 @@ class GenericForm(forms.Form):
     @type band_low_threshold: IntegerField, processed into int
     @ivar band_low_threshold: The user's threshold (in KB/s) for low bandwidth
         notifications. Default = 20 KB/s.
-    @type band_low_grace_pd: IntegerField, processed into int
-    @ivar band_low_grace_pd: The number of hours of low bandwidth below 
-        threshold for sending a notification. Default = 1. Range = 1-4500.
     @type band_low_text: BooleanField
     @ivar band_low_text: Hidden field; used to display extra text in the form
         template without having to hardcode the text into the template.
@@ -346,9 +337,6 @@ class GenericForm(forms.Form):
     _INIT_NODE_DOWN_GRACE_PD = 1
     _MAX_NODE_DOWN_GRACE_PD = 4500
     _MIN_NODE_DOWN_GRACE_PD = 1
-    _INIT_BAND_LOW_GRACE_PD = 1
-    _MAX_BAND_LOW_GRACE_PD = 4500
-    _MIN_BAND_LOW_GRACE_PD = 1
     _INIT_BAND_LOW_THRESHOLD = 20
     _MIN_BAND_LOW_THRESHOLD = 0
     _MAX_BAND_LOW_THRESHOLD = 100000
@@ -408,15 +396,6 @@ class GenericForm(forms.Form):
                    notifications?',
             help_text='Enter a value between 0 and 100,000',
             widget=forms.TextInput(attrs={'class':'short-input'}))
-    band_low_grace_pd = forms.IntegerField(
-            initial=_INIT_PREFIX + str(_INIT_BAND_LOW_GRACE_PD),
-            required=False, max_value=_MAX_BAND_LOW_GRACE_PD,
-            min_value=_MIN_BAND_LOW_GRACE_PD,
-            label='How many hours of low bandwidth before \
-                       we send a notification?',
-            help_text='Enter a value between 1 and 4,500 (roughly six \
-                       months)',
-            widget=forms.TextInput(attrs={'class':'short-input'}))
     
     get_t_shirt = forms.BooleanField(initial=False, required=False,
             label='Receive notification when node has earned a t-shirt',
@@ -462,12 +441,6 @@ class GenericForm(forms.Form):
                 or data['band_low_threshold'] == '':
             data['band_low_threshold'] = GenericForm._INIT_BAND_LOW_THRESHOLD
         
-        if data['band_low_grace_pd'] ==  \
-                GenericForm._INIT_PREFIX + \
-                str(GenericForm._INIT_BAND_LOW_GRACE_PD) \
-                or data['band_low_grace_pd'] == '':
-            data['band_low_grace_pd'] = GenericForm._INIT_BAND_LOW_GRACE_PD
-
         return data
  
     def check_if_sub_checked(self, data):
@@ -500,8 +473,7 @@ class GenericForm(forms.Form):
             version_sub.save()
         if self.cleaned_data['get_band_low']:
             band_low_sub = BandwidthSub(subscriber=subscriber,
-                    threshold=self.cleaned_data['band_low_threshold'],
-                    grace_pd=self.cleaned_data['band_low_grace_pd'])
+                    threshold=self.cleaned_data['band_low_threshold'])
             band_low_sub.save()
         if self.cleaned_data['get_t_shirt']:
             t_shirt_sub = TShirtSub(subscriber=subscriber)
