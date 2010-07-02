@@ -15,7 +15,7 @@ from django.core import mail
 #run doctests
 __test__={
     "emails": emails
-    }
+}
 
 
 class TestWeb(TestCase):
@@ -36,7 +36,7 @@ class TestWeb(TestCase):
                                           'get_node_down' : True,
                                           'node_down_grace_pd' : '',
                                           'get_version' : False,
-                                          'version_type' : 'RECOMMENDED',
+                                          'version_type' : 'OBSOLETE',
                                           'get_band_low': False,
                                           'band_low_threshold' : '',
                                           'get_t_shirt' : False},
@@ -52,8 +52,17 @@ class TestWeb(TestCase):
         self.assertEqual(subscriber.confirmed, False)
         
         #Test that one message has been sent
-        time.sleep(1)
-        self.assertEquals(len(mail.outbox), 1)
+        time.sleep(0.5)
+        self.assertEqual(len(mail.outbox), 1)
+
+        #get the email message, make sure the confirm link works
+        body = mail.outbox[0].body
+        lines = body.split('\n')
+        for line in lines:
+            if '\confirm' in line:
+                link = line.strip()
+                c.get(link)
+                self.assertEqual(subscriber.confirmed, True)
 
         #Verify that the subject of the message is correct.
         self.assertEquals(mail.outbox[0].subject, 
@@ -86,8 +95,17 @@ class TestWeb(TestCase):
         self.assertEqual(response.template[0].name, 'pending.html')
 
         #Test that one message has been sent
-        time.sleep(1)
+        time.sleep(0.5)
         self.assertEquals(len(mail.outbox), 1)
+
+        #get the email message, make sure the confirm link works
+        body = mail.outbox[0].body
+        lines = body.split('\n')
+        for line in lines:
+            if '\confirm' in line:
+                link = line.strip()
+                c.get(link)
+                self.assertEqual(subscriber.confirmed, True)
 
         #Verify that the subject of the message is correct.
         self.assertEquals(mail.outbox[0].subject, 
@@ -116,19 +134,27 @@ class TestWeb(TestCase):
                                           'get_node_down': False,
                                           'node_down_grace_pd' : '',
                                           'get_version' : False,
-                                          'version_type' : 'RECOMMENDED',
+                                          'version_type' : 'OBSOLETE',
                                           'get_band_low' : True,
                                           'band_low_threshold' : 40,
                                           'get_t_shirt' : False},
                                           follow = True)
-                                          
         #We want to be redirected to the pending page
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.template[0].name, 'pending.html')
         
         #Test that one message has been sent
-        time.sleep(1)
+        time.sleep(0.5)
         self.assertEquals(len(mail.outbox), 1)
+
+        #get the email message, make sure the confirm link works
+        body = mail.outbox[0].body
+        lines = body.split('\n')
+        for line in lines:
+            if '\confirm' in line:
+                link = line.strip()
+                c.get(link)
+                self.assertEqual(subscriber.confirmed, True)
 
         #Verify that the subject of the message is correct.
         self.assertEquals(mail.outbox[0].subject, 
@@ -155,7 +181,7 @@ class TestWeb(TestCase):
                                           'get_node_down' : False,
                                           'node_down_grace_pd' : 1,
                                           'get_version' : False,
-                                          'version_type' : 'RECOMMEDED',
+                                          'version_type' : 'UNRECOMMENDED',
                                           'get_band_low' : False,
                                           'band_low_threshold' : '',
                                           'get_t_shirt' : True},
@@ -166,8 +192,17 @@ class TestWeb(TestCase):
         self.assertEqual(response.template[0].name, 'pending.html')
         
         #Test that one message has been sent
-        time.sleep(1)
+        time.sleep(0.5)
         self.assertEquals(len(mail.outbox), 1)
+
+        #get the email message, make sure the confirm link works
+        body = mail.outbox[0].body
+        lines = body.split('\n')
+        for line in lines:
+            if '\confirm' in line:
+                link = line.strip()
+                c.get(link)
+                self.assertEqual(subscriber.confirmed, True)
 
         #Verify that the subject of the message is correct.
         self.assertEquals(mail.outbox[0].subject, 
@@ -209,9 +244,17 @@ class TestWeb(TestCase):
         self.assertEqual(response.template[0].name, 'pending.html')
 
         #Test that one message has been sent
-        time.sleep(1)
+        time.sleep(0.5)
         self.assertEquals(len(mail.outbox), 1)
 
+        #get the email message, make sure the confirm link works
+        body = mail.outbox[0].body
+        lines = body.split('\n')
+        for line in lines:
+            if '\confirm' in line:
+                link = line.strip()
+                c.get(link)
+                self.assertEqual(subscriber.confirmed, True)
         #Verify that the subject of the message is correct.
         self.assertEquals(mail.outbox[0].subject, 
                           '[Tor Weather] Confirmation Needed')
@@ -246,15 +289,27 @@ class TestWeb(TestCase):
         self.assertEqual(tshirt.emailed, False)
 
     def test_subscribe_bad(self):
+        """Make sure the form does not submit if a fingerprint is entered
+        that isn't in the database."""
         c = Client()
-        response = self.client.post('/subscribe/', {'email' : 'name@place.com',
-                                          'fingerprint' : '12345'})
+        response = self.client.post('/subscribe/', {'email_1':'name@place.com',
+                                          'email_2':'name@place.com',
+                                          'fingerprint' : '12345',
+                                          'get_node_down' : True,
+                                          'node_down_grace_pd' : '',
+                                          'get_version' : True,
+                                          'version_type' : 'UNRECOMMENDED',
+                                          'get_band_low': True,
+                                          'band_low_threshold' : '',
+                                          'get_t_shirt' : True},
+                                          follow = True)
+
         #we want to stay on the same page (the subscribe form)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.template[0].name, 'subscribe.html')
 
         #Test that no messages have been sent
-        time.sleep(1)
+        time.sleep(0.5)
         self.assertEquals(len(mail.outbox), 0)
 
 
