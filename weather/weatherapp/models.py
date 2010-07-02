@@ -327,7 +327,7 @@ class GenericForm(forms.Form):
     @ivar get_t_shirt: C{True} if the user wants to receive a t-shirt 
         notification, C{False} if not.
     @type t_shirt_text: BooleanField
-    @ivar get_t_shirt: Hidden field; used to display extra text in the form
+    @ivar t_shirt_text: Hidden field; used to display extra text in the form
         template without having to hardcode the text into the template.
     """
    
@@ -345,10 +345,9 @@ class GenericForm(forms.Form):
     _MAX_BAND_LOW_THRESHOLD = 100000
     _INIT_PREFIX = 'Default value is '
     _NODE_DOWN_TEXT_BASIC = 'Notifications will be sent when the node goes \
-                             offline from the Tor network for the specified \
-                             length of time. Nodes that are in hibernation \
-                             are not considered offline; hibernation will not \
-                             trigger a notification.'
+        offline from the Tor network for the specified length of time. \
+        Nodes that are in hibernation are not considered offline (hibernation \
+        will not trigger a notification).'
     _NODE_DOWN_TEXT_DETAIL = ' To determine weather a node is offline, \
                               Weather uses a local TorCtl process to search \
                               for a consensus document for the node in \
@@ -392,7 +391,7 @@ class GenericForm(forms.Form):
     
     get_version = forms.BooleanField(initial=_INIT_GET_VERSION,
             required=False,
-            label='Receive notifications when node is out of date',
+            label='Receive notifications when node\'s Tor version is out of date',
             widget=forms.CheckboxInput(attrs={'id':'version-check'}))
     version_text = forms.BooleanField(required=False,
             label='General info.',
