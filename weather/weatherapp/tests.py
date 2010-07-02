@@ -169,7 +169,6 @@ class TestWeb(TestCase):
         #Verify that the subscription was stored correctly 
         bandwidth_sub = BandwidthSub.objects.get(subscriber = subscriber)
         self.assertEqual(bandwidth_sub.emailed, False)
-        self.assertEqual(bandwidth_sub.triggered, False)
         self.assertEqual(bandwidth_sub.threshold, 40)
 
     def test_subscribe_shirt(self):
@@ -279,9 +278,7 @@ class TestWeb(TestCase):
         self.assertEqual(version.notify_type, 'UNRECOMMENDED')
 
         bandwidth = BandwidthSub.objects.get(subscriber = subscriber)
-        self.assertEqual(bandwidth.triggered, False)
         self.assertEqual(bandwidth.emailed, False)
-        self.assertEqual(bandwidth.grace_pd, 1)
         self.assertEqual(bandwidth.threshold, 20)
         
         tshirt = TShirtSub.objects.get(subscriber = subscriber)
