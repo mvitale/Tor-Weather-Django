@@ -630,4 +630,4 @@ class PreferencesForm(GenericForm):
     (i.e. if they haven't selected a subscription type, the box for that field 
     is unchecked). The PreferencesForm form inherits L{GenericForm}.
     """
-   pass 
+    pass 
