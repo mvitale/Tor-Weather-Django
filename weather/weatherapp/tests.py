@@ -30,13 +30,15 @@ class TestWeb(TestCase):
     def test_subscribe_node_down(self):
         """Test a node down subscription (all other subscriptions off)"""
         c = Client()
-        response = self.client.post('/subscribe/', {'email_1' : 'name@place.com',
+        response = self.client.post('/subscribe/', {'email_1':'name@place.com',
                                           'email_2' : 'name@place.com',
                                           'fingerprint' : '1234',
                                           'get_node_down' : True,
-                                          'node_down_grace_pd' : 1,
-                                          'get_out_of_date' : False,
+                                          'node_down_grace_pd' : '',
+                                          'get_version' : False,
+                                          'version_type' : 'RECOMMENDED',
                                           'get_band_low': False,
+                                          'band_low_threshold' : '',
                                           'get_t_shirt' : False},
                                           follow = True)
         #we want to be redirected to the pending page
@@ -68,13 +70,15 @@ class TestWeb(TestCase):
     def test_subscribe_version(self):
         """Test a version subscription (all other subscriptions off)"""
         c = Client()
-        response = self.client.post('/subscribe/', {'email_1' : 'name@place.com',
+        response = self.client.post('/subscribe/', {'email_1':'name@place.com',
                                           'email_2' : 'name@place.com',
                                           'fingerprint' : '1234',
                                           'get_node_down' : False,
-                                          'get_out_of_date' : True,
-                                          'out_of_date_type' : 'UNRECOMMENDED',
+                                          'node_down_grace_pd' : '',
+                                          'get_version' : True,
+                                          'version_type' : 'UNRECOMMENDED',
                                           'get_band_low': False,
+                                          'band_low_threshold' : '',
                                           'get_t_shirt' : False},
                                           follow = True)
         #we want to be redirected to the pending page
@@ -106,14 +110,15 @@ class TestWeb(TestCase):
     def test_subscribe_bandwidth(self):
         """Test a bandwidth only subscription attempt"""
         c = Client()
-        response = self.client.post('/subscribe/', {'email_1' : 'name@place.com',
+        response = self.client.post('/subscribe/', {'email_1':'name@place.com',
                                           'email_2': 'name@place.com',
                                           'fingerprint' : '1234', 
                                           'get_node_down': False,
-                                          'get_out_of_date' : False,
+                                          'node_down_grace_pd' : '',
+                                          'get_version' : False,
+                                          'version_type' : 'RECOMMENDED',
                                           'get_band_low' : True,
                                           'band_low_threshold' : 40,
-                                          'band_low_grace_pd' : 2,
                                           'get_t_shirt' : False},
                                           follow = True)
                                           
@@ -138,19 +143,21 @@ class TestWeb(TestCase):
         #Verify that the subscription was stored correctly 
         bandwidth_sub = BandwidthSub.objects.get(subscriber = subscriber)
         self.assertEqual(bandwidth_sub.emailed, False)
-        self.assertEqual(bandwidth_sub.grace_pd, 2)
         self.assertEqual(bandwidth_sub.triggered, False)
         self.assertEqual(bandwidth_sub.threshold, 40)
 
     def test_subscribe_shirt(self):
         """Test a t-shirt only subscription attempt"""
         c = Client()
-        response = self.client.post('/subscribe/', {'email_1' : 'name@place.com',
+        response = self.client.post('/subscribe/', {'email_1':'name@place.com',
                                           'email_2' : 'name@place.com',
                                           'fingerprint' : '1234',
                                           'get_node_down' : False,
-                                          'get_out_of_date' : False,
+                                          'node_down_grace_pd' : 1,
+                                          'get_version' : False,
+                                          'version_type' : 'RECOMMEDED',
                                           'get_band_low' : False,
+                                          'band_low_threshold' : '',
                                           'get_t_shirt' : True},
                                           follow = True)
 
@@ -185,13 +192,15 @@ class TestWeb(TestCase):
         """Test a subscribe attempt to all subscription types, relying
         on default values."""
         c = Client()
-        response = self.client.post('/subscribe/', {'email_1' : 'name@place.com',
+        response = self.client.post('/subscribe/', {'email_1':'name@place.com',
                                           'email_2' : 'name@place.com',
                                           'fingerprint' : '1234',
                                           'get_node_down' : True,
-                                          'get_out_of_date' : True,
-                                          'out_of_date_type' : 'UNRECOMMENDED',
+                                          'node_down_grace_pd' : '',
+                                          'get_version' : True,
+                                          'version_type' : 'UNRECOMMENDED',
                                           'get_band_low': True,
+                                          'band_low_threshold' : '',
                                           'get_t_shirt' : True},
                                           follow = True)
 
@@ -224,7 +233,7 @@ class TestWeb(TestCase):
         
         version = VersionSub.objects.get(subscriber = subscriber)
         self.assertEqual(version.emailed, False)
-        #self.assertEqual(version.notify_type,
+        self.assertEqual(version.notify_type, 'UNRECOMMENDED')
 
         bandwidth = BandwidthSub.objects.get(subscriber = subscriber)
         self.assertEqual(bandwidth.triggered, False)
