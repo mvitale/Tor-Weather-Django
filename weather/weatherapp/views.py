@@ -81,6 +81,14 @@ def subscribe(request):
 
     return render_to_response(templates.subscribe, c)
 
+def notification_info(request):
+    """Displays detailed technical information about how the different
+    notification types are triggered.
+    """
+
+    return render_to_response(templates.notification_info)
+
+
 def pending(request, confirm_auth):
     """The user views the pending page after submitting a registration form.
     The page tells the user that a confirmation email has been sent to 

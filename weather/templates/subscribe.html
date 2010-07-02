@@ -16,10 +16,6 @@ Tor Weather - Sign Up!
 {% block content %}
 
 <form method="post" action="/subscribe/" id="subscribe-form">{% csrf_token %}
-<p>
-	You can use this form to request status updates to tell you when a particular Tor node has become unreachable for a sustained period of time.
-</p>
-
 <div id="subscriber-info">
 	<div class="email-block">
 		<label for="id_email_1" class="block">{{form.email_1.label}}</label>
@@ -129,6 +125,13 @@ Tor Weather - Sign Up!
 		</div>
 	</div>
 </div>
+
+<p id="more-info">
+	<a target="_blank" href="/notification_info/">Notification Specification (for advanced Tor users)</a>
+	<span id="more-info-hover" style="display:none;">
+		- more information about how these notifications are triggered
+	</span>
+</p>
 
 <input type="submit" value="Subscribe to Tor Weather!" name="sa" />
 <br />
