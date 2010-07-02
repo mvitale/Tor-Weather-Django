@@ -11,6 +11,7 @@ parameter.
 @type ctl_util: CtlUtil
 @var ctl_util: A CtlUtil object for the module to handle the connection to and
     communication with TorCtl.
+@var failed: A log file for parsed email addresses that were non-functional. 
 """
 import socket, sys, os
 import threading
@@ -89,12 +90,12 @@ def check_low_bandwidth(email_list):
             if self.ctlutil.get_bandwidth(fingerprint) < sub.threshold and\
             sub.emailed == False:
                 recipient = sub.subscriber.email
-                grace_pd = sub.grace_pd
+                threshold = sub.threshold
                 unsubs_auth = sub.subscriber.unsubs_auth
                 pref_auth = sub.subscriber.pref_auth
 
-                email_list.append(emails.bandwidth_tuple(recipient,         
-                grace_pd, unsubs_auth, pref_auth)) 
+                email_list.append(emails.bandwidth_tuple(recipient, fingerprint,
+                                  threshold, unsubs_auth, pref_auth)) 
 
                 sub.emailed = True
 

@@ -354,7 +354,7 @@ class GenericForm(forms.Form):
     @ivar get_t_shirt: C{True} if the user wants to receive a t-shirt 
         notification, C{False} if not.
     @type t_shirt_text: BooleanField
-    @ivar get_t_shirt: Hidden field; used to display extra text in the form
+    @ivar t_shirt_text: Hidden field; used to display extra text in the form
         template without having to hardcode the text into the template.
     """
    
@@ -545,7 +545,8 @@ class SubscribeForm(GenericForm):
             max_length=40)
 
     def clean(self):
-        """"""
+        """Called when the is_valid method is evaluated for a SubscribeForm 
+        after a POST request."""
         
         # Calls the same helper methods used in the GenericForm clean() method.
         data = self.cleaned_data
