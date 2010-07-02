@@ -469,7 +469,7 @@ class GenericForm(forms.Form):
             node_down_sub.save()
         if self.cleaned_data['get_version']:
             version_sub = VersionSub(subscriber=subscriber,
-                    notify_type = self.cleaned_data['version_threshold'])
+                    notify_type = self.cleaned_data['version_type'])
             version_sub.save()
         if self.cleaned_data['get_band_low']:
             band_low_sub = BandwidthSub(subscriber=subscriber,
