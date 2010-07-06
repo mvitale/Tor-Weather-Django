@@ -381,8 +381,7 @@ class GenericForm(forms.Form):
             label='Receive notifications when node is down',
             widget=forms.CheckboxInput(attrs={'id':'node-down-check'}))
     node_down_text = forms.BooleanField(required=False,
-            label= _NODE_DOWN_TEXT_BASIC,
-            help_text= _NODE_DOWN_TEXT_DETAIL)
+            label= _NODE_DOWN_TEXT_BASIC)
     node_down_grace_pd = forms.IntegerField(
             initial=_INIT_PREFIX + str(_INIT_NODE_DOWN_GRACE_PD),
             required=False,
