@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block header %}
+Tor Weather - Technical Notification Specification
+{% endblock %}
+
+{% block title %}
+Tor Weather - Technical Notification Specification
+{% endblock %}
+
+{% block content %}
+<div id="notification-info-section">
+	<h2>Node Down Notifications</h2>
+	<p>
+		To determine weather a node is offline, Weather uses a local TorCtl process to search for a consensus document for the node in question. If there is no consensus document for the node, then it is not participating in the Tor network. However, it may be hibernating, so Weather also uses a local TorCtl process to search for the node's descriptor file, which contains a 'hibernating' flag. If this flag is on, then Weather assumes the node is hibernating, and so decides that it is online. In all other cases (the descriptor file says the node is not hibernating, or a descriptor file is not available), the node is determined to be offline. Since descriptor files are not always updated frequently, there is some possibility for error in this method; if a node goes into hibernation, and then is disconnected, Weather will assume it is still hibernating for up to 18 hours, since descriptor files are updated immediately upon entering hibernation, but can take up to 18 hours to disappear once a router is diconnected.
+	</p>
+
+	<h2>Version Notifications</h2>
+	<p>
+		Hi.
+	</p>
+
+	<h2>Low Bandwidth Notification</h2>
+	<p>
+		Hi.
+	</p>
+
+	<h2>T-Shirt Notification</h2>
+	<p>
+		Hi.
+	</p>
+</div>
+{% endblock %}

@@ -422,7 +422,7 @@ class GenericForm(forms.Form):
             initial=_INIT_PREFIX + str(_INIT_BAND_LOW_THRESHOLD),
             required=False, max_value=_MAX_BAND_LOW_THRESHOLD,
             min_value=_MIN_BAND_LOW_THRESHOLD, 
-            label='For what critical bandwidth, in kbps, should we send \
+            label='For what critical bandwidth, in kB/s, should we send \
                    notifications?',
             help_text='Enter a value between 0 and 100,000',
             widget=forms.TextInput(attrs={'class':'short-input'}))
