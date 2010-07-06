@@ -241,7 +241,7 @@ class BandwidthSub(Subscription):
     as soon as we this observed bandwidth crosses the threshold (no grace pd).
 
     @type threshold: int
-    @param threshold: The threshold for the bandwidth (in KB/s) that the user 
+    @ivar threshold: The threshold for the bandwidth (in KB/s) that the user 
         specifies for receiving notifications.
     """
     threshold = models.IntegerField(default = 20)
@@ -309,7 +309,8 @@ class GenericForm(forms.Form):
     @cvar _INIT_GET_BAND_LOW: The initial value of the get_band_low checkbox
         when the form is loaded.
     @type _INIT_NODE_DOWN_GRACE_PD: int
-    @cvar_INIT_NODE_DOWN_GRACE_PD: The default initial node down grace pd (1 hr)
+    @cvar _INIT_NODE_DOWN_GRACE_PD: The default initial node down grace pd (1 
+        hr)
     @type _MAX_NODE_DOWN_GRACE_PD: int
     @cvar _MAX_NODE_DOWN_GRACE_PD: The maximum node down grace period in hours
     @type _MIN_NODE_DOWN_GRACE_PD: int
