@@ -376,37 +376,13 @@ class GenericForm(forms.Form):
         offline from the Tor network for the specified length of time. \
         Nodes that are in hibernation are not considered offline (hibernation \
         will not trigger a notification).'
-    _NODE_DOWN_TEXT_DETAIL = ' To determine weather a node is offline, \
-                              Weather uses a local TorCtl process to search \
-                              for a consensus document for the node in \
-                              question. If there is no consensus document for \
-                              the node, then it is not participating in the \
-                              Tor network. However, it may be hibernating, \
-                              so Weather also uses a local TorCtl process to \
-                              search for the node\'s descriptor file, which \
-                              contains a \'hibernating\' flag. If this flag \
-                              is on, then Weather assumes the node is \
-                              hibernating, and so decides that it is online. \
-                              In all other cases (the descriptor file says \
-                              the node is not hibernating, or a descriptor \
-                              file is not available), the node is determined \
-                              to be offline. Since descriptor files are not \
-                              always updated frequently, there is some \
-                              possibility for error in this method; if a node \
-                              goes into hibernation, and then is \
-                              disconnected, Weather will assume it is still \
-                              hibernating for up to 18 hours, since \
-                              descriptor files are updated immediately upon \
-                              entering hibernation, but can take up to 18 \
-                              hours to disappear once a router is diconnected.'
 
     get_node_down = forms.BooleanField(initial=_INIT_GET_NODE_DOWN,
             required=False,
             label='Receive notifications when node is down',
             widget=forms.CheckboxInput(attrs={'id':'node-down-check'}))
     node_down_text = forms.BooleanField(required=False,
-            label= _NODE_DOWN_TEXT_BASIC,
-            help_text= _NODE_DOWN_TEXT_DETAIL)
+            label= _NODE_DOWN_TEXT_BASIC)
     node_down_grace_pd = forms.IntegerField(
             initial=_INIT_PREFIX + str(_INIT_NODE_DOWN_GRACE_PD),
             required=False,
@@ -447,7 +423,7 @@ class GenericForm(forms.Form):
             initial=_INIT_PREFIX + str(_INIT_BAND_LOW_THRESHOLD),
             required=False, max_value=_MAX_BAND_LOW_THRESHOLD,
             min_value=_MIN_BAND_LOW_THRESHOLD, 
-            label='For what critical bandwidth, in kbps, should we send \
+            label='For what critical bandwidth, in kB/s, should we send \
                    notifications?',
             help_text='Enter a value between 0 and 100,000',
             widget=forms.TextInput(attrs={'class':'short-input'}))
