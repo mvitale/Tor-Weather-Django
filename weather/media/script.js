@@ -68,7 +68,7 @@ $(document).ready(function() {
 	swapText("span#band-low-more-info");
 	swapText("span#t-shirt-more-info");
 
-	$("p#more-info a").hover(function() {
+	$("span#more-info a").hover(function() {
 		$("span#more-info-hover").toggle();
 	});
 });

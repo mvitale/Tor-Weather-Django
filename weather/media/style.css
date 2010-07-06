@@ -117,6 +117,7 @@ span.big-form-error {
 
 form#subscribe-form input[type='submit'] {
 	font-size: 18px;
+	margin-top: 25px;
 }
 
 .block {
@@ -142,8 +143,7 @@ span.more-info-text {
 	display: inline;
 }
 
-p#more-info {
-	margin-top: 15px;
-	margin-bottom: 18px;
+span#more-info {
+	margin-left: 5px;
 }
 
