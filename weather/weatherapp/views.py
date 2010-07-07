@@ -21,10 +21,6 @@ from django.http import HttpResponseRedirect, HttpRequest, Http404
 from django.http import HttpResponse
 from weather.weatherapp import error_messages
 
-# TO DO --------------------------------------------------------- EXTRA FEATURE
-# MOVE THIS TO A MORE GENERAL LOCATION ----------------------------------------
-baseURL = "http://localhost:8000"
-
 def home(request):
     """Displays a home page for Tor Weather with basic information about
     the application."""
