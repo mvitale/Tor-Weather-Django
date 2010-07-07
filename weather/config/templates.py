@@ -13,6 +13,9 @@ by the controllers (see views.py).
     fingerprint isn't found.
 @type home: str
 @var home: The template for the Tor Weather home page.
+@type notification_info: str
+@var notification_info: The template for the page with notification 
+    specifications.
 @type pending: str
 @var pending: The template for the pending page displayed after the user 
     submits a subscription form.
@@ -33,10 +36,9 @@ confirm_pref = 'confirm_pref.html'
 error = 'error.html'
 fingerprint_not_found = 'fingerprint_not_found.html'
 home = 'home.html'
+notification_info = 'notification_info.html'
 pending = 'pending.html'
 preferences = 'preferences.html'
 resend_conf = 'resend_conf.html'
 subscribe = 'subscribe.html'
 unsubscribe = 'unsubscribe.html'
-notification_info = 'notification_info.html'
-
