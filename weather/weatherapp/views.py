@@ -196,6 +196,8 @@ def preferences(request, pref_auth):
                                              user.confirm_auth)
         return HttpResponseRedirect(error_extension)
 
+    init_info = {'a': 'b'}
+
     if request.method == "POST":
         # Handle the submitted form, with the POST data cleaned by 
         # clean_post_data, which replaces 'Default value is ---' with the 
@@ -205,7 +207,7 @@ def preferences(request, pref_auth):
         if form.is_valid():
             # Creates/changes/deletes subscriptions and subscription info
             # based on form data
-            form.change_subscriptions(user)
+            form.change_subscriptions(user, init_info)
             
             # Redirect the user to the pending page
             url_extension = url_helper.get_confirm_pref_ext(pref_auth)
@@ -213,7 +215,7 @@ def preferences(request, pref_auth):
 
     else:
         form = PreferencesForm()
-        print form.set_initial_info(user)
+        init_info = form.set_initial_info(user)
     
     fields = {'pref_auth': pref_auth, 'fingerprint': user.router.fingerprint,
          'form': form}
