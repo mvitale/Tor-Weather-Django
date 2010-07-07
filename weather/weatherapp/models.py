@@ -397,7 +397,8 @@ class GenericForm(forms.Form):
     
     get_version = forms.BooleanField(initial=_INIT_GET_VERSION,
             required=False,
-            label='Receive notifications when node\'s Tor version is out of date',
+            label='Receive notifications when node\'s Tor version is out of '+\
+                  'date',
             widget=forms.CheckboxInput(attrs={'id':'version-check'}))
     version_text = forms.BooleanField(required=False,
             label='General info.',
