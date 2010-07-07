@@ -10,7 +10,7 @@ import base64
 import os
 
 import emails
-from weather.config import url_helper
+from config import url_helper
 
 from django.db import models
 from django import forms
