@@ -54,6 +54,20 @@ class Router(models.Model):
         """
         return self.fingerprint
 
+    def printer(self):
+        """Returns a description of this router. Meant to be used for testing
+        purposes in the shell
+
+        @rtype: str
+        @return: A representation of this router's fields.
+        """
+
+        print 'Fingerprint: ' + self.fingerprint + \
+              '\nName: ' + self.name + \
+              '\nWelcomed: ' + str(self.welcomed) + \
+              '\nLast Seen: ' + str(self.last_seen) + \
+              '\nUp: ' + str(self.up) + \
+              '\nExit: ' + str(self.exit)
 
 class SubscriberManager(models.Manager):
     """In Django, each model class has at least one Manager (by default,
@@ -132,6 +146,22 @@ class Subscriber(models.Model):
         """
         return self.email
 
+    def printer(self):
+        """Returns a description of this subscriber. Meant to be used for
+        testing purposes in the shell
+
+        @rtype: str
+        @return: A representation of this subscriber's fields.
+        """
+
+        print 'Email: ' + self.email + \
+              '\nRouter: ' + self.router.name + ' ' + \
+                             self.router.fingerprint + \
+              '\nConfirmed: ' + str(self.confirmed) + \
+              '\nConfirm Auth: ' + self.confirm_auth + \
+              '\nUnsubscribe Auth: ' + self.unsubs_auth + \
+              '\nPreferences Auth: ' + self.pref_auth + \
+              '\nSubscription Date: ' + str(self.sub_date)
 
 class SubscriptionManager(models.Manager):
     """The custom Manager for the Subscription class. The Manager contains
@@ -178,6 +208,19 @@ class Subscription(models.Model):
     # In Django, Manager objects handle table-wide methods (i.e filtering)
     objects = SubscriptionManager()
 
+    def printer(self):
+        """Returns a description of this subscription. Meant to be used for
+        testing purposes in the shell
+
+        @rtype: str
+        @return: A representation of this subscription's fields.
+        """
+
+        print 'Subscriber: ' + self.subscriber.email + ' ' + \
+                             self.subscriber.router.name + ' ' + \
+                             self.subscriber.router.fingerprint + \
+              '\nEmailed: ' + str(self.emailed)
+
 class NodeDownSub(Subscription):
     """A subscription class for node-down subscriptions, which send 
     notifications to the user if their node is down for the downtime grace
@@ -210,6 +253,23 @@ class NodeDownSub(Subscription):
         else:
             return False
 
+    def printer(self):
+        """Returns a description of this subscription. Meant to be used for
+        testing purposes in the shell
+
+        @rtype: str
+        @return: A representation of this subscription's fields.
+        """
+        
+        print 'Node Down Subscription' + \
+              '\nSubscriber: ' + self.subscriber.email + ' ' + \
+              self.subscriber.router.name + ' ' + \
+              self.subscriber.router.fingerprint + \
+              '\nEmailed: ' + str(self.emailed) + \
+              '\nTriggered: ' + str(self.triggered) + \
+              '\nGrace Period: ' + str(self.grace_pd) + \
+              '\nLast Changed: ' + str(self.last_changed)
+
 class VersionSub(Subscription):
     """Subscription class for version notifications. Subscribers can choose
     between two notification types: OBSOLETE or UNRECOMMENDED. For OBSOLETE
@@ -228,6 +288,20 @@ class VersionSub(Subscription):
     #only send notifications if the version is of type notify_type
     notify_type = models.CharField(max_length=250)
 
+    def printer(self):
+        """Returns a description of this subscription. Meant to be used for
+        testing purposes in the shell
+
+        @rtype: str
+        @return: A representation of this subscription's fields.
+        """
+        
+        print 'Version Subscription' + \
+              '\nSubscriber: ' + self.subscriber.email + ' ' + \
+              self.subscriber.router.name + ' ' + \
+              self.subscriber.router.fingerprint + \
+              '\nEmailed: ' + str(self.emailed) + \
+              '\nNotify Type: ' + self.notify_type
 
 class BandwidthSub(Subscription):    
     """Subscription class for low bandwidth notifications. Subscribers determine
@@ -245,6 +319,21 @@ class BandwidthSub(Subscription):
         specifies for receiving notifications.
     """
     threshold = models.IntegerField(default = 20)
+    
+    def printer(self):
+        """Returns a description of this subscription. Meant to be used for
+        testing purposes in the shell
+
+        @rtype: str
+        @return: A representation of this subscription's fields.
+        """
+
+        print 'Bandwidth Subscription' + \
+              '\nSubscriber: ' + self.subscriber.email + ' ' + \
+              self.subscriber.router.name + ' ' + \
+              self.subscriber.router.fingerprint + \
+              '\nEmailed: ' + str(self.emailed) + \
+              '\nThreshold: ' + self.threshold
 
 class TShirtSub(Subscription):
     """A subscription class for T-shirt notifications. An email is sent
@@ -294,6 +383,24 @@ class TShirtSub(Subscription):
                 if self.avg_bandwidth >= 500:
                     return True
         return False
+
+    def printer(self):
+        """Returns a description of this subscription. Meant to be used for   
+        testing purposes in the shell
+
+        @rtype: str
+        @return: A representation of this subscription's fields.
+        """
+        
+        print 'T-Shirt Subscription' + \
+              '\nSubscriber: ' + self.subscriber.email + ' ' + \
+              self.subscriber.router.name + ' ' + \
+              self.subscriber.router.fingerprint + \
+              '\nEmailed: ' + str(self.emailed) + \
+              '\nTriggered: ' + str(self.triggered) + \
+              '\nAverage Bandwidth: ' + str(self.avg_bandwidth) + \
+              '\nLast Changed:' + str(self.last_changed)
+
 
 class GenericForm(forms.Form):
     """The basic form class that is inherited by the SubscribeForm class
@@ -473,7 +580,7 @@ class GenericForm(forms.Form):
                 GenericForm._INIT_PREFIX + \
                 str(GenericForm._INIT_BAND_LOW_THRESHOLD) \
                 or data['band_low_threshold'] == '':
-            data['band_low_threshold'] = GenericForm._INIT_BAND_LOW_THRESHOLD
+            data['band_low_threshold'] = GenericForm._INIT_BAND_LOW_THRESHOLD  
         
         return data
  
@@ -500,29 +607,6 @@ class GenericForm(forms.Form):
         self.check_if_sub_checked(self.cleaned_data)
 
         return self.cleaned_data
-
-    def save_subscriptions(self, subscriber):
-        """Create the subscriptions if they are specified.
-        
-        @type subscriber: Subscriber
-        @param subscriber: The subscriber whose subscriptions are being saved.
-        """
-        # Create the various subscriptions if they are specified.
-        if self.cleaned_data['get_node_down']:
-            node_down_sub = NodeDownSub(subscriber=subscriber,
-                    grace_pd=self.cleaned_data['node_down_grace_pd'])
-            node_down_sub.save()
-        if self.cleaned_data['get_version']:
-            version_sub = VersionSub(subscriber=subscriber,
-                    notify_type = self.cleaned_data['version_type'])
-            version_sub.save()
-        if self.cleaned_data['get_band_low']:
-            band_low_sub = BandwidthSub(subscriber=subscriber,
-                    threshold=self.cleaned_data['band_low_threshold'])
-            band_low_sub.save()
-        if self.cleaned_data['get_t_shirt']:
-            t_shirt_sub = TShirtSub(subscriber=subscriber)
-            t_shirt_sub.save()
 
 class SubscribeForm(GenericForm):
     """Inherits from L{GenericForm}. The SubscribeForm class contains
@@ -600,7 +684,7 @@ class SubscribeForm(GenericForm):
         else:
             return True
 
-    def save_subscriber(self):
+    def create_subscriber(self):
         """Attempts to save the new subscriber, but throws a catchable error
         if a subscriber already exists with the given email and fingerprint.
         PRE-CONDITION: fingerprint is a valid fingerprint for a 
@@ -627,11 +711,148 @@ class SubscribeForm(GenericForm):
             subscriber = Subscriber(email=email, router=router)
             subscriber.save()
             return subscriber
-            
+ 
+    def create_subscriptions(self, subscriber):
+        """Create the subscriptions if they are specified.
+        
+        @type subscriber: Subscriber
+        @param subscriber: The subscriber whose subscriptions are being saved.
+        """
+        # Create the various subscriptions if they are specified.
+        if self.cleaned_data['get_node_down']:
+            node_down_sub = NodeDownSub(subscriber=subscriber,
+                    grace_pd=self.cleaned_data['node_down_grace_pd'])
+            node_down_sub.save()
+        if self.cleaned_data['get_version']:
+            version_sub = VersionSub(subscriber=subscriber,
+                    notify_type = self.cleaned_data['version_type'])
+            version_sub.save()
+        if self.cleaned_data['get_band_low']:
+            band_low_sub = BandwidthSub(subscriber=subscriber,
+                    threshold=self.cleaned_data['band_low_threshold'])
+            band_low_sub.save()
+        if self.cleaned_data['get_t_shirt']:
+            t_shirt_sub = TShirtSub(subscriber=subscriber)
+            t_shirt_sub.save()
+         
 class PreferencesForm(GenericForm):
     """The form for changing preferences, as displayed on the preferences page. 
     The form displays the user's current settings for all subscription types 
     (i.e. if they haven't selected a subscription type, the box for that field 
     is unchecked). The PreferencesForm form inherits L{GenericForm}.
     """
-    pass 
+
+    def set_initial_info(self, user):
+        """Checks the database for subscriptions corresponding to the user
+        provided and returns a dictionary of their settings, and also
+        sets the initial unbound form to display these settings. The dictionary
+        will always provide entries for all get_xxx fields, but will not 
+        contain entries for fields in subscription types not susbcribed to
+        previously.
+
+        @type user: Subscriber
+        @param user: The user/subscriber whose previous info is being pulled
+            to render the preferences form.
+        """
+        data = {}
+
+        try:
+            node_down_sub = NodeDownSub.objects.get(subscriber = user)
+        except NodeDownSub.DoesNotExist:
+            data['get_node_down'] = False
+        else:
+            data['get_node_down'] = True
+            data['node_down_grace_pd'] = node_down_sub.grace_pd
+ 
+        try:
+            version_sub = VersionSub.objects.get(subscriber = user)
+        except VersionSub.DoesNotExist:
+            data['get_version'] = False
+        else:
+            data['get_version'] = True
+            data['version_type'] = version_sub.notify_type
+
+        try:
+            bandwidth_sub = BandwidthSub.objects.get(subscriber = user)
+        except BandwidthSub.DoesNotExist:
+            data['get_band_low'] = False
+        else:
+            data['get_band_low'] = True
+            data['band_low_threshold'] = bandwidth_sub.threshold
+
+        try:
+            t_shirt_sub = TShirtSub.objects.get(subscriber = user)
+        except TShirtSub.DoesNotExist:
+            data['get_band_low'] = False
+        else:
+            data['get_band_low'] = True
+
+        self.initial = data
+        return data
+
+    def change_subscriptions(self, subscriber):
+        """Change the subscriptions and options if they are specified.
+        
+        @type subscriber: Subscriber
+        @param subscriber: The subscriber whose subscriptions are being saved.
+        """
+
+        # If there already was a subscription, get it and update it or delete
+        # it depending on the current value.
+        if self.initial['get_node_down']:
+            n = NodeDownSub.objects.get(subscriber = subscriber)
+            if self.cleaned_data['get_node_down']:
+                n.grace_pd = self.cleaned_data['node_down_grace_pd']
+                n.save()
+            else:
+                n.delete()
+        # If there wasn't a subscription before and it is checked now, then 
+        # make one.
+        elif self.cleaned_data['get_node_down']:
+            n = NodeDownSub(subscriber=subscriber, 
+                    grace_pd=self.cleaned_data['node_down_grace_pd'])
+            n.save()
+
+        # If there already was a subscription, get it and update it or delete
+        # it depending on the current value.
+        if self.initial['get_version']:
+            v = VersionSub.objects.get(subscriber = subscriber)
+            if self.cleaned_data['get_version']:
+                v.notify_type = self.cleaned_data['version_type']
+                v.save()
+            else:
+                v.delete()
+        # If there wasn't a subscription before and it is checked now, then 
+        # make one.
+        elif self.cleaned_data['get_version']:
+            v = VersionSub(subscriber=subscriber, 
+                    notify_type=self.cleaned_data['version_type'])
+            v.save()
+
+        # If there already was a subscription, get it and update it or delete
+        # it depending on the current value.
+        if self.initial['get_band_low']:
+            b = BandwidthSub.objects.get(subscriber = subscriber)
+            if self.cleaned_data['get_band_low']:
+                b.threshold = self.cleaned_data['band_low_threshold']
+                b.save()
+            else:
+                b.delete()
+        # If there wasn't a subscription before and it is checked now, then
+        # make one.
+        elif self.cleaned_data['get_band_low']:
+            b = BandwidthSub(subscriber=subscriber,
+                    notify_type=self.cleaned_data['version_type'])
+            b.save()
+
+        # If there already was a subscription, get it and delete it if it's no
+        # longer selected.
+        if self.initial['get_t_shirt']:
+            t = TShirtSub.objects.get(subscriber = subscriber)
+            if not self.initial['get_t_shirt']:
+                t.delete()
+        # If there wasn't a subscription before and it is checked now, then
+        # make one.
+        elif self.cleaned_data['get_t_shirt']:
+            t = TShirtSub(subscriber=subscriber)
+            t.save()

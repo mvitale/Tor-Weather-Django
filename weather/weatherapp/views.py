@@ -35,23 +35,21 @@ def subscribe(request):
     an error page."""
     
     if request.method == 'POST':
-        # Replaces fields in POST data of the form 'Default value is ---' with
-        # just the integer value, so that the to_python() methods of the 
-        # form validation don't go crazy.
-        request.POST = GenericForm.clean_post_data(request.POST)
-        
-        # handle the submitted form:
-        form = SubscribeForm(request.POST)
+        # Handle the submitted form, with the POST data cleaned by
+        # clean_post_data, which replaces 'Default value is ---' with the
+        # integer value so that to_python() methods don't get upset.
+        form = SubscribeForm(GenericForm.clean_post_data(request.POST))
 
         if form.is_valid():
             # Tries to save the new subscriber, but redirects if saving the
             # subscriber failed because of the subscriber already existing
             try:
-                subscriber = form.save_subscriber()
+                subscriber = form.create_subscriber()
             except Exception, e:
                 return HttpResponseRedirect(e)
             else:
-                form.save_subscriptions(subscriber)
+                # Creates subscriptions based on form data
+                form.create_subscriptions(subscriber)
 
                 # Spawn a daemon to send the confirmation email.
                 confirm_auth = subscriber.confirm_auth
@@ -186,88 +184,42 @@ def preferences(request, pref_auth):
     @param pref_auth: The user's preferences authorization key.
     """
 
+    user = get_object_or_404(Subscriber, pref_auth = pref_auth)                
 
-# ----------- FINISH THIS! just did the default_data part! ----------------------------
-
-    user = get_object_or_404(Subscriber, pref_auth=pref_auth)
     if not user.confirmed:
         # the user hasn't confirmed, send them to an error page
         error_extension = url_helper.get_error_ext('need_confirmation', 
                                              user.confirm_auth)
         return HttpResponseRedirect(error_extension)
+
     if request.method == "POST":
+        # Handle the submitted form, with the POST data cleaned by 
+        # clean_post_data, which replaces 'Default value is ---' with the 
+        # integer value, so that to_python() methods don't get upset.
+        form = PreferencesForm(GenericForm.clean_post_data(request.POST))
 
-
-
-        # The user submitted the preferences form and is redirected to the 
-        # confirmation page.
-        form = PreferencesForm(request.POST)
         if form.is_valid():
-            grace_pd = form.cleaned_data['grace_pd']
-
-            # Get the node_down subscription so we can update grace_pd.
-            node_down_sub = get_object_or_404(NodeDownSub, subscriber = user)
-            node_down_sub.grace_pd = grace_pd
-            node_down_sub.save()
-
+            # Creates/changes/deletes subscriptions and subscription info
+            # based on form data
+            form.change_subscriptions(user)
+            
+            # Redirect the user to the pending page
             url_extension = url_helper.get_confirm_pref_ext(pref_auth)
             return HttpResponseRedirect(url_extension) 
 
-    # TO DO ----------------------------------------------------- EXTRA FEATURE
-    # SHOULD IMPLEMENT ERROR MESSAGES THAT SAY THE FORM IS --------------------
-    # SPECIFIED INCORRECTLY ---------------------------------------------------
-
-    # The user hasn't submitted the form yet or submitted it incorrectly, 
-    # so the page with the preferences form is displayed.
-
     else:
-    # the user hasn't submitted the form yet, display form with their preferences filled in
-        
-        default_data = {}
-
-        # Maybe should move these into the PreferencesForm model? but then it'd get messy...
-        try:
-            node_down_sub = NodeDownSub.objects.get(subscriber = user)
-            default_data['get_node_down'] = True
-            default_data['node_down_grace_pd'] = node_down_sub.grace_pd
-        except NodeDownSub.DoesNotExist:
-            pass
-
-        try:
-            version_sub = VersionSub.objects.get(subscriber = user)
-            default_data['get_version'] = True
-            default_data['version_type'] = version_sub.notify_type
-        except VersionSub.DoesNotExist:
-            pass
-
-        try:
-            bandwidth_sub = BandwidthSub.objects.get(subscriber = user)
-            default_data['get_band_low'] = True
-            default_data['band_low_threshold'] = bandwidth_sub.threshold
-        except BandwidthSub.DoesNotExist:
-            pass
-
-        try:
-            t_shirt_sub = TShirtSub.objects.get(subscriber = user)
-            default_data['get_band_low'] = Truei
-        except TShirtSub.DoesNotExist:
-            pass
-        
-        form = PreferencesForm(initial=default_data)    
+        form = PreferencesForm()
+        print form.set_initial_info(user)
     
-
-#- --------------VVVVVV------------WORK ON THIS --------------VVVVVVVVVVV----------------------
-    # maps the form to the template.
-    c = {'pref_auth': pref_auth, 'fingerprint': user.router.fingerprint,
-         'form' : form}
-
-    # Creates a CSRF protection key.
-    c.update(csrf(request))
+    fields = {'pref_auth': pref_auth, 'fingerprint': user.router.fingerprint,
+         'form': form}
+    fields.update(csrf(request))
 
     # get the template
     template = templates.preferences
+
     # display the page
-    return render_to_response(template, c)
+    return render_to_response(template, fields)
 
 def confirm_pref(request, pref_auth):
     """The page confirming that preferences have been changed.
