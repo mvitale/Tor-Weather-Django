@@ -54,7 +54,7 @@ class Router(models.Model):
         """
         return self.fingerprint
 
-    def _print(self):
+    def printer(self):
         """Returns a description of this router. Meant to be used for testing
         purposes in the shell
 
@@ -146,7 +146,7 @@ class Subscriber(models.Model):
         """
         return self.email
 
-    def _print(self):
+    def printer(self):
         """Returns a description of this subscriber. Meant to be used for
         testing purposes in the shell
 
@@ -208,7 +208,7 @@ class Subscription(models.Model):
     # In Django, Manager objects handle table-wide methods (i.e filtering)
     objects = SubscriptionManager()
 
-    def _print(self):
+    def printer(self):
         """Returns a description of this subscription. Meant to be used for
         testing purposes in the shell
 
@@ -253,7 +253,7 @@ class NodeDownSub(Subscription):
         else:
             return False
 
-    def _print(self):
+    def printer(self):
         """Returns a description of this subscription. Meant to be used for
         testing purposes in the shell
 
@@ -261,9 +261,12 @@ class NodeDownSub(Subscription):
         @return: A representation of this subscription's fields.
         """
         
-        print 'Node Down Subscription'
-        super(Subscription, self).__print__()
-        print 'Triggered: ' + str(self.triggered) + \
+        print 'Node Down Subscription' + \
+              '\nSubscriber: ' + self.subscriber.email + ' ' + \
+              self.subscriber.router.name + ' ' + \
+              self.subscriber.router.fingerprint + \
+              '\nEmailed: ' + str(self.emailed) + \
+              '\nTriggered: ' + str(self.triggered) + \
               '\nGrace Period: ' + str(self.grace_pd) + \
               '\nLast Changed: ' + str(self.last_changed)
 
@@ -285,7 +288,7 @@ class VersionSub(Subscription):
     #only send notifications if the version is of type notify_type
     notify_type = models.CharField(max_length=250)
 
-    def _print(self):
+    def printer(self):
         """Returns a description of this subscription. Meant to be used for
         testing purposes in the shell
 
@@ -293,9 +296,12 @@ class VersionSub(Subscription):
         @return: A representation of this subscription's fields.
         """
         
-        print 'Version Subscription'
-        super(Subscription, self).__print__()
-        print 'Notify Type: ' + self.notify_type
+        print 'Version Subscription' + \
+              '\nSubscriber: ' + self.subscriber.email + ' ' + \
+              self.subscriber.router.name + ' ' + \
+              self.subscriber.router.fingerprint + \
+              '\nEmailed: ' + str(self.emailed) + \
+              '\nNotify Type: ' + self.notify_type
 
 class BandwidthSub(Subscription):    
     """Subscription class for low bandwidth notifications. Subscribers determine
@@ -314,18 +320,20 @@ class BandwidthSub(Subscription):
     """
     threshold = models.IntegerField(default = 20)
     
-    def _print(self):
+    def printer(self):
         """Returns a description of this subscription. Meant to be used for
         testing purposes in the shell
 
         @rtype: str
         @return: A representation of this subscription's fields.
         """
-        
-        print 'Bandwidth Subscription'
-        super(Subscription, self).__print__()
-        print 'Threshold: ' + self.threshold
 
+        print 'Bandwidth Subscription' + \
+              '\nSubscriber: ' + self.subscriber.email + ' ' + \
+              self.subscriber.router.name + ' ' + \
+              self.subscriber.router.fingerprint + \
+              '\nEmailed: ' + str(self.emailed) + \
+              '\nThreshold: ' + self.threshold
 
 class TShirtSub(Subscription):
     """A subscription class for T-shirt notifications. An email is sent
@@ -376,7 +384,7 @@ class TShirtSub(Subscription):
                     return True
         return False
 
-    def _print(self):
+    def printer(self):
         """Returns a description of this subscription. Meant to be used for   
         testing purposes in the shell
 
@@ -384,11 +392,15 @@ class TShirtSub(Subscription):
         @return: A representation of this subscription's fields.
         """
         
-        print 'T-Shirt Subscription'
-        super(Subscription, self).__print__()
-        print 'Triggered: ' + str(self.triggered) + \
+        print 'T-Shirt Subscription' + \
+              '\nSubscriber: ' + self.subscriber.email + ' ' + \
+              self.subscriber.router.name + ' ' + \
+              self.subscriber.router.fingerprint + \
+              '\nEmailed: ' + str(self.emailed) + \
+              '\nTriggered: ' + str(self.triggered) + \
               '\nAverage Bandwidth: ' + str(self.avg_bandwidth) + \
               '\nLast Changed:' + str(self.last_changed)
+
 
 class GenericForm(forms.Form):
     """The basic form class that is inherited by the SubscribeForm class

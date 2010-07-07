@@ -213,7 +213,7 @@ def preferences(request, pref_auth):
 
     else:
         form = PreferencesForm()
-        form.set_initial_info(user)
+        print form.set_initial_info(user)
     
     fields = {'pref_auth': pref_auth, 'fingerprint': user.router.fingerprint,
          'form': form}
