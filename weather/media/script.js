@@ -63,7 +63,6 @@ $(document).ready(function() {
 	// that link to display the text upon click (and hide itself). Without
 	// javascript, the more info text will be shown and the link will be
 	// hidden.
-	swapText("span#node-down-more-info");
 	swapText("span#version-more-info");
 	swapText("span#band-low-more-info");
 	swapText("span#t-shirt-more-info");

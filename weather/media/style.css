@@ -57,8 +57,9 @@ span.after-short {
 }
 
 select.dropdown-input {
-	margin-top: 2px;
+	margin-top: 5px;
 	margin-right: 5px;
+	margin-bottom: 8px;
 	width: 149px;
 	float: left;
 }

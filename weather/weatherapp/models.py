@@ -524,17 +524,14 @@ class GenericForm(forms.Form):
     @type _INIT_PREFIX: str
     @cvar _INIT_PREFIX: The prefix for strings that display before user has
         entered data.
-    @type _NODE_DOWN_TEXT_BASIC: str
-    @cvar _NODE_DOWN_TEXT_BASIC: Help text for the node down notification field.
+    @type _VERSION_INFO: str
+    @cvar _VERSION_INFO: Help text for the version notification field.
     @type get_node_down: BooleanField
     @ivar get_node_down: C{True} if the user wants to subscribe to node down 
         notifications, C{False} if not.
     @type node_down_grace_pd: IntegerField, processed into int
     @ivar node_down_grace_pd: Time before receiving a node down notification in 
         hours. Default = 1. Range = 1-4500.
-    @type node_down_text: BooleanField
-    @ivar node_down_text: Hidden field; used to display extra text in the form
-        template without having to hardcode the text into the template.
     @type get_version: BooleanField, processed into Bool
     @ivar get_version: C{True} if the user wants to receive version 
         notifications about their router, C{False} if not.
@@ -550,9 +547,6 @@ class GenericForm(forms.Form):
     @type band_low_threshold: IntegerField, processed into int
     @ivar band_low_threshold: The user's threshold (in KB/s) for low bandwidth
         notifications. Default = 20 KB/s.
-    @type band_low_text: BooleanField
-    @ivar band_low_text: Hidden field; used to display extra text in the form
-        template without having to hardcode the text into the template.
     @type get_t_shirt: BooleanField, processed into Bool
     @ivar get_t_shirt: C{True} if the user wants to receive a t-shirt 
         notification, C{False} if not.
@@ -574,17 +568,15 @@ class GenericForm(forms.Form):
     _MIN_BAND_LOW_THRESHOLD = 0
     _MAX_BAND_LOW_THRESHOLD = 100000
     _INIT_PREFIX = 'Default value is '
-    _NODE_DOWN_TEXT_BASIC = 'Notifications will be sent when the node goes \
-        offline from the Tor network for the specified length of time. \
-        Nodes that are in hibernation are not considered offline (hibernation \
-        will not trigger a notification).'
+    _VERSION_INFO = '<em>Recommended Updates:</em>  Emails when the router ' +\
+            'is not running the most up-to-date stable version of Tor. <br>' +\
+            '<em>Required Updates:</em>  Emails when the router is running ' +\
+            'an obsolete version of Tor.'
 
     get_node_down = forms.BooleanField(initial=_INIT_GET_NODE_DOWN,
             required=False,
-            label='Receive notifications when node is down',
+            label='Email me when the node is down',
             widget=forms.CheckboxInput(attrs={'id':'node-down-check'}))
-    node_down_text = forms.BooleanField(required=False,
-            label= _NODE_DOWN_TEXT_BASIC)
     node_down_grace_pd = forms.IntegerField(
             initial=_INIT_PREFIX + str(_INIT_NODE_DOWN_GRACE_PD),
             required=False,
@@ -597,31 +589,21 @@ class GenericForm(forms.Form):
     
     get_version = forms.BooleanField(initial=_INIT_GET_VERSION,
             required=False,
-            label='Receive notifications when node\'s Tor version is out of '+\
-                  'date',
+            label='Email me when the node\'s Tor version is out of date',
             widget=forms.CheckboxInput(attrs={'id':'version-check'}))
     version_text = forms.BooleanField(required=False,
-            label='General info.',
-            help_text='\'Recommended Updates\' will send a notification \
-                        when the node\'s version of Tor becomes \
-                        unrecommended; \'Required Updates\' \
-                        will send a notification when the \
-                        node\'s version of Tor becomes obsolete.')
+            label= _VERSION_INFO)
     version_type = forms.ChoiceField(required=False,
             choices=((u'UNRECOMMENDED', u'Recommended Updates'),
                      (u'OBSOLETE', u'Required Updates')),
                 label='For what kind of updates would you like to be \
                         notified?',
-                
             widget=forms.Select(attrs={'class':'dropdown-input'}))
     
     get_band_low = forms.BooleanField(initial=_INIT_GET_BAND_LOW,
             required=False,
-            label='Receive notifications when node has low bandwidth',
+            label='Email me when the router has low bandwidth capacity',
             widget=forms.CheckboxInput(attrs={'id':'band-low-check'}))
-    band_low_text = forms.BooleanField(required=False,
-            label='General info.',
-            help_text='Bla bla technical details.')
     band_low_threshold = forms.IntegerField(
             initial=_INIT_PREFIX + str(_INIT_BAND_LOW_THRESHOLD),
             required=False, max_value=_MAX_BAND_LOW_THRESHOLD,
@@ -632,11 +614,12 @@ class GenericForm(forms.Form):
             widget=forms.TextInput(attrs={'class':'short-input'}))
     
     get_t_shirt = forms.BooleanField(initial=False, required=False,
-            label='Receive notification when node has earned a t-shirt',
+            label='Email me when my router earned me a '+\
+                  '<a href="http://www.torproject.org/tshirt.html.en">'+\
+                  'Tor T-shirt</a>',
             widget=forms.CheckboxInput(attrs={'id':'t-shirt-check'}))
     t_shirt_text = forms.BooleanField(required=False,
-            label='General info.',
-            help_text='Bla bla technical details.')
+            label='You must be the router\'s operator to claim your T-shirt.')
 
     @staticmethod
     def clean_post_data(post_data):

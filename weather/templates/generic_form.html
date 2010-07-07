@@ -20,16 +20,7 @@
 		{{ form.get_node_down }}
 		<label for="id_get_node_down">{{ form.get_node_down.label }}</label>
 		<div class="collapse-section" id="node-down-section">
-			<div class="section-help-text">
-				{{ form.node_down_text.label }}
-				<span id="node-down-more-info">
-					<span class="more-info-text">
-						{{ form.node_down_text.help_text }}
-					</span>
-					<a href="JavaScript:void()" class="more-info-link">(More detail)</a>
-				</span>
-			</div>
-			<div class="field-row" id="node-down-grace-pd-row">
+				<div class="field-row" id="node-down-grace-pd-row">
 				<label for="id_node_down_grace_pd" class="block">{{ form.node_down_grace_pd.label }}</label>
 				{% for error in form.node_down_grace_pd.errors %}<span class="form-error">{{ error }}</span>{% endfor %}
 				{{ form.node_down_grace_pd }}
@@ -45,21 +36,12 @@
 		<label for="id_get_version">{{ form.get_version.label }}</label>
 		<div class="collapse-section" id="version-section">
 			<div class="section-help-text">
-				{{ form.version_text.label }}
-				<span id="version-more-info">
-					<span class="more-info-text">
-						{{ form.version_text.help_text }}
-					</span>
-					<a href="JavaScript:void()" class="more-info-link">(More detail)</a>
-				</span>
+				{{ form.version_text.label|safe }}
 			</div>
 			<div class="field-row" id="version-type-row">
 				<label for="id_version_type" class="block">{{ form.version_type.label }}</label>
 				{% for error in form.version_type.errors %}<span class="form-error">{{ error }}</span>{% endfor %}
 				{{ form.version_type }}
-				<span class="help-text after-dropdown">
-					<em>{{ form.version_type.help_text }}</em>
-				</span>
 			</div>
 		</div>
 	</div>
@@ -69,37 +51,22 @@
 		<label for="id_get_band_low">{{ form.get_band_low.label }}</label>
 		<div class="collapse-section" id="band-low-section">
 			<div class="section-help-text">
-				{{ form.band_low_text.label }}
-				<span id="band-low-more-info">
-					<span class="more-info-text">
-						{{ form.band_low_text.help_text }}
-					</span>
-					<a href="JavaScript:void()" class="more-info-link">(More detail)</a>
-				</span>
+				{{ form.band_low_text.label|safe }}
 			</div>
 			<div class="field-row" id="band-low-threshold-row">
 				<label for="band_low_threshold" class="block">{{ form.band_low_threshold.label }}</label>
 				{% for error in form.band_low_threshold.errors %}<span class="form-error">{{ error }}</span>{% endfor %}
 				{{ form.band_low_threshold }}
-				<span class="help-text after-short">
-					<em>{{ form.band_low_threshold.help_text }}</em>
-				</span>
 			</div>
 		</div>
 	</div>
 
 	<div class="notification-section">
 		{{ form.get_t_shirt }}
-		<label for="get_t_shirt">{{ form.get_t_shirt.label }}</label>
+		<label for="get_t_shirt">{{ form.get_t_shirt.label|safe }}</label>
 		<div class="collapse-section" id="t-shirt-section">
 			<div class="section-help-text">
 				{{ form.t_shirt_text.label }}
-				<span id="t-shirt-more-info">
-					<span class="more-info-text">
-						{{ form.t_shirt_text.help_text }}
-					</span>
-					<a href="JavaScript:void()" class="more-info-link">(More detail)</a>
-				</span>
 			</div>
 		</div>
 	</div>
