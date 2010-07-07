@@ -17,9 +17,6 @@ the user via the web pages and the method to access the correct message.
 from weather.weatherapp.models import Subscriber
 from weather.config import url_helper
 
-# ----------------------- GET OBJ OR 404?? ---------------------------
-
-
 _ALREADY_CONFIRMED = "You have already confirmed your Tor Weather " +\
     "subscription. The link you followed is no longer functional. " +\
     "</p><p>You can change your preferences by following this link: " +\
