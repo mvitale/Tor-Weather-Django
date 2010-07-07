@@ -146,6 +146,99 @@ class Subscriber(models.Model):
         """
         return self.email
 
+    def has_node_down_sub(self):
+        """Checks if this subscriber object has a node down subscription.
+
+        @rtype: Bool
+        @return: Whether a node down subscription exists for this subscriber.
+        """
+
+        try:
+            NodeDownSub.objects.get(subscriber = self)
+        except NodeDownSub.DoesNotExist:
+            return False
+        else:
+            return True
+
+    def has_version_sub(self):
+        """Checks if this subscriber object has a version subscription.
+        
+        @rtype: Bool
+        @return: Whether a version subscription exists for this subscriber.
+        """
+
+        try:
+            VersionSub.objects.get(subscriber = self)
+        except VersionSub.DoesNotExist:
+            return False
+        else:
+            return True
+
+    def has_bandwidth_sub(self):
+        """Checks if this subscriber object has a bandwidth subscription.
+
+        @rtype: Bool
+        @return: Whether a bandwidth subscription exists for this subscriber.
+        """
+
+        try:
+            BandwidthSub.objects.get(subscriber = self)
+        except BandwidthSub.DoesNotExist:
+            return False
+        else:
+            return True
+
+    def has_t_shirt_sub(self):
+        """Checks if this subscriber object has a t-shirt subscription.
+        
+        @rtype: Bool
+        @return: Whether a t-shirt subscription exists for this subscriber.
+        """
+
+        try:
+            TShirtSub.objects.get(subscriber = self)
+        except TShirtSub.DoesNotExist:
+            return False
+        else:
+            return True
+
+    def get_preferences(self):
+        """Returns a dictionary of preferences for the subscriber object.
+        Key names are those used in the GenericForm, SubscribeForm, and
+        PreferencesForm. This is mainly to be used to determine a user's
+        current preferences in order to generate an initial preferences page.
+        Checks the database for subscriptions corresponding to the subscriebr,
+        and returns a dictionary of the settings of those subscriptions. The
+        dictionary contains entries for all fields of all subscriptions
+        subscribed to by the subscriber, but will not contain entries for
+        fields of subscriptions not subscribed to (except fo the "get_xxx"
+        fields, which will always be defined for every subscription type).
+
+        @rtype: Dict {str: str}
+        @return: Dictionary of current preferences for this subscriber.
+        """
+        
+        data = {}
+
+        data['get_node_down'] = self.has_node_down_sub()
+        if data['get_node_down']:
+            n = NodeDownSub.objects.get(subscriber = self)
+            data['node_down_grace_pd'] = n.grace_pd
+
+        data['get_version'] = self.has_version_sub()
+        if data['get_version']:
+            v = VersionSub.objects.get(subscriber = self)
+            data['version_type'] = v.notify_type
+
+        data['get_band_low'] = self.has_bandwidth_sub()
+        if data['get_band_low']:
+            b = BandwidthSub.objects.get(subscriber = self)
+            data['threshold'] = b.threshold
+
+        data['get_t_shirt'] = self.has_t_shirt_sub()
+
+        return data
+
     def printer(self):
         """Returns a description of this subscriber. Meant to be used for
         testing purposes in the shell
@@ -742,55 +835,7 @@ class PreferencesForm(GenericForm):
     is unchecked). The PreferencesForm form inherits L{GenericForm}.
     """
 
-    def set_initial_info(self, user):
-        """Checks the database for subscriptions corresponding to the user
-        provided and returns a dictionary of their settings, and also
-        sets the initial unbound form to display these settings. The dictionary
-        will always provide entries for all get_xxx fields, but will not 
-        contain entries for fields in subscription types not susbcribed to
-        previously.
-
-        @type user: Subscriber
-        @param user: The user/subscriber whose previous info is being pulled
-            to render the preferences form.
-        """
-        data = {}
-
-        try:
-            node_down_sub = NodeDownSub.objects.get(subscriber = user)
-        except NodeDownSub.DoesNotExist:
-            data['get_node_down'] = False
-        else:
-            data['get_node_down'] = True
-            data['node_down_grace_pd'] = node_down_sub.grace_pd
- 
-        try:
-            version_sub = VersionSub.objects.get(subscriber = user)
-        except VersionSub.DoesNotExist:
-            data['get_version'] = False
-        else:
-            data['get_version'] = True
-            data['version_type'] = version_sub.notify_type
-
-        try:
-            bandwidth_sub = BandwidthSub.objects.get(subscriber = user)
-        except BandwidthSub.DoesNotExist:
-            data['get_band_low'] = False
-        else:
-            data['get_band_low'] = True
-            data['band_low_threshold'] = bandwidth_sub.threshold
-
-        try:
-            t_shirt_sub = TShirtSub.objects.get(subscriber = user)
-        except TShirtSub.DoesNotExist:
-            data['get_band_low'] = False
-        else:
-            data['get_band_low'] = True
-
-        self.initial = data
-        return data
-
-    def change_subscriptions(self, subscriber):
+    def change_subscriptions(self, subscriber, old_data, new_data):
         """Change the subscriptions and options if they are specified.
         
         @type subscriber: Subscriber
@@ -799,60 +844,60 @@ class PreferencesForm(GenericForm):
 
         # If there already was a subscription, get it and update it or delete
         # it depending on the current value.
-        if self.initial['get_node_down']:
+        if old_data['get_node_down']:
             n = NodeDownSub.objects.get(subscriber = subscriber)
-            if self.cleaned_data['get_node_down']:
-                n.grace_pd = self.cleaned_data['node_down_grace_pd']
+            if new_data['get_node_down']:
+                n.grace_pd = new_data['node_down_grace_pd']
                 n.save()
             else:
                 n.delete()
         # If there wasn't a subscription before and it is checked now, then 
         # make one.
-        elif self.cleaned_data['get_node_down']:
+        elif new_data['get_node_down']:
             n = NodeDownSub(subscriber=subscriber, 
-                    grace_pd=self.cleaned_data['node_down_grace_pd'])
+                    grace_pd=new_data['node_down_grace_pd'])
             n.save()
 
         # If there already was a subscription, get it and update it or delete
         # it depending on the current value.
-        if self.initial['get_version']:
+        if old_data['get_version']:
             v = VersionSub.objects.get(subscriber = subscriber)
-            if self.cleaned_data['get_version']:
-                v.notify_type = self.cleaned_data['version_type']
+            if new_data['get_version']:
+                v.notify_type = new_data['version_type']
                 v.save()
             else:
                 v.delete()
         # If there wasn't a subscription before and it is checked now, then 
         # make one.
-        elif self.cleaned_data['get_version']:
+        elif new_data['get_version']:
             v = VersionSub(subscriber=subscriber, 
-                    notify_type=self.cleaned_data['version_type'])
+                    notify_type=new_data['version_type'])
             v.save()
 
         # If there already was a subscription, get it and update it or delete
         # it depending on the current value.
-        if self.initial['get_band_low']:
+        if old_data['get_band_low']:
             b = BandwidthSub.objects.get(subscriber = subscriber)
-            if self.cleaned_data['get_band_low']:
-                b.threshold = self.cleaned_data['band_low_threshold']
+            if new_data['get_band_low']:
+                b.threshold = new_data['band_low_threshold']
                 b.save()
             else:
                 b.delete()
         # If there wasn't a subscription before and it is checked now, then
         # make one.
-        elif self.cleaned_data['get_band_low']:
+        elif new_data['get_band_low']:
             b = BandwidthSub(subscriber=subscriber,
-                    notify_type=self.cleaned_data['version_type'])
+                    threshold=new_data['band_low_threshold'])
             b.save()
 
         # If there already was a subscription, get it and delete it if it's no
         # longer selected.
-        if self.initial['get_t_shirt']:
+        if old_data['get_t_shirt']:
             t = TShirtSub.objects.get(subscriber = subscriber)
-            if not self.initial['get_t_shirt']:
+            if not new_data['get_t_shirt']:
                 t.delete()
         # If there wasn't a subscription before and it is checked now, then
         # make one.
-        elif self.cleaned_data['get_t_shirt']:
+        elif new_data['get_t_shirt']:
             t = TShirtSub(subscriber=subscriber)
             t.save()

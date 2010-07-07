@@ -115,7 +115,7 @@ span.big-form-error {
 	font-weight: bold;
 }
 
-form#subscribe-form input[type='submit'] {
+input.submit-button {
 	font-size: 18px;
 	margin-top: 25px;
 }
