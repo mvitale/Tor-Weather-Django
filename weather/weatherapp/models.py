@@ -324,6 +324,8 @@ class GenericForm(forms.Form):
     @type _INIT_PREFIX: str
     @cvar _INIT_PREFIX: The prefix for strings that display before user has
         entered data.
+    @type _NODE_DOWN_TEXT_BASIC: str
+    @cvar _NODE_DOWN_TEXT_BASIC: Help text for the node down notification field.
     @type get_node_down: BooleanField
     @ivar get_node_down: C{True} if the user wants to subscribe to node down 
         notifications, C{False} if not.
