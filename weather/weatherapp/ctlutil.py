@@ -13,7 +13,7 @@ import logging
 import re
 import string
 
-debugfile = open('log/debug.txt', 'w')
+debugfile = open('log/debug', 'w')
 unparsable = open('log/unparsable_emails.txt', 'w')
 
 class CtlUtil:
@@ -505,6 +505,7 @@ class CtlUtil:
                                 '\s]).*\.[^\n\)\(]*', clean_line, 
                                                             re.IGNORECASE)
         if email == None:
+            logging.info("Couldn't parse an email address from:\n%s" %contact)
             unparsable.write(contact + '\n')
             email = ""
 
