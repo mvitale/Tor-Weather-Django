@@ -58,7 +58,6 @@ $(document).ready(function() {
 	// if it has the "Default Value is ---" when the page loads.
 	showDefault("div#node-down-grace-pd-row", 1);
 	showDefault("div#band-low-threshold-row", 20);
-	showDefault("div#band-low-grace-pd-row", 1);
 
 	// Initially hides the 'more info' text and displays a link, then sets
 	// that link to display the text upon click (and hide itself). Without
@@ -68,5 +67,9 @@ $(document).ready(function() {
 	swapText("span#version-more-info");
 	swapText("span#band-low-more-info");
 	swapText("span#t-shirt-more-info");
+
+	$("span#more-info a").hover(function() {
+		$("span#more-info-hover").toggle();
+	});
 });
 

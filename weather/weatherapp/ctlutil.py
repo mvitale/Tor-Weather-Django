@@ -19,7 +19,14 @@ unparsable = open('log/unparsable_emails.txt', 'w')
 class CtlUtil:
     """A class that handles communication with the local Tor process via
     TorCtl.
-    
+
+    @type _CONTROL_HOST: str
+    @cvar _CONTROL_HOST: Constant for the control host of the TorCtl connection.
+    @type _CONTROL_PORT: int
+    @cvar _CONTROL_PORT: Constant for the control port of the TorCtl connection.
+    @type _AUTHENTICATOR: str
+    @cvar _AUTHENTICATOR: Constant for the authenticator string of the TorCtl
+        connection.
     @type control_host: str
     @ivar control_host: Control host of the TorCtl connection.
     @type control_port: int
@@ -71,8 +78,9 @@ class CtlUtil:
         self.control.debug(debugfile)
 
     def __del__(self):
-        # Probably cleanly closes the connection when the CtlUtil object is 
-        # garbage collected. Code taken from original Tor Weather.
+        """Closes the connection when the CtlUtil object is garbage collected.
+        (From original Tor Weather)
+        """
         
         self.sock.close()
         del self.sock

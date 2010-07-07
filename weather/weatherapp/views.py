@@ -81,6 +81,14 @@ def subscribe(request):
 
     return render_to_response(templates.subscribe, c)
 
+def notification_info(request):
+    """Displays detailed technical information about how the different
+    notification types are triggered.
+    """
+
+    return render_to_response(templates.notification_info)
+
+
 def pending(request, confirm_auth):
     """The user views the pending page after submitting a registration form.
     The page tells the user that a confirmation email has been sent to 
@@ -181,6 +189,10 @@ def preferences(request, pref_auth):
     @type pref_auth: str
     @param pref_auth: The user's preferences authorization key.
     """
+
+
+# ----------- FINISH THIS! just did the default_data part! ----------------------------
+
     user = get_object_or_404(Subscriber, pref_auth=pref_auth)
     if not user.confirmed:
         # the user hasn't confirmed, send them to an error page
@@ -188,6 +200,9 @@ def preferences(request, pref_auth):
                                              user.confirm_auth)
         return HttpResponseRedirect(error_extension)
     if request.method == "POST":
+
+
+
         # The user submitted the preferences form and is redirected to the 
         # confirmation page.
         form = PreferencesForm(request.POST)
@@ -210,19 +225,42 @@ def preferences(request, pref_auth):
     # so the page with the preferences form is displayed.
 
     else:
-    # the user hasn't submitted the form yet, display blank page
+    # the user hasn't submitted the form yet, display form with their preferences filled in
         
-        # get the node down subscription 
-        node_down_sub = get_object_or_404(NodeDownSub, subscriber = user)
-                
-        # the data is used to fill in the form on the preferences page
-        # with the user's existing preferences.    
-        # this should be updated as the preferences are expanded
-        data = {'grace_pd' : node_down_sub.grace_pd}
+        default_data = {}
 
-        # populates a PreferencesForm object with the user's existing prefs.
-        form = PreferencesForm(initial=data)    
+        # Maybe should move these into the PreferencesForm model? but then it'd get messy...
+        try:
+            node_down_sub = NodeDownSub.objects.get(subscriber = user)
+            default_data['get_node_down'] = True
+            default_data['node_down_grace_pd'] = node_down_sub.grace_pd
+        except NodeDownSub.DoesNotExist:
+            pass
+
+        try:
+            version_sub = VersionSub.objects.get(subscriber = user)
+            default_data['get_version'] = True
+            default_data['version_type'] = version_sub.notify_type
+        except VersionSub.DoesNotExist:
+            pass
+
+        try:
+            bandwidth_sub = BandwidthSub.objects.get(subscriber = user)
+            default_data['get_band_low'] = True
+            default_data['band_low_threshold'] = bandwidth_sub.threshold
+        except BandwidthSub.DoesNotExist:
+            pass
+
+        try:
+            t_shirt_sub = TShirtSub.objects.get(subscriber = user)
+            default_data['get_band_low'] = Truei
+        except TShirtSub.DoesNotExist:
+            pass
+        
+        form = PreferencesForm(initial=default_data)    
     
+
+#- --------------VVVVVV------------WORK ON THIS --------------VVVVVVVVVVV----------------------
     # maps the form to the template.
     c = {'pref_auth': pref_auth, 'fingerprint': user.router.fingerprint,
          'form' : form}

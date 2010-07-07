@@ -14,6 +14,7 @@ place if they are ever modified in urls.py.
 @var _SUBSCRIBE: The url pattern for the subscribe form page.
 @var _UNSUBSCRIBE: The url pattern for the page displayed when the user 
     unsubscribes.
+@var _DOWNLOAD: The url for the Tor download page.
 """
 
 base_url = 'http://localhost:8000'
