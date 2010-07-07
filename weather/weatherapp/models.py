@@ -47,6 +47,11 @@ class Router(models.Model):
     exit = models.BooleanField()
 
     def __unicode__(self):
+        """Returns the fingerprint for this router as it's string representation
+        
+        @rtype: str
+        @return: The router's fingerprint.
+        """
         return self.fingerprint
 
 
@@ -100,6 +105,9 @@ class Subscriber(models.Model):
     @type sub_date: datetime.datetime
     @ivar sub_date: The date this user subscribed to Tor Weather. Default value
                     upon creation is datetime.now().
+    @type objects: SubscriberManager()
+    @cvar objects: The L{SubscriberManager} object that handles table-wide 
+        database manipulation for this model.
     """
     email = models.EmailField(max_length=75)
     router = models.ForeignKey(Router)
@@ -116,6 +124,12 @@ class Subscriber(models.Model):
     objects = SubscriberManager()
 
     def __unicode__(self):
+        """Returns the Subscriber's email as the string representation for this 
+        object.
+        
+        @rtype: str
+        @return: The subscriber's email.
+        """
         return self.email
 
 
@@ -154,6 +168,9 @@ class Subscription(models.Model):
     @ivar emailed: True if the user has been emailed about the subscription
         (trigger must also be True), False if the user has not been emailed. 
         Default upon creation is C{False}.
+    @type objects: SubscriptionManager()
+    @cvar objects: The L{SubscriptionManager} object for this class, which 
+        handles table-wide database manipulation for all Subscriptions. 
     """
     subscriber = models.ForeignKey(Subscriber)
     emailed = models.BooleanField(default=False)
@@ -166,9 +183,14 @@ class NodeDownSub(Subscription):
     notifications to the user if their node is down for the downtime grace
     period they specify. 
 
+    @type triggered: bool
+    @ivar triggered: C{True} if the node is down, C{False} if it is up.
     @type grace_pd: int
     @ivar grace_pd: The amount of time (hours) before a notification is sent
         after a node is seen down.
+    @type last_changed: datetime
+    @ivar last_changed: The datetime object representing the time the triggered
+        flag was last changed.
     """
     triggered = models.BooleanField(default=False)
     grace_pd = models.IntegerField()
@@ -189,42 +211,40 @@ class NodeDownSub(Subscription):
             return False
 
 class VersionSub(Subscription):
-    """
+    """Subscription class for version notifications. Subscribers can choose
+    between two notification types: OBSOLETE or UNRECOMMENDED. For OBSOLETE
+    notifications, the user is sent an email if their router's version of Tor
+    does not appear in the list of recommended versions (obtained via TorCtl).
+    For UNRECOMMENDED notifications, the user is sent an email if their router's
+    version of Tor is not the most recent stable (non-alpha/beta) version of
+    Tor in the list of recommended versions.
 
-    @type threshold: str
-    @ivar threshold: The threshold for sending a notification (i.e. send a 
-        notification if the version is obsolete vs. out of date)
+    @type notify_type: str
+    @ivar notify_type: Either UNRECOMMENDED (notify users if the router isn't 
+        running the most recent stable version of Tor) or OBSOLETE (notify users
+        if their router is running a version of Tor that doesn't appear on the
+        list of recommended versions).
     """
-# -----------------------------------------------------------------------
-# FILL IN LATER, FIX DOCUMENTATION
-# -----------------------------------------------------------------------
-
     #only send notifications if the version is of type notify_type
     notify_type = models.CharField(max_length=250)
 
 
 class BandwidthSub(Subscription):    
+    """Subscription class for low bandwidth notifications. Subscribers determine
+    a threshold bandwidth in KB/s (default is 20KB/s). If the observed bandwidth
+    field in the descriptor file for their router is ever below that threshold, 
+    the user is sent a notification. According to the directory specifications,
+    the observed bandwidth field "is an estimate of the capacity this server  
+    can handle. The server remembers the max bandwidth sustained output over 
+    any ten second period in the past day, and another sustained input. The 
+    'observed' value is the lesser of these two numbers." An email is sent 
+    as soon as we this observed bandwidth crosses the threshold (no grace pd).
+
+    @type threshold: int
+    @param threshold: The threshold for the bandwidth (in KB/s) that the user 
+        specifies for receiving notifications.
     """
-    """
-    grace_pd = models.IntegerField(default = 1)
-    last_changed = models.DateTimeField(default=datetime.now)
-    triggered = models.BooleanField(default=False)
     threshold = models.IntegerField(default = 20)
-
-    def is_grace_passed(self):
-        """Check if the grace period has passed for this subscription
-
-        @rtype: bool
-        @return: C{True} if C{triggered} and 
-        C{SubscriptionManager.hours_since_changed()}, otherwise C{False}.
-        """
-
-        if self.triggered and SubscriptionManager.hours_since_changed() >= \
-                grace_pd:
-            return True
-        else:
-            return False
-
 
 class TShirtSub(Subscription):
     """A subscription class for T-shirt notifications. An email is sent
@@ -232,11 +252,16 @@ class TShirtSub(Subscription):
     The router must be running for 61 days (2 months). If it's an exit node,
     it's avg bandwidth must be at least 100 KB/s. Otherwise, it must be at 
     least 500 KB/s.
-    
+
+    @type triggered: bool
+    @ivar triggered: C{True} if this router is up, 
     @type avg_bandwidth: int
     @ivar avg_bandwidth: The router's average bandwidth in KB/s
-    @type hours_since_triggered: int
-    @ivar hours_since_triggered: The hours this router has been up"""
+    @type last_changed: datetime
+    @ivar last_changed: The datetime object representing the last time the 
+        triggered flag was changed.
+    """
+    triggered = models.BooleanField(default = False)
     avg_bandwidth = models.IntegerField(default = 0)
     last_changed = models.DateTimeField(default = datetime.now)
 
@@ -283,22 +308,21 @@ class GenericForm(forms.Form):
     @type _INIT_GET_BAND_LOW: Bool
     @cvar _INIT_GET_BAND_LOW: The initial value of the get_band_low checkbox
         when the form is loaded.
+    @type _INIT_NODE_DOWN_GRACE_PD: int
+    @cvar_INIT_NODE_DOWN_GRACE_PD: The default initial node down grace pd (1 hr)
     @type _MAX_NODE_DOWN_GRACE_PD: int
     @cvar _MAX_NODE_DOWN_GRACE_PD: The maximum node down grace period in hours
     @type _MIN_NODE_DOWN_GRACE_PD: int
     @cvar _MIN_NODE_DOWN_GRACE_PD: The minimum node down grace period in hours
-    @type _MAX_BAND_LOW_GRACE_PD: int
-    @cvar _MAX_BAND_LOW_GRACE_PD: The maximum low bandwidth grace period in 
-        hours
-    @type _MIN_BAND_LOW_GRACE_PD: int
-    @cvar _MIN_BAND_LOW_GRACE_PD: The minimum low bandwidth grace period in 
-        hours
     @type _INIT_BAND_LOW_THRESHOLD: int
-    @cvar _INIT_BAND_LOW_THRESHOLD: The initial low bandwidth threshold (KB/s)
+    @cvar _INIT_BAND_LOW_THRESHOLD: The initial low bandwidth threshold (kb/s)
     @type _MIN_BAND_LOW_THRESHOLD: int
-    @cvar _MIN_BAND_LOW_THRESHOLD: The minimum low bandwidth threshold (KB/s)
+    @cvar _MIN_BAND_LOW_THRESHOLD: The minimum low bandwidth threshold (kb/s)
     @type _MAX_BAND_LOW_THRESHOLD: int
     @cvar _MAX_BAND_LOW_THRESHOLD: The maximum low bandwidth threshold (KB/s)
+    @type _INIT_PREFIX: str
+    @cvar _INIT_PREFIX: The prefix for strings that display before user has
+        entered data.
     @type get_node_down: BooleanField
     @ivar get_node_down: C{True} if the user wants to subscribe to node down 
         notifications, C{False} if not.
@@ -323,9 +347,6 @@ class GenericForm(forms.Form):
     @type band_low_threshold: IntegerField, processed into int
     @ivar band_low_threshold: The user's threshold (in KB/s) for low bandwidth
         notifications. Default = 20 KB/s.
-    @type band_low_grace_pd: IntegerField, processed into int
-    @ivar band_low_grace_pd: The number of hours of low bandwidth below 
-        threshold for sending a notification. Default = 1. Range = 1-4500.
     @type band_low_text: BooleanField
     @ivar band_low_text: Hidden field; used to display extra text in the form
         template without having to hardcode the text into the template.
@@ -333,7 +354,7 @@ class GenericForm(forms.Form):
     @ivar get_t_shirt: C{True} if the user wants to receive a t-shirt 
         notification, C{False} if not.
     @type t_shirt_text: BooleanField
-    @ivar get_t_shirt: Hidden field; used to display extra text in the form
+    @ivar t_shirt_text: Hidden field; used to display extra text in the form
         template without having to hardcode the text into the template.
     """
    
@@ -346,24 +367,21 @@ class GenericForm(forms.Form):
     _INIT_NODE_DOWN_GRACE_PD = 1
     _MAX_NODE_DOWN_GRACE_PD = 4500
     _MIN_NODE_DOWN_GRACE_PD = 1
-    _INIT_BAND_LOW_GRACE_PD = 1
-    _MAX_BAND_LOW_GRACE_PD = 4500
-    _MIN_BAND_LOW_GRACE_PD = 1
     _INIT_BAND_LOW_THRESHOLD = 20
     _MIN_BAND_LOW_THRESHOLD = 0
     _MAX_BAND_LOW_THRESHOLD = 100000
     _INIT_PREFIX = 'Default value is '
+    _NODE_DOWN_TEXT_BASIC = 'Notifications will be sent when the node goes \
+        offline from the Tor network for the specified length of time. \
+        Nodes that are in hibernation are not considered offline (hibernation \
+        will not trigger a notification).'
 
     get_node_down = forms.BooleanField(initial=_INIT_GET_NODE_DOWN,
             required=False,
             label='Receive notifications when node is down',
             widget=forms.CheckboxInput(attrs={'id':'node-down-check'}))
     node_down_text = forms.BooleanField(required=False,
-            label='Notifications will be sent when the node goes offline \
-                   from the Tor network. Nodes that are in hibernation are \
-                   not considered offline; in other words, hibernation will \
-                   not trigger a notification.',
-            help_text='Bla bla technical details.')
+            label= _NODE_DOWN_TEXT_BASIC)
     node_down_grace_pd = forms.IntegerField(
             initial=_INIT_PREFIX + str(_INIT_NODE_DOWN_GRACE_PD),
             required=False,
@@ -376,7 +394,7 @@ class GenericForm(forms.Form):
     
     get_version = forms.BooleanField(initial=_INIT_GET_VERSION,
             required=False,
-            label='Receive notifications when node is out of date',
+            label='Receive notifications when node\'s Tor version is out of date',
             widget=forms.CheckboxInput(attrs={'id':'version-check'}))
     version_text = forms.BooleanField(required=False,
             label='General info.',
@@ -404,18 +422,9 @@ class GenericForm(forms.Form):
             initial=_INIT_PREFIX + str(_INIT_BAND_LOW_THRESHOLD),
             required=False, max_value=_MAX_BAND_LOW_THRESHOLD,
             min_value=_MIN_BAND_LOW_THRESHOLD, 
-            label='For what critical bandwidth, in kbps, should we send \
+            label='For what critical bandwidth, in kB/s, should we send \
                    notifications?',
             help_text='Enter a value between 0 and 100,000',
-            widget=forms.TextInput(attrs={'class':'short-input'}))
-    band_low_grace_pd = forms.IntegerField(
-            initial=_INIT_PREFIX + str(_INIT_BAND_LOW_GRACE_PD),
-            required=False, max_value=_MAX_BAND_LOW_GRACE_PD,
-            min_value=_MIN_BAND_LOW_GRACE_PD,
-            label='How many hours of low bandwidth before \
-                       we send a notification?',
-            help_text='Enter a value between 1 and 4,500 (roughly six \
-                       months)',
             widget=forms.TextInput(attrs={'class':'short-input'}))
     
     get_t_shirt = forms.BooleanField(initial=False, required=False,
@@ -462,12 +471,6 @@ class GenericForm(forms.Form):
                 or data['band_low_threshold'] == '':
             data['band_low_threshold'] = GenericForm._INIT_BAND_LOW_THRESHOLD
         
-        if data['band_low_grace_pd'] ==  \
-                GenericForm._INIT_PREFIX + \
-                str(GenericForm._INIT_BAND_LOW_GRACE_PD) \
-                or data['band_low_grace_pd'] == '':
-            data['band_low_grace_pd'] = GenericForm._INIT_BAND_LOW_GRACE_PD
-
         return data
  
     def check_if_sub_checked(self, data):
@@ -484,11 +487,22 @@ class GenericForm(forms.Form):
                                          type of subscription!')
 
     def clean(self):
+        """Calls the check_if_sub_checked to ensure that at least one 
+        subscription type has been selected. (This is a Django thing, called
+        every time the is_valid method is called on a GenericForm POST request).
+                
+        @return: The 'cleaned' data from the POST request.
+        """
         self.check_if_sub_checked(self.cleaned_data)
 
         return self.cleaned_data
 
     def save_subscriptions(self, subscriber):
+        """Create the subscriptions if they are specified.
+        
+        @type subscriber: Subscriber
+        @param subscriber: The subscriber whose subscriptions are being saved.
+        """
         # Create the various subscriptions if they are specified.
         if self.cleaned_data['get_node_down']:
             node_down_sub = NodeDownSub(subscriber=subscriber,
@@ -496,12 +510,11 @@ class GenericForm(forms.Form):
             node_down_sub.save()
         if self.cleaned_data['get_version']:
             version_sub = VersionSub(subscriber=subscriber,
-                    notify_type = self.cleaned_data['version_threshold'])
+                    notify_type = self.cleaned_data['version_type'])
             version_sub.save()
         if self.cleaned_data['get_band_low']:
             band_low_sub = BandwidthSub(subscriber=subscriber,
-                    threshold=self.cleaned_data['band_low_threshold'],
-                    grace_pd=self.cleaned_data['band_low_grace_pd'])
+                    threshold=self.cleaned_data['band_low_threshold'])
             band_low_sub.save()
         if self.cleaned_data['get_t_shirt']:
             t_shirt_sub = TShirtSub(subscriber=subscriber)
@@ -532,7 +545,8 @@ class SubscribeForm(GenericForm):
             max_length=40)
 
     def clean(self):
-        """"""
+        """Called when the is_valid method is evaluated for a SubscribeForm 
+        after a POST request."""
         
         # Calls the same helper methods used in the GenericForm clean() method.
         data = self.cleaned_data
@@ -611,4 +625,9 @@ class SubscribeForm(GenericForm):
             return subscriber
             
 class PreferencesForm(GenericForm):
-   pass 
+    """The form for changing preferences, as displayed on the preferences page. 
+    The form displays the user's current settings for all subscription types 
+    (i.e. if they haven't selected a subscription type, the box for that field 
+    is unchecked). The PreferencesForm form inherits L{GenericForm}.
+    """
+    pass 

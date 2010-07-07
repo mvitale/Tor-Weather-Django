@@ -6,10 +6,11 @@ div.main-column {
 	padding-right: 10px;
 }
 
-div#sign-up-link {
+a#sign-up-link {
 	font-size: 20px;
 	font-weight: bold;
 	margin-bottom: 10px;
+	display: block;
 }	
 
 h1 {
@@ -115,8 +116,8 @@ span.big-form-error {
 }
 
 form#subscribe-form input[type='submit'] {
-	margin-top: 20px;
 	font-size: 18px;
+	margin-top: 25px;
 }
 
 .block {
@@ -141,3 +142,8 @@ a.more-info-link {
 span.more-info-text {
 	display: inline;
 }
+
+span#more-info {
+	margin-left: 5px;
+}
+
