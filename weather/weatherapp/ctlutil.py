@@ -2,7 +2,7 @@
 to TorCtl and handle communication concerning consensus documents and 
 descriptor files.
 
-@var debugfile: A log file for catching bugs.
+@var debugfile: The debug file used by TorCtl .
 @var unparsable: A log file for contacts with unparsable emails.
 """
 
