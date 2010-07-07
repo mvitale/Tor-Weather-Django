@@ -29,7 +29,7 @@ from django.core.mail import send_mass_mail
 
 #a CtlUtil instance module attribute
 ctl_util = CtlUtil()
-failed = open('failed_emails.txt', 'w')
+failed = open('log/failed_emails.txt', 'w')
 
 def check_node_down(email_list):
     """Check if all nodes with L{NodeDownSub} subs are up or down,
