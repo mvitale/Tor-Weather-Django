@@ -505,10 +505,6 @@ class CtlUtil:
                                 '\s]).*\.[^\n\)\(]*', clean_line, 
                                                             re.IGNORECASE)
         if email == None:
-        #----Learn how logging works and configure!------
-        #errormsg = ('Could not parse the following contact line:\n'+ line)
-        #logging.error(errormsg)
-        #print >> sys.stderr, errormsg
             unparsable.write(contact + '\n')
             email = ""
 
