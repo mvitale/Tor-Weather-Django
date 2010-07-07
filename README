@@ -9,6 +9,6 @@ Ignore the warnings; they should all pertain to Django-related documentation.
 The HTML-formatted API will be in a directory named api/ in weather.  
 
 ----------------------------------------------------------------------------
-Todo:
-Write script to generate epydoc and restructured text documentation, and add 
+######Todo:
+Write script to generate restructured text documentation, and add 
 user documentation.
