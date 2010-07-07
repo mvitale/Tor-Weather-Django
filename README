@@ -1,5 +1,8 @@
 See doc/design.txt for design documentation
 
+Generating API:
+
+
 Todo:
-Write script to generat epydoc and restructured text documentation, and add 
+Write script to generate epydoc and restructured text documentation, and add 
 user documentation.
