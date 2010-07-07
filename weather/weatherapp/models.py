@@ -751,47 +751,46 @@ class PreferencesForm(GenericForm):
         @param user: The user/subscriber whose previous info is being pulled
             to render the preferences form.
         """
-        data = {}
-
         try:
-            node_down_sub = NodeDownSub.objects.get(subscriber = user)
+            n = NodeDownSub.objects.get(subscriber = user)
         except NodeDownSub.DoesNotExist:
-            data['get_node_down'] = False
+            self.initial['get_node_down'] = False
         else:
-            data['get_node_down'] = True
-            data['node_down_grace_pd'] = node_down_sub.grace_pd
+            self.initial['get_node_down'] = True
+            self.initial['node_down_grace_pd'] = n.grace_pd
  
         try:
-            version_sub = VersionSub.objects.get(subscriber = user)
+            v = VersionSub.objects.get(subscriber = user)
         except VersionSub.DoesNotExist:
-            data['get_version'] = False
+            self.initial['get_version'] = False
         else:
-            data['get_version'] = True
-            data['version_type'] = version_sub.notify_type
+            self.initial['get_version'] = True
+            self.initial['version_type'] = v.notify_type
 
         try:
-            bandwidth_sub = BandwidthSub.objects.get(subscriber = user)
+            b = BandwidthSub.objects.get(subscriber = user)
         except BandwidthSub.DoesNotExist:
-            data['get_band_low'] = False
+            self.initial['get_band_low'] = False
         else:
-            data['get_band_low'] = True
-            data['band_low_threshold'] = bandwidth_sub.threshold
+            self.initial['get_band_low'] = True
+            self.initial['band_low_threshold'] = b.threshold
 
         try:
-            t_shirt_sub = TShirtSub.objects.get(subscriber = user)
+            TShirtSub.objects.get(subscriber = user)
         except TShirtSub.DoesNotExist:
-            data['get_band_low'] = False
+            self.initial['get_t_shirt'] = False
         else:
-            data['get_band_low'] = True
+            self.initial['get_t_shirt'] = True
 
-        self.initial = data
-        return data
+        return self.initial
 
-    def change_subscriptions(self, subscriber):
+    def change_subscriptions(self, subscriber, init_info):
         """Change the subscriptions and options if they are specified.
         
         @type subscriber: Subscriber
         @param subscriber: The subscriber whose subscriptions are being saved.
+        @type init_info: Dict {str: str}
+        @param init_info: Initial form information.
         """
 
         # If there already was a subscription, get it and update it or delete
