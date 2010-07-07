@@ -224,16 +224,24 @@ class Subscriber(models.Model):
         if data['get_node_down']:
             n = NodeDownSub.objects.get(subscriber = self)
             data['node_down_grace_pd'] = n.grace_pd
+        else:
+            data['node_down_grace_pd'] = GenericForm._INIT_PREFIX + \
+                    str(GenericForm._INIT_NODE_DOWN_GRACE_PD)
 
         data['get_version'] = self.has_version_sub()
         if data['get_version']:
             v = VersionSub.objects.get(subscriber = self)
             data['version_type'] = v.notify_type
+        else:
+            data['version_type'] = u'UNRECOMMENDED'
 
         data['get_band_low'] = self.has_bandwidth_sub()
         if data['get_band_low']:
             b = BandwidthSub.objects.get(subscriber = self)
-            data['threshold'] = b.threshold
+            data['band_low_threshold'] = b.threshold
+        else:
+            data['band_low_threshold'] = GenericForm._INIT_PREFIX + \
+                    str(GenericForm._INIT_BAND_LOW_THRESHOLD)
 
         data['get_t_shirt'] = self.has_t_shirt_sub()
 
@@ -663,16 +671,16 @@ class GenericForm(forms.Form):
 
         data = copy(post_data)
 
-        if data['node_down_grace_pd'] == \
-                GenericForm._INIT_PREFIX + \
+        if data['node_down_grace_pd'] == GenericForm._INIT_PREFIX + \
                 str(GenericForm._INIT_NODE_DOWN_GRACE_PD) \
-                or data['node_down_grace_pd'] == '':
+           or data['node_down_grace_pd'] == '' \
+           or 'get_node_down' not in data:
             data['node_down_grace_pd'] = GenericForm._INIT_NODE_DOWN_GRACE_PD
 
-        if data['band_low_threshold'] == \
-                GenericForm._INIT_PREFIX + \
+        if data['band_low_threshold'] == GenericForm._INIT_PREFIX + \
                 str(GenericForm._INIT_BAND_LOW_THRESHOLD) \
-                or data['band_low_threshold'] == '':
+           or data['band_low_threshold'] == '' \
+           or 'get_band_low' not in data:
             data['band_low_threshold'] = GenericForm._INIT_BAND_LOW_THRESHOLD  
         
         return data
