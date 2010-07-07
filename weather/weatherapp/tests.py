@@ -35,7 +35,7 @@ class TestWeb(TestCase):
                                           'fingerprint' : '1234',
                                           'get_node_down' : True,
                                           'node_down_grace_pd' : 1,
-                                          'get_out_of_date' : False,
+                                          'get_version' : False,
                                           'get_band_low': False,
                                           'get_t_shirt' : False},
                                           follow = True)
@@ -72,8 +72,8 @@ class TestWeb(TestCase):
                                           'email_2' : 'name@place.com',
                                           'fingerprint' : '1234',
                                           'get_node_down' : False,
-                                          'get_out_of_date' : True,
-                                          'out_of_date_type' : 'UNRECOMMENDED',
+                                          'get_version' : True,
+                                          'version_type' : 'UNRECOMMENDED',
                                           'get_band_low': False,
                                           'get_t_shirt' : False},
                                           follow = True)
@@ -110,7 +110,7 @@ class TestWeb(TestCase):
                                           'email_2': 'name@place.com',
                                           'fingerprint' : '1234', 
                                           'get_node_down': False,
-                                          'get_out_of_date' : False,
+                                          'get_version' : False,
                                           'get_band_low' : True,
                                           'band_low_threshold' : 40,
                                           'band_low_grace_pd' : 2,
@@ -149,7 +149,7 @@ class TestWeb(TestCase):
                                           'email_2' : 'name@place.com',
                                           'fingerprint' : '1234',
                                           'get_node_down' : False,
-                                          'get_out_of_date' : False,
+                                          'get_version' : False,
                                           'get_band_low' : False,
                                           'get_t_shirt' : True},
                                           follow = True)
@@ -185,12 +185,13 @@ class TestWeb(TestCase):
         """Test a subscribe attempt to all subscription types, relying
         on default values."""
         c = Client()
-        response = self.client.post('/subscribe/', {'email_1' : 'name@place.com',
+        response = self.client.post('/subscribe/', {'email_1' : 
+                                          'name@place.com',
                                           'email_2' : 'name@place.com',
                                           'fingerprint' : '1234',
                                           'get_node_down' : True,
-                                          'get_out_of_date' : True,
-                                          'out_of_date_type' : 'UNRECOMMENDED',
+                                          'get_version' : True,
+                                          'version_type' : 'UNRECOMMENDED',
                                           'get_band_low': True,
                                           'get_t_shirt' : True},
                                           follow = True)

@@ -84,7 +84,7 @@ def check_low_bandwidth(email_list):
     subs = BandwidthSub.objects.all()
 
     for sub in subs:
-        fingerprint = sub.subscriber.fingerprint
+        fingerprint = sub.subscriber.router.fingerprint
         if sub.subscriber.confirmed:
             if self.ctlutil.get_bandwidth(fingerprint) < sub.threshold and\
             sub.emailed == False:
@@ -182,11 +182,12 @@ def check_version(email_list):
     subs = VersionSub.objects.all()
 
     for sub in subs:
-        version_type = ctlutil.get_version_type(sub.subscriber.fingerprint)
+        version_type = ctlutil.get_version_type(
+                       sub.subscriber.router.fingerprint)
         if sub.subscriber.confirmed:
             if version_type == sub.notify_type and sub.emailed == False:
             
-                fingerprint = sub.subscriber.fingerprint
+                fingerprint = sub.subscriber.router.fingerprint
                 recipient = sub.subscriber.email
                 unsubs_auth = sub.subscriber.unsubs_auth
                 pref_auth = sub.subscriber.pref_auth
