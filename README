@@ -1,8 +1,14 @@
 See doc/design.txt for design documentation
+---------------------------------------------------------------------------
 
-Generating API:
+To generate the Tor Weather API, run the following command within weather:
 
+/weather$ epydoc . --config config/epydoc_config.py
 
+Ignore the warnings; they should all pertain to Django-related documentation.
+The HTML-formatted API will be in a directory named api/ in weather.  
+
+----------------------------------------------------------------------------
 Todo:
 Write script to generate epydoc and restructured text documentation, and add 
 user documentation.
