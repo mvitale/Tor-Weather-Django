@@ -291,20 +291,3 @@ def error(request, error_type, key):
 
     # display the page
     return render_to_response(template, {'error_message' : message})
-
-def run_updaters(request):
-    """
-    Runs all updaters when the appropriate request is made from localhost.
-    If any other ip tries to do this, displays 404 error.
-    """
-
-    client_address = request.META['REMOTE_ADDR'] 
-
-    #Only allow localhost to make this request.
-    #We need to make sure this works!!!
-    if client_address == "127.0.0.1":
-        updaters.run_all() 
-    else:
-        raise Http404
-
-    return HttpResponse()
