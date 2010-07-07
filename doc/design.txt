@@ -1,6 +1,6 @@
 Tor Weather Design Documentation
 ================================
-.. This file is written in reStructuredText. A .pdf version should be generated.
+.. This file is written in reStructuredText. See the README for instructions on how to generate an HTML version.
 
 Django
 ------------
