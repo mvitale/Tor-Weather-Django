@@ -1,5 +1,9 @@
 {% extends "generic_form.html" %}
 
+{% block head-tag %}
+<head id="preferences-page">
+{% endblock head-tag %}
+
 {% block header %}
 Tor Weather - Preferences
 {% endblock header %}
@@ -13,7 +17,25 @@ Tor Weather - Preferences
 {% endblock form-tag %}
 
 {% block user-info %}
-<div id="pref-user-info">{{ form.user_info|safe }}</div>
+
+<div class="subscriber-info">
+	{{ form.user_info|safe }}
+</div>
+
+<div class="subscriber-info" style="display:none;">
+	<div class="floater">
+		<label for="id_email" class="block">{{form.email.label}}</label>
+		{{ form.email }}
+	</div>
+	<div class="floater">
+		<label for="id_router_name" class="block">{{ form.router_name.label }}</label>
+		{{ form.router_name }}
+	</div>
+	<div class="floater">
+		<label for="id_fingerprint" class="block">{{ form.fingerprint.label }}</label>
+		{{ form.fingerprint }}
+	</div>
+</div>
 {% endblock user-info %}
 
 {% block submit-button %}
