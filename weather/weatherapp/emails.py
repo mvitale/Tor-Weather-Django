@@ -92,8 +92,9 @@ _VERSION_MAIL = "This is a Tor Weather Report.\n\n"+\
 _LOW_BANDWIDTH_SUBJ = 'Low bandwidth!'
 _LOW_BANDWIDTH_MAIL = "The is a Tor Weather Report.\n\n"+\
     "It appears that a tor node %s you elected to monitor "+\
-    "has an observed bandwidth capacity of less than %KB/s. "+\
-    "You may wish to look at it to see why.\n\n You can "+\
+    "has an observed bandwidth capacity of %s kB/s. You elected to receive "+\
+    "notifications if your bandwidth capacity passed a threshold of %s kB/s. "+\
+    "You may wish to look at your router to see why.\n\n You can "+\
     "unsubscribe from these reports at any time by visiting the "+\
     "following url:\n\n%s\n\n or change your Tor Weather notification "\
     "preferences here:\n\n%s\n"
@@ -206,13 +207,16 @@ def send_confirmed(recipient,
     msg = _CONFIRMED_MAIL % (name, unsubURL, prefURL) 
     send_mail(subj, msg, sender, [recipient], fail_silently=False)
 
-def bandwidth_tuple(recipient, fingerprint, threshold, unsubs_auth, pref_auth):
+def bandwidth_tuple(recipient, fingerprint, observed, threshold, unsubs_auth,
+                    pref_auth):
     """Returns the tuple for a low bandwidth email.
     @type recipient: str
     @param recipient: The user's email address
     @type fingerprint: str
     @param fingerprint: The fingerprint of the node this user wishes to
         monitor.
+    @type observed: int
+    @param observed: The observed bandwidth (kB/s)
     @type threshold: int
     @param threshold: The user's specified threshold for low bandwidth (KB/s)
     @type unsubs_auth: str
@@ -225,7 +229,7 @@ def bandwidth_tuple(recipient, fingerprint, threshold, unsubs_auth, pref_auth):
     sender = _SENDER
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
-    msg = _LOW_BANDWIDTH_MAIL % (name, unsubURL, prefURL)
+    msg = _LOW_BANDWIDTH_MAIL % (name, observed, threshold, unsubURL, prefURL)
 
     return (subj, msg, sender, [recipient])
 
