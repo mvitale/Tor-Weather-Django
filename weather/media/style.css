@@ -85,14 +85,22 @@ input.long-input {
 	width: 385px;
 }
 
+head#preferences-page input.long-input {
+	width: 300px;
+}
+
+div.subscriber-info {
+	margin-bottom: 10px;
+}
+
+div.subscriber-info span.user-field {
+	font-weight: bold;
+}
+
 div.collapse-section {
 	margin-left: 26px;
 	margin-top: 6px;
 	margin-bottom: 8px;
-}
-
-div#subscriber-info {
-	margin-bottom: 10px;
 }
 
 span.form-error {
@@ -130,7 +138,7 @@ form {
 	font-size: 14px;
 }
 
-div.email-block {
+div.floater {
 	float: left;
 	margin-right: 15px;
 }

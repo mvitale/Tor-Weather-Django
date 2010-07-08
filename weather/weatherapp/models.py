@@ -731,15 +731,23 @@ class SubscribeForm(GenericForm):
     @ivar fingerprint: The fingerprint of the router the user wants to 
         monitor.
     """
-    email_1 = forms.EmailField(label='Enter Email:',
-            widget=forms.TextInput(attrs={'class':'email-input'}),
-            max_length=75)
+    _EMAIL_1_LABEL = 'Enter Email:'
+    _EMAIL_MAX_LEN = 75
+    _EMAIL_2_LABEL = 'Re-enter Email:'
+    _FINGERPRINT_LABEL = 'Node Fingerprint:'
+    _FINGERPRINT_MAX_LEN = 40
+    _CLASS_EMAIL = 'email-input'
+    _CLASS_LONG = 'long-input'
+
+    email_1 = forms.EmailField(label=_EMAIL_1_LABEL,
+            widget=forms.TextInput(attrs={'class':_CLASS_EMAIL}),
+            max_length=_EMAIL_MAX_LEN)
     email_2 = forms.EmailField(label='Re-enter Email:',
-            widget=forms.TextInput(attrs={'class':'email-input'}),
-            max_length=75)
+            widget=forms.TextInput(attrs={'class':_CLASS_EMAIL}),
+            max_length=_EMAIL_MAX_LEN)
     fingerprint = forms.CharField(label='Node Fingerprint:',
-            widget=forms.TextInput(attrs={'class':'long-input'}),
-            max_length=40)
+            widget=forms.TextInput(attrs={'class':_CLASS_LONG}),
+            max_length=_FINGERPRINT_MAX_LEN)
 
     def clean(self):
         """Called when the is_valid method is evaluated for a SubscribeForm 
@@ -851,26 +859,54 @@ class PreferencesForm(GenericForm):
     is unchecked). The PreferencesForm form inherits L{GenericForm}.
     """
     
-    _USER_INFO = 'Preferences for <strong>%s</strong> following router \
-            <strong>%s</strong> (with fingerprint <strong>%s</strong>)'
-    user_text = forms.BooleanField(required=False,
-            label=_USER_INFO)
+    _USER_INFO_STR = '<span class="user-field">Email:</span> %s<br /> \
+            <span class="user-field">Router name:</span> %s<br /> \
+            <span class="user-field">Router id:</span> %s'
+    _EMAIL_LABEL = 'Email:'
+    _ROUTER_NAME_LABEL = 'Router Name:'
+    _ROUTER_FINGERPRINT_LABEL = 'Router Fingerprint:'
+    _CLASS_EMAIL = 'email-input'
+    _CLASS_SHORT = 'short-input'
+    _CLASS_LONG = 'long-input'
+
+    email = forms.EmailField(label=_EMAIL_LABEL,
+            widget=forms.TextInput(attrs={
+                'class':_CLASS_EMAIL,
+                'readonly':'readonly'}))
+    router_name = forms.CharField(label=_ROUTER_NAME_LABEL,
+            widget=forms.TextInput(attrs={
+                'class':_CLASS_SHORT,
+                'readonly':'readonly'}))
+    fingerprint = forms.CharField(label=_ROUTER_FINGERPRINT_LABEL,
+            widget=forms.TextInput(attrs={
+                'class':_CLASS_LONG,
+                'disabled':'disabled'}))
+
     
     def __init__(self, user, data = None):
         if data == None:
             super(GenericForm, self).__init__(initial=user.get_preferences())
         else:
             super(GenericForm, self).__init__(data)
-        
+ 
         self.user = user
-        fingerprint_ = str(self.user.router.fingerprint)
-        regex = r'(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)\
-                  (\d\d\d\d)(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)'
-        fingerprint_groups = re.match(regex, fingerprint).groups()
-        self.user_info = PreferencesForm._USER_INFO % (self.user.email, \
-                self.user.router.name, self.user.router.fingerprint)
 
-    def change_subscriptions(self, subscriber, old_data, new_data):
+        fingerprint_text = str(self.user.router.fingerprint)
+        regex = r'(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)' + \
+                r'(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)'
+        m = re.match(regex, fingerprint_text)
+        fingerprint_groups = m.groups()
+        fingerprint_text = '%s %s %s %s %s %s %s %s %s %s' % \
+                fingerprint_groups
+        
+        self.fields['email'].initial=user.email
+        self.fields['router_name'].initial=user.router.name
+        self.fields['fingerprint'].initial=fingerprint_text
+
+        self.user_info = PreferencesForm._USER_INFO_STR % (self.user.email, \
+                self.user.router.name, fingerprint_text)
+
+    def change_subscriptions(self, old_data, new_data):
         """Change the subscriptions and options if they are specified.
         
         @type subscriber: Subscriber
@@ -880,7 +916,7 @@ class PreferencesForm(GenericForm):
         # If there already was a subscription, get it and update it or delete
         # it depending on the current value.
         if old_data['get_node_down']:
-            n = NodeDownSub.objects.get(subscriber = subscriber)
+            n = NodeDownSub.objects.get(subscriber = self.user)
             if new_data['get_node_down']:
                 n.grace_pd = new_data['node_down_grace_pd']
                 n.save()
@@ -896,7 +932,7 @@ class PreferencesForm(GenericForm):
         # If there already was a subscription, get it and update it or delete
         # it depending on the current value.
         if old_data['get_version']:
-            v = VersionSub.objects.get(subscriber = subscriber)
+            v = VersionSub.objects.get(subscriber = self.user)
             if new_data['get_version']:
                 v.notify_type = new_data['version_type']
                 v.save()
@@ -905,14 +941,14 @@ class PreferencesForm(GenericForm):
         # If there wasn't a subscription before and it is checked now, then 
         # make one.
         elif new_data['get_version']:
-            v = VersionSub(subscriber=subscriber, 
+            v = VersionSub(subscriber=self.user, 
                     notify_type=new_data['version_type'])
             v.save()
 
         # If there already was a subscription, get it and update it or delete
         # it depending on the current value.
         if old_data['get_band_low']:
-            b = BandwidthSub.objects.get(subscriber = subscriber)
+            b = BandwidthSub.objects.get(subscriber = self.user)
             if new_data['get_band_low']:
                 b.threshold = new_data['band_low_threshold']
                 b.save()
@@ -921,18 +957,18 @@ class PreferencesForm(GenericForm):
         # If there wasn't a subscription before and it is checked now, then
         # make one.
         elif new_data['get_band_low']:
-            b = BandwidthSub(subscriber=subscriber,
+            b = BandwidthSub(subscriber=self.user,
                     threshold=new_data['band_low_threshold'])
             b.save()
 
         # If there already was a subscription, get it and delete it if it's no
         # longer selected.
         if old_data['get_t_shirt']:
-            t = TShirtSub.objects.get(subscriber = subscriber)
+            t = TShirtSub.objects.get(subscriber = self.user)
             if not new_data['get_t_shirt']:
                 t.delete()
         # If there wasn't a subscription before and it is checked now, then
         # make one.
         elif new_data['get_t_shirt']:
-            t = TShirtSub(subscriber=subscriber)
+            t = TShirtSub(subscriber=self.user)
             t.save()
