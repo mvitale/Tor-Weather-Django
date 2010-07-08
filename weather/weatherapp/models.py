@@ -226,7 +226,7 @@ class Subscriber(models.Model):
             data['node_down_grace_pd'] = n.grace_pd
         else:
             data['node_down_grace_pd'] = GenericForm._INIT_PREFIX + \
-                    str(GenericForm._INIT_NODE_DOWN_GRACE_PD)
+                    str(GenericForm._NODE_DOWN_GRACE_PD_INIT)
 
         data['get_version'] = self.has_version_sub()
         if data['get_version']:
@@ -241,7 +241,7 @@ class Subscriber(models.Model):
             data['band_low_threshold'] = b.threshold
         else:
             data['band_low_threshold'] = GenericForm._INIT_PREFIX + \
-                    str(GenericForm._INIT_BAND_LOW_THRESHOLD)
+                    str(GenericForm._BAND_LOW_THRESHOLD_INIT)
 
         data['get_t_shirt'] = self.has_t_shirt_sub()
 
@@ -507,28 +507,28 @@ class GenericForm(forms.Form):
     """The basic form class that is inherited by the SubscribeForm class
     and the PreferencesForm class.
    
-    @type _INIT_GET_NODE_DOWN: Bool
-    @cvar _INIT_GET_NODE_DOWN: The initial value of the get_node_down checkbox
+    @type _GET_NODE_DOWN_INIT: Bool
+    @cvar _GET_NODE_DOWN_INIT: The initial value of the get_node_down checkbox
         when the form is loaded.
-    @type _INIT_GET_VERSION: Bool
-    @cvar _INIT_GET_VERSION: The initial value of the get_version checkbox when
+    @type _GET_VERSION_INIT: Bool
+    @cvar _GET_VERSION_INIT: The initial value of the get_version checkbox when
         the form is loaded.
-    @type _INIT_GET_BAND_LOW: Bool
-    @cvar _INIT_GET_BAND_LOW: The initial value of the get_band_low checkbox
+    @type _GET_BANDLOW_INIT: Bool
+    @cvar _GET_BANDLOW_INIT: The initial value of the get_band_low checkbox
         when the form is loaded.
-    @type _INIT_NODE_DOWN_GRACE_PD: int
-    @cvar _INIT_NODE_DOWN_GRACE_PD: The default initial node down grace pd (1 
+    @type _NODE_DOWN_GRACE_PD_INIT: int
+    @cvar _NODE_DOWN_GRACE_PD_INIT: The default initial node down grace pd (1 
         hr)
-    @type _MAX_NODE_DOWN_GRACE_PD: int
-    @cvar _MAX_NODE_DOWN_GRACE_PD: The maximum node down grace period in hours
-    @type _MIN_NODE_DOWN_GRACE_PD: int
-    @cvar _MIN_NODE_DOWN_GRACE_PD: The minimum node down grace period in hours
-    @type _INIT_BAND_LOW_THRESHOLD: int
-    @cvar _INIT_BAND_LOW_THRESHOLD: The initial low bandwidth threshold (kb/s)
-    @type _MIN_BAND_LOW_THRESHOLD: int
-    @cvar _MIN_BAND_LOW_THRESHOLD: The minimum low bandwidth threshold (kb/s)
-    @type _MAX_BAND_LOW_THRESHOLD: int
-    @cvar _MAX_BAND_LOW_THRESHOLD: The maximum low bandwidth threshold (KB/s)
+    @type _NODE_DOWN_GRACE_PD_MAX: int
+    @cvar _NODE_DOWN_GRACE_PD_MAX: The maximum node down grace period in hours
+    @type _NODE_DOWN_GRACE_PD_MIN: int
+    @cvar _NODE_DOWN_GRACE_PD_MIN: The minimum node down grace period in hours
+    @type _BAND_LOW_THRESHOLD_INIT: int
+    @cvar _BAND_LOW_THRESHOLD_INIT: The initial low bandwidth threshold (kb/s)
+    @type _BAND_LOW_THRESHOLD_MIN: int
+    @cvar _BAND_LOW_THRESHOLD_MIN: The minimum low bandwidth threshold (kb/s)
+    @type _BAND_LOW_THERSHOLD_MAX: int
+    @cvar _BAND_LOW_THERSHOLD_MAX: The maximum low bandwidth threshold (KB/s)
     @type _INIT_PREFIX: str
     @cvar _INIT_PREFIX: The prefix for strings that display before user has
         entered data.
@@ -566,68 +566,91 @@ class GenericForm(forms.Form):
     # NOTE: Most places inherit the min, max, and default values for fields
     # from here, but one notable exception is in the javascript file when
     # checking if textboxes haven't been altered.
-    _INIT_GET_NODE_DOWN = True
-    _INIT_GET_VERSION = False
-    _INIT_GET_BAND_LOW = False
-    _INIT_NODE_DOWN_GRACE_PD = 1
-    _MAX_NODE_DOWN_GRACE_PD = 4500
-    _MIN_NODE_DOWN_GRACE_PD = 1
-    _INIT_BAND_LOW_THRESHOLD = 20
-    _MIN_BAND_LOW_THRESHOLD = 0
-    _MAX_BAND_LOW_THRESHOLD = 100000
+    _GET_NODE_DOWN_INIT = True
+    _GET_VERSION_INIT = False
+    _GET_BANDLOW_INIT = False
+    _NODE_DOWN_GRACE_PD_INIT = 1
+    _NODE_DOWN_GRACE_PD_MAX = 4500
+    _NODE_DOWN_GRACE_PD_MAX_DESC = ' (roughly six months)'
+    _NODE_DOWN_GRACE_PD_MIN = 1
+    _BAND_LOW_THRESHOLD_INIT = 20
+    _BAND_LOW_THRESHOLD_MIN = 0
+    _BAND_LOW_THRESHOLD_MAX = 100000
     _INIT_PREFIX = 'Default value is '
-    _VERSION_INFO = '<em>Recommended Updates:</em>  Emails when the router ' +\
-            'is not running the most up-to-date stable version of Tor. <br>' +\
-            '<em>Required Updates:</em>  Emails when the router is running ' +\
-            'an obsolete version of Tor.'
+    _VERSION_INFO = '<em>Recommended Updates:</em>  Emails when the router \
+            is not running the most up-to-date stable version of Tor. <br> \
+            <em>Required Updates:</em>  Emails when the router is running \
+            an obsolete version of Tor.'
+    _T_SHIRT_INFO = 'You must be the router\'s operator to claim your T-shirt.'
+    _NODE_DOWN_GRACE_PD_LABEL = 'How many hours of downtime before we send a \
+            notifcation?'
+    _NODE_DOWN_GRACE_PD_HELP_TEXT = 'Enter a value between ' + \
+            str(_NODE_DOWN_GRACE_PD_MIN) + ' and ' + \
+            str(_NODE_DOWN_GRACE_PD_MAX) + _NODE_DOWN_GRACE_PD_MAX_DESC
+    _VERSION_TYPE_LABEL = 'For what kind of updates would you like to be \
+            notified?'
+    _GET_VERSION_LABEL = 'Email me when the node\'s Tor version is out of date'
+    _GET_NODE_DOWN_LABEL = 'Email me when the node is down'
+    _GET_NODE_DOWN_ID = 'node-down-check'
+    _GET_VERSION_ID = 'version-check'
+    _VERSION_TYPE_CHOICE_1 = (u'UNRECOMMENDED', u'Recommended Updates')
+    _VERSION_TYPE_CHOICE_2 = (u'OBSOLETE', u'Required Updates')
+    _CLASS_SHORT = 'short-input'
+    _CLASS_DROPDOWN = 'dropdown-input'
+    _GET_BAND_LOW_LABEL = 'Email me when the router has low bandwidth capacity'
+    _GET_BAND_LOW_ID = 'band-low-check'
+    _BAND_LOW_THRESHOLD_LABEL = 'For what citical bandwidth, in kB/s, should \
+            we send notifications?'
+    _BAND_LOW_THRESHOLD_HELP_TEXT = 'Enter a value between ' + \
+            str(_BAND_LOW_THRESHOLD_MIN) + ' and ' + \
+            str(_BAND_LOW_THRESHOLD_MAX)
+    _T_SHIRT_URL = 'https://www.torproject.org/tshirt.html.en'
+    _GET_T_SHIRT_LABEL = 'Email me when my router has earned me a \
+            <a href="' + _T_SHIRT_URL + '">Tor t-shirt</a>'
+    _GET_T_SHIRT_ID = 't-shirt-check'
 
-    get_node_down = forms.BooleanField(initial=_INIT_GET_NODE_DOWN,
+
+    get_node_down = forms.BooleanField(initial=_GET_NODE_DOWN_INIT,
             required=False,
-            label='Email me when the node is down',
-            widget=forms.CheckboxInput(attrs={'id':'node-down-check'}))
+            label=_GET_NODE_DOWN_LABEL,
+            widget=forms.CheckboxInput(attrs={'id':_GET_NODE_DOWN_ID}))
     node_down_grace_pd = forms.IntegerField(
-            initial=_INIT_PREFIX + str(_INIT_NODE_DOWN_GRACE_PD),
+            initial=_INIT_PREFIX + str(_NODE_DOWN_GRACE_PD_INIT),
             required=False,
-            max_value=_MAX_NODE_DOWN_GRACE_PD,
-            min_value=_MIN_NODE_DOWN_GRACE_PD,
-            label='How many hours of downtime before \
-                       we send a notifcation?',
-            help_text='Enter a value between 1 and 4,500 (roughly six months)',
-            widget=forms.TextInput(attrs={'class':'short-input'}))
+            max_value=_NODE_DOWN_GRACE_PD_MAX,
+            min_value=_NODE_DOWN_GRACE_PD_MIN,
+            label=_NODE_DOWN_GRACE_PD_LABEL,
+            help_text=_NODE_DOWN_GRACE_PD_HELP_TEXT,
+            widget=forms.TextInput(attrs={'class':_CLASS_SHORT}))
     
-    get_version = forms.BooleanField(initial=_INIT_GET_VERSION,
+    get_version = forms.BooleanField(initial=_GET_VERSION_INIT,
             required=False,
-            label='Email me when the node\'s Tor version is out of date',
-            widget=forms.CheckboxInput(attrs={'id':'version-check'}))
+            label=_GET_VERSION_LABEL,
+            widget=forms.CheckboxInput(attrs={'id':_GET_VERSION_ID}))
     version_text = forms.BooleanField(required=False,
             label= _VERSION_INFO)
     version_type = forms.ChoiceField(required=False,
-            choices=((u'UNRECOMMENDED', u'Recommended Updates'),
-                     (u'OBSOLETE', u'Required Updates')),
-                label='For what kind of updates would you like to be \
-                        notified?',
-            widget=forms.Select(attrs={'class':'dropdown-input'}))
+            choices=(_VERSION_TYPE_CHOICE_1, _VERSION_TYPE_CHOICE_2),
+            label=_VERSION_TYPE_LABEL,
+            widget=forms.Select(attrs={'class':_CLASS_DROPDOWN}))
     
-    get_band_low = forms.BooleanField(initial=_INIT_GET_BAND_LOW,
+    get_band_low = forms.BooleanField(initial=_GET_BANDLOW_INIT,
             required=False,
-            label='Email me when the router has low bandwidth capacity',
-            widget=forms.CheckboxInput(attrs={'id':'band-low-check'}))
+            label=_GET_BAND_LOW_LABEL,
+            widget=forms.CheckboxInput(attrs={'id':_GET_BAND_LOW_ID}))
     band_low_threshold = forms.IntegerField(
-            initial=_INIT_PREFIX + str(_INIT_BAND_LOW_THRESHOLD),
-            required=False, max_value=_MAX_BAND_LOW_THRESHOLD,
-            min_value=_MIN_BAND_LOW_THRESHOLD, 
-            label='For what critical bandwidth, in kB/s, should we send \
-                   notifications?',
-            help_text='Enter a value between 0 and 100,000',
-            widget=forms.TextInput(attrs={'class':'short-input'}))
+            initial=_INIT_PREFIX + str(_BAND_LOW_THRESHOLD_INIT),
+            required=False, max_value=_BAND_LOW_THRESHOLD_MAX,
+            min_value=_BAND_LOW_THRESHOLD_MIN, 
+            label=_BAND_LOW_THRESHOLD_LABEL,
+            help_text=_BAND_LOW_THRESHOLD_HELP_TEXT,
+            widget=forms.TextInput(attrs={'class':_CLASS_SHORT}))
     
     get_t_shirt = forms.BooleanField(initial=False, required=False,
-            label='Email me when my router earned me a '+\
-                  '<a href="http://www.torproject.org/tshirt.html.en">'+\
-                  'Tor T-shirt</a>',
-            widget=forms.CheckboxInput(attrs={'id':'t-shirt-check'}))
+            label=_GET_T_SHIRT_LABEL,
+            widget=forms.CheckboxInput(attrs={'id':_GET_T_SHIRT_ID}))
     t_shirt_text = forms.BooleanField(required=False,
-            label='You must be the router\'s operator to claim your T-shirt.')
+            label=_T_SHIRT_INFO) 
 
     @staticmethod
     def clean_post_data(post_data):
@@ -655,16 +678,16 @@ class GenericForm(forms.Form):
         data = copy(post_data)
 
         if data['node_down_grace_pd'] == GenericForm._INIT_PREFIX + \
-                str(GenericForm._INIT_NODE_DOWN_GRACE_PD) \
+                str(GenericForm._NODE_DOWN_GRACE_PD_INIT) \
            or data['node_down_grace_pd'] == '' \
            or 'get_node_down' not in data:
-            data['node_down_grace_pd'] = GenericForm._INIT_NODE_DOWN_GRACE_PD
+            data['node_down_grace_pd'] = GenericForm._NODE_DOWN_GRACE_PD_INIT
 
         if data['band_low_threshold'] == GenericForm._INIT_PREFIX + \
-                str(GenericForm._INIT_BAND_LOW_THRESHOLD) \
+                str(GenericForm._BAND_LOW_THRESHOLD_INIT) \
            or data['band_low_threshold'] == '' \
            or 'get_band_low' not in data:
-            data['band_low_threshold'] = GenericForm._INIT_BAND_LOW_THRESHOLD  
+            data['band_low_threshold'] = GenericForm._BAND_LOW_THRESHOLD_INIT  
         
         return data
  
