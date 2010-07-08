@@ -87,15 +87,17 @@ def check_low_bandwidth(email_list):
     for sub in subs:
         fingerprint = sub.subscriber.router.fingerprint
         if sub.subscriber.confirmed:
-            if self.ctlutil.get_bandwidth(fingerprint) < sub.threshold and\
+            observed = self.ctlutil.get_bandwidth(fingerprint)
+            if observed < sub.threshold and\
             sub.emailed == False:
                 recipient = sub.subscriber.email
                 threshold = sub.threshold
                 unsubs_auth = sub.subscriber.unsubs_auth
                 pref_auth = sub.subscriber.pref_auth
 
-                email_list.append(emails.bandwidth_tuple(recipient, fingerprint,
-                                  threshold, unsubs_auth, pref_auth)) 
+                email_list.append(emails.bandwidth_tuple(recipient, 
+                                  fingerprint, observed, threshold,
+                                  unsubs_auth, pref_auth)) 
 
                 sub.emailed = True
 
