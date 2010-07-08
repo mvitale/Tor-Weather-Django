@@ -57,6 +57,9 @@
 				<label for="band_low_threshold" class="block">{{ form.band_low_threshold.label }}</label>
 				{% for error in form.band_low_threshold.errors %}<span class="form-error">{{ error }}</span>{% endfor %}
 				{{ form.band_low_threshold }}
+				<span class="help-text after-short">
+					<em>{{ form.band_low_threshold.help_text }}</em>
+				</span>
 			</div>
 		</div>
 	</div>
