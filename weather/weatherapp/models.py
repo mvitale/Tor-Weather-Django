@@ -8,16 +8,14 @@ and change preferences pages.
 from datetime import datetime
 import base64
 import os
+import re
+from copy import copy
 
 import emails
 from config import url_helper
 
 from django.db import models
 from django import forms
-
-from copy import copy
-
-import re
 
 class Router(models.Model):
     """A model that stores information about every router on the Tor network.
@@ -42,7 +40,7 @@ class Router(models.Model):
     """
 
     fingerprint = models.CharField(max_length=40, unique=True)
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, default = "Unnamed")
     welcomed = models.BooleanField(default=False)
     last_seen = models.DateTimeField(default=datetime.now)
     up = models.BooleanField(default=True)
@@ -213,7 +211,7 @@ class Subscriber(models.Model):
         and returns a dictionary of the settings of those subscriptions. The
         dictionary contains entries for all fields of all subscriptions
         subscribed to by the subscriber, but will not contain entries for
-        fields of subscriptions not subscribed to (except fo the "get_xxx"
+        fields of subscriptions not subscribed to (except for the "get_xxx"
         fields, which will always be defined for every subscription type).
 
         @rtype: Dict {str: str}
