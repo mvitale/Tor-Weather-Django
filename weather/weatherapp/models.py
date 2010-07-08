@@ -17,6 +17,8 @@ from django import forms
 
 from copy import copy
 
+import re
+
 class Router(models.Model):
     """A model that stores information about every router on the Tor network.
     If a router hasn't been seen on the network for at least one year, it is
@@ -581,7 +583,7 @@ class GenericForm(forms.Form):
             is not running the most up-to-date stable version of Tor. <br> \
             <em>Required Updates:</em>  Emails when the router is running \
             an obsolete version of Tor.'
-    _T_SHIRT_INFO = 'You must be the router\'s operator to claim your T-shirt.'
+    _T_SHIRT_INFO = '<em>Note:</em> You must be the router\'s operator to claim your T-shirt.'
     _NODE_DOWN_GRACE_PD_LABEL = 'How many hours of downtime before we send a \
             notifcation?'
     _NODE_DOWN_GRACE_PD_HELP_TEXT = 'Enter a value between ' + \
@@ -848,6 +850,25 @@ class PreferencesForm(GenericForm):
     (i.e. if they haven't selected a subscription type, the box for that field 
     is unchecked). The PreferencesForm form inherits L{GenericForm}.
     """
+    
+    _USER_INFO = 'Preferences for <strong>%s</strong> following router \
+            <strong>%s</strong> (with fingerprint <strong>%s</strong>)'
+    user_text = forms.BooleanField(required=False,
+            label=_USER_INFO)
+    
+    def __init__(self, user, data = None):
+        if data == None:
+            super(GenericForm, self).__init__(initial=user.get_preferences())
+        else:
+            super(GenericForm, self).__init__(data)
+        
+        self.user = user
+        fingerprint_ = str(self.user.router.fingerprint)
+        regex = r'(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)\
+                  (\d\d\d\d)(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)'
+        fingerprint_groups = re.match(regex, fingerprint).groups()
+        self.user_info = PreferencesForm._USER_INFO % (self.user.email, \
+                self.user.router.name, self.user.router.fingerprint)
 
     def change_subscriptions(self, subscriber, old_data, new_data):
         """Change the subscriptions and options if they are specified.

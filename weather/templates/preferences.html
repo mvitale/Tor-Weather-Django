@@ -12,6 +12,10 @@ Tor Weather - Preferences
 <form method="post" action="/preferences/{{ pref_auth }}/"> {% csrf_token %}
 {% endblock form-tag %}
 
+{% block user-info %}
+<div id="pref-user-info">{{ form.user_info|safe }}</div>
+{% endblock user-info %}
+
 {% block submit-button %}
 <input class="submit-button" type="submit" value="Save Preferences" />
 {% endblock submit-button %}
