@@ -19,10 +19,6 @@ h1 {
 	border-bottom: 1px solid black;
 }
 
-h2 {
-	font-size: 18px;
-}
-
 div.footer {
 	padding-top: 5px;
 	margin-top: 25px;
@@ -146,5 +142,11 @@ span.more-info-text {
 
 span#more-info {
 	margin-left: 5px;
+}
+
+div.license {
+	text-align: center;
+	font-size: 0.8em;
+	margin-top: 20px;
 }
 

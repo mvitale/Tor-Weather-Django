@@ -14,13 +14,13 @@ Tor Weather - Notification Specs
 	<p>
 	To determine weather a node is offline, Weather uses a local TorCtl process to search for a consensus document for the node in question using the fingerprint provided by the user. If there is no consensus document for the node and there is no hibernating flag in the node's descriptor file, it is considered down. An email notification is sent when the node is down for the grace period specified by the user.
 	
-	<br><br>Since descriptor files generally are not updated as often as consensus documents, we won't be able to immediately notify node operators if their relay goes down during hibernation. Weather will assume the node is still hibernating for up to 12 hours, since descriptor files are updated immediately upon entering hibernation but can take up to 12 hours to disappear once a router is diconnected. 
+	<br /><br />Since descriptor files generally are not updated as often as consensus documents, we won't be able to immediately notify node operators if their relay goes down during hibernation. Weather will assume the node is still hibernating for up to 12 hours, since descriptor files are updated immediately upon entering hibernation but can take up to 12 hours to disappear once a router is diconnected. 
 	</p>
 
 	<h2>Version Notifications</h2>
 	<p>
 	A list of recommended version numbers is obtained via communication with TorCtl. The router's current version of Tor, also obtained via TorCtl, is compared to the list to determine the status of the router's version. The version types are implemented as follows: 
-	<br>
+	<br />
 	<ul>
 		<li><em>Recommended</em>: With this option, notifications are sent if the router's version of Tor is not the most recent, non-alpha/beta version of Tor in the list of recommended versions. This notification type is for users who want to keep their router up-to-date.</li> 
 		<li><em>Required</em>: Notifications are sent if the router's version of Tor is not on the list of recommended versions. Any version not on the list is considered to be obsolete, and an update is critical. This notification type is for users who only want to update when absolutely necessary.</li>
@@ -30,9 +30,9 @@ Tor Weather - Notification Specs
 	<h2>Low Bandwidth Notification</h2>
 	<p>
 	The low bandwidth notification is for relay operators who want to know if their bandwidth capacity is below a certain critical threshold. The default threshold is 20 kB/s, which is the minimum bandwidth contribution to the network. 
-	<br><br>
+	<br /><br />
 	Bandwidth is determined using the observed bandwidth field from the router's descriptor file. According to the Tor <a href="https://svn.torproject.org/svn/tor/trunk/doc/spec/dir-spec.txt">directory specifications</a>, "the 'observed' value is an estimate of the capacity this server can handle. The server remembers the max bandwidth sustained output over any ten second period in the past day, and another sustained input. The 'observed' value is the lesser of these two numbers." As is, this implementation doesn't provide a real-time view of a router's bandwidth capacity, especially since descriptor files are only republished if the relay operator changes his or her configurations or if the observed bandwidth changes by a factor of 2.
-	<br><br>
+	<br /><br />
 	Rather than letting users know as soon as their bandwidth crashes below a certain threshold, this notification type is for users who want to know if their bandwidth capacity cannot get <em>above</em> the threshold for a sustained period (generally about 24 hours). 
 	</p>
 
