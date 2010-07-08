@@ -33,8 +33,11 @@ def subscribe(request):
     redirects to the pending page if all of the fields were acceptable.
     If the user is already subscribed to that Tor node, they are sent to 
     an error page."""
-    
-    if request.method == 'POST':
+   
+    if request.method != 'POST':
+        # User hasn't submitted info, so just display empty subscribe form.
+        form = SubscribeForm()
+    else:
         # Handle the submitted form, with the POST data cleaned by
         # clean_post_data, which replaces 'Default value is ---' with the
         # integer value so that to_python() methods don't get upset.
@@ -64,9 +67,7 @@ def subscribe(request):
                 # Redirect the user to the pending page.
                 url_extension = url_helper.get_pending_ext(confirm_auth)
                 return HttpResponseRedirect(url_extension)
-    else:
-        # User hasn't submitted info, so just display empty subscribe form.
-        form = SubscribeForm()
+    
     c = {'form' : form}
 
     # For pages with POST methods, a Cross Site Request Forgery protection
@@ -193,7 +194,7 @@ def preferences(request, pref_auth):
         return HttpResponseRedirect(error_extension)
 
     if request.method != "POST":
-        form = PreferencesForm(user.get_preferences())
+        form = PreferencesForm(initial=user.get_preferences())
     else:
         # Handle the submitted form, with the POST data cleaned by 
         # clean_post_data, which replaces 'Default value is ---' with the 
