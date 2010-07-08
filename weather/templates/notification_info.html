@@ -1,33 +1,49 @@
 {% extends "base.html" %}
 
 {% block header %}
-Tor Weather - Technical Notification Specification
+Tor Weather - Notification Specs
 {% endblock %}
 
 {% block title %}
-Tor Weather - Technical Notification Specification
+Tor Weather - Notification Specs
 {% endblock %}
 
 {% block content %}
 <div id="notification-info-section">
 	<h2>Node Down Notifications</h2>
 	<p>
-		To determine weather a node is offline, Weather uses a local TorCtl process to search for a consensus document for the node in question. If there is no consensus document for the node, then it is not participating in the Tor network. However, it may be hibernating, so Weather also uses a local TorCtl process to search for the node's descriptor file, which contains a 'hibernating' flag. If this flag is on, then Weather assumes the node is hibernating, and so decides that it is online. In all other cases (the descriptor file says the node is not hibernating, or a descriptor file is not available), the node is determined to be offline. Since descriptor files are not always updated frequently, there is some possibility for error in this method; if a node goes into hibernation, and then is disconnected, Weather will assume it is still hibernating for up to 18 hours, since descriptor files are updated immediately upon entering hibernation, but can take up to 18 hours to disappear once a router is diconnected.
+	To determine weather a node is offline, Weather uses a local TorCtl process to search for a consensus document for the node in question using the fingerprint provided by the user. If there is no consensus document for the node and there is no hibernating flag in the node's descriptor file, it is considered down. An email notification is sent when the node is down for the grace period specified by the user.
+	
+	<br><br>Since descriptor files generally are not updated as often as consensus documents, we won't be able to immediately notify node operators if their relay goes down during hibernation. Weather will assume the node is still hibernating for up to 12 hours, since descriptor files are updated immediately upon entering hibernation but can take up to 12 hours to disappear once a router is diconnected. 
 	</p>
 
 	<h2>Version Notifications</h2>
 	<p>
-		Hi.
+	A list of recommended version numbers is obtained via communication with TorCtl. The router's current version of Tor, also obtained via TorCtl, is compared to the list to determine the status of the router's version. The version types are implemented as follows: 
+	<br>
+	<ul>
+		<li><em>Recommended</em>: With this option, notifications are sent if the router's version of Tor is not the most recent, non-alpha/beta version of Tor in the list of recommended versions. This notification type is for users who want to keep their router up-to-date.</li> 
+		<li><em>Required</em>: Notifications are sent if the router's version of Tor is not on the list of recommended versions. Any version not on the list is considered to be obsolete, and an update is critical. This notification type is for users who only want to update when absolutely necessary.</li>
+	</ul>
 	</p>
 
 	<h2>Low Bandwidth Notification</h2>
 	<p>
-		Hi.
+	The low bandwidth notification is for relay operators who want to know if their bandwidth capacity is below a certain critical threshold. The default threshold is 20 kB/s, which is the minimum bandwidth contribution to the network. 
+	<br><br>
+	Bandwidth is determined using the observed bandwidth field from the router's descriptor file. According to the Tor <a href="https://svn.torproject.org/svn/tor/trunk/doc/spec/dir-spec.txt">directory specifications</a>, "the 'observed' value is an estimate of the capacity this server can handle. The server remembers the max bandwidth sustained output over any ten second period in the past day, and another sustained input. The 'observed' value is the lesser of these two numbers." As is, this implementation doesn't provide a real-time view of a router's bandwidth capacity, especially since descriptor files are only republished if the relay operator changes his or her configurations or if the observed bandwidth changes by a factor of 2.
+	<br><br>
+	Rather than letting users know as soon as their bandwidth crashes below a certain threshold, this notification type is for users who want to know if their bandwidth capacity cannot get <em>above</em> the threshold for a sustained period (generally about 24 hours). 
 	</p>
 
 	<h2>T-Shirt Notification</h2>
 	<p>
-		Hi.
+	A <a href="http://www.torproject.org/tshirt.html">Tor T-shirt</a> may be earned for running a router under two conditions:
+	<ul>
+		<li>Operate a relay that has been running for two months and averages 500 kB/s.</li>
+		<li>Operate a relay that has been running for two months, averages 100 kB/s of traffic, and allows exits to port 80.</li>
+	</ul>
+	If a user signs up for T-shirt notifications, their average bandwidth is calculated using the observed bandwidth field reported in their descriptor file (see the Low Bandwidth Notification information about this field). If the router is up for two months and its average bandwidth is at least 500 kB/s (or 100 kB/s for exit nodes), a notification is sent. This notification type should only be used by relay operators who may rightfully claim their T-shirt. 
 	</p>
 </div>
 {% endblock %}
