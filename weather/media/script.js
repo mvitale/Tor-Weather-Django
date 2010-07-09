@@ -42,14 +42,6 @@ $(document).ready(function() {
 	showDefault("div#node-down-section", 1);
 	showDefault("div#band-low-section", 20);
 
-	// Initially hides the 'more info' text and displays a link, then sets
-	// that link to display the text upon click (and hide itself). Without
-	// javascript, the more info text will be shown and the link will be
-	// hidden.
-	swapText("span#version-more-info");
-	swapText("span#band-low-more-info");
-	swapText("span#t-shirt-more-info");
-
 	$("#more-info a").hover(function() {
 		$("#more-info span").toggle();
 	});
