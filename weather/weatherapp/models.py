@@ -567,48 +567,53 @@ class GenericForm(forms.Form):
     # from here, but one notable exception is in the javascript file when
     # checking if textboxes haven't been altered.
     _GET_NODE_DOWN_INIT = True
-    _GET_VERSION_INIT = False
-    _GET_BANDLOW_INIT = False
+    _GET_NODE_DOWN_LABEL = 'Email me when the node is down'
+    _GET_NODE_DOWN_ID = 'node-down-check'
     _NODE_DOWN_GRACE_PD_INIT = 1
     _NODE_DOWN_GRACE_PD_MAX = 4500
     _NODE_DOWN_GRACE_PD_MAX_DESC = ' (roughly six months)'
     _NODE_DOWN_GRACE_PD_MIN = 1
-    _BAND_LOW_THRESHOLD_INIT = 20
-    _BAND_LOW_THRESHOLD_MIN = 0
-    _BAND_LOW_THRESHOLD_MAX = 100000
-    _INIT_PREFIX = 'Default value is '
-    _VERSION_INFO = '<em>Recommended Updates:</em>  Emails when the router \
-            is not running the most up-to-date stable version of Tor. <br> \
-            <em>Required Updates:</em>  Emails when the router is running \
-            an obsolete version of Tor.'
-    _T_SHIRT_INFO = '<em>Note:</em> You must be the router\'s operator to claim your T-shirt.'
     _NODE_DOWN_GRACE_PD_LABEL = 'How many hours of downtime before we send a \
             notifcation?'
     _NODE_DOWN_GRACE_PD_HELP_TEXT = 'Enter a value between ' + \
             str(_NODE_DOWN_GRACE_PD_MIN) + ' and ' + \
             str(_NODE_DOWN_GRACE_PD_MAX) + _NODE_DOWN_GRACE_PD_MAX_DESC
+
+    _GET_VERSION_INIT = False
+    _GET_VERSION_LABEL = 'Email me when the node\'s Tor version is out of date'
+    _GET_VERSION_ID = 'version-check'
     _VERSION_TYPE_LABEL = 'For what kind of updates would you like to be \
             notified?'
-    _GET_VERSION_LABEL = 'Email me when the node\'s Tor version is out of date'
-    _GET_NODE_DOWN_LABEL = 'Email me when the node is down'
-    _GET_NODE_DOWN_ID = 'node-down-check'
-    _GET_VERSION_ID = 'version-check'
     _VERSION_TYPE_CHOICE_1 = (u'UNRECOMMENDED', u'Recommended Updates')
     _VERSION_TYPE_CHOICE_2 = (u'OBSOLETE', u'Required Updates')
-    _CLASS_SHORT = 'short-input'
-    _CLASS_DROPDOWN = 'dropdown-input'
+    _VERSION_INFO = '<em>Recommended Updates:</em>  Emails when the router \
+            is not running the most up-to-date stable version of Tor. <br> \
+            <em>Required Updates:</em>  Emails when the router is running \
+            an obsolete version of Tor.'
+
+    _GET_BAND_LOW_INIT = False
     _GET_BAND_LOW_LABEL = 'Email me when the router has low bandwidth capacity'
     _GET_BAND_LOW_ID = 'band-low-check'
+    _BAND_LOW_THRESHOLD_INIT = 20
+    _BAND_LOW_THRESHOLD_MIN = 0
+    _BAND_LOW_THRESHOLD_MAX = 100000
     _BAND_LOW_THRESHOLD_LABEL = 'For what citical bandwidth, in kB/s, should \
             we send notifications?'
     _BAND_LOW_THRESHOLD_HELP_TEXT = 'Enter a value between ' + \
             str(_BAND_LOW_THRESHOLD_MIN) + ' and ' + \
             str(_BAND_LOW_THRESHOLD_MAX)
-    _T_SHIRT_URL = 'https://www.torproject.org/tshirt.html.en'
+   
+    _GET_T_SHIRT_INIT = False
+    _GET_T_SHIRT_ID = 't-shirt-check'
     _GET_T_SHIRT_LABEL = 'Email me when my router has earned me a \
             <a href="' + _T_SHIRT_URL + '">Tor t-shirt</a>'
-    _GET_T_SHIRT_ID = 't-shirt-check'
+    _T_SHIRT_URL = 'https://www.torproject.org/tshirt.html.en'
+    _T_SHIRT_INFO = '<em>Note:</em> You must be the router\'s operator to \
+            claim your T-shirt.'
 
+    _INIT_PREFIX = 'Default value is '
+    _CLASS_SHORT = 'short-input'
+    _CLASS_DROPDOWN = 'dropdown-input'
 
     get_node_down = forms.BooleanField(initial=_GET_NODE_DOWN_INIT,
             required=False,
@@ -634,7 +639,7 @@ class GenericForm(forms.Form):
             label=_VERSION_TYPE_LABEL,
             widget=forms.Select(attrs={'class':_CLASS_DROPDOWN}))
     
-    get_band_low = forms.BooleanField(initial=_GET_BANDLOW_INIT,
+    get_band_low = forms.BooleanField(initial=_GET_BAND_LOW_INIT,
             required=False,
             label=_GET_BAND_LOW_LABEL,
             widget=forms.CheckboxInput(attrs={'id':_GET_BAND_LOW_ID}))
@@ -646,7 +651,7 @@ class GenericForm(forms.Form):
             help_text=_BAND_LOW_THRESHOLD_HELP_TEXT,
             widget=forms.TextInput(attrs={'class':_CLASS_SHORT}))
     
-    get_t_shirt = forms.BooleanField(initial=False, required=False,
+    get_t_shirt = forms.BooleanField(initial=_GET_T_SHIRT_INIT, required=False,
             label=_GET_T_SHIRT_LABEL,
             widget=forms.CheckboxInput(attrs={'id':_GET_T_SHIRT_ID}))
     t_shirt_text = forms.BooleanField(required=False,
