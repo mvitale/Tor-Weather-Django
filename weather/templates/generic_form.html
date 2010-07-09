@@ -15,7 +15,7 @@
 
 {% for error in form.non_field_errors %}<span class="big-form-error">{{ error }}</span>{% endfor %}
 
-<div id="notification-info">
+<div class="notification-info">
 	<div class="notification-section">
 		{{ form.get_node_down }}
 		<label for="id_get_node_down">{{ form.get_node_down.label }}</label>
@@ -69,7 +69,7 @@
 		<label for="get_t_shirt">{{ form.get_t_shirt.label|safe }}</label>
 		<div class="collapse-section" id="t-shirt-section">
 			<div class="section-help-text">
-				{{ form.t_shirt_text.label }}
+				{{ form.t_shirt_text.label|safe }}
 			</div>
 		</div>
 	</div>
