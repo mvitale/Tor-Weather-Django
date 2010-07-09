@@ -21,10 +21,6 @@ from django.http import HttpResponseRedirect, HttpRequest, Http404
 from django.http import HttpResponse
 from weather.weatherapp import error_messages
 
-# TO DO --------------------------------------------------------- EXTRA FEATURE
-# MOVE THIS TO A MORE GENERAL LOCATION ----------------------------------------
-baseURL = "http://localhost:8000"
-
 def home(request):
     """Displays a home page for Tor Weather with basic information about
     the application."""
@@ -37,8 +33,11 @@ def subscribe(request):
     redirects to the pending page if all of the fields were acceptable.
     If the user is already subscribed to that Tor node, they are sent to 
     an error page."""
-    
-    if request.method == 'POST':
+   
+    if request.method != 'POST':
+        # User hasn't submitted info, so just display empty subscribe form.
+        form = SubscribeForm()
+    else:
         # Handle the submitted form, with the POST data cleaned by
         # clean_post_data, which replaces 'Default value is ---' with the
         # integer value so that to_python() methods don't get upset.
@@ -68,9 +67,7 @@ def subscribe(request):
                 # Redirect the user to the pending page.
                 url_extension = url_helper.get_pending_ext(confirm_auth)
                 return HttpResponseRedirect(url_extension)
-    else:
-        # User hasn't submitted info, so just display empty subscribe form.
-        form = SubscribeForm()
+    
     c = {'form' : form}
 
     # For pages with POST methods, a Cross Site Request Forgery protection
@@ -196,25 +193,24 @@ def preferences(request, pref_auth):
                                              user.confirm_auth)
         return HttpResponseRedirect(error_extension)
 
-    if request.method == "POST":
+    if request.method != "POST":
+        form = PreferencesForm(user)
+    else:
         # Handle the submitted form, with the POST data cleaned by 
         # clean_post_data, which replaces 'Default value is ---' with the 
         # integer value, so that to_python() methods don't get upset.
-        form = PreferencesForm(GenericForm.clean_post_data(request.POST))
+        form = PreferencesForm(user, GenericForm.clean_post_data(request.POST))
 
         if form.is_valid():
             # Creates/changes/deletes subscriptions and subscription info
             # based on form data
-            form.change_subscriptions(user)
+            form.change_subscriptions(user, user.get_preferences(), 
+                                      form.cleaned_data)
             
             # Redirect the user to the pending page
             url_extension = url_helper.get_confirm_pref_ext(pref_auth)
             return HttpResponseRedirect(url_extension) 
 
-    else:
-        form = PreferencesForm()
-        print form.set_initial_info(user)
-    
     fields = {'pref_auth': pref_auth, 'fingerprint': user.router.fingerprint,
          'form': form}
     fields.update(csrf(request))
