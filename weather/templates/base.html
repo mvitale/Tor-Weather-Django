@@ -35,18 +35,17 @@
 
 			{% block footer %}
 			<div class="footer">
-				<p>
-					<em>
-						{% block footer-text %}
-						Please note that while we won't ever intentionally publish them, the address/node pairs sent to this server are not protected against SMTP eavesdropping, hacking, or lawyers.
-						{% endblock footer-text %}
-					</em>
+				<p id="weather-legal">
+					Please note that while we won't ever intentionally publish them, the address/node pairs sent to this server are not protected against SMTP eavesdropping, hacking, or lawyers.
 				</p>
-			</div>
-			<div class="license">
-				"Tor" and the "Onion Logo" are <a href="https://www.torproject.org/trademark-faq.html.en">registered trademarks</a> of The Tor Project, Inc.
-				<br />
-				Content on this site is licensed under a <a href="http://creativecommons.org/licenses/by/3.0/us/">Creative Commons Attribution 3.0 United States License</a>, unless otherwise noted. 
+
+				<p id="trademark">
+					"Tor" and the "Onion Logo" are <a href="https://www.torproject.org/trademark-faq.html.en">registered trademarks</a> of The Tor Project, Inc.
+				</p>
+
+				<p id="creative-commons">
+					Content on this site is licensed under a <a href="http://creativecommons.org/licenses/by/3.0/us/">Creative Commons Attribution 3.0 United States License</a>, unless otherwise noted.
+				</p>
 			</div>
 			{% endblock footer %}
 		</div>

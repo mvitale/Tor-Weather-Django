@@ -1,173 +1,153 @@
-fieldset {
-	border: none;
-}
-
-#user-info div {
-	float: left;
-	margin-right: 15px;
-}
-
-
-div.center {
+.center {
 	max-width: 760px;
 }
 
-div.main-column {
-	padding-right: 10px;
-}
+	.main-column {
+		padding: 15px 0 10px 10px;
+	}
+	
+		h1 {
+			margin-top: 5px;
+			padding-bottom: 10px;
+			border-bottom: 1px solid black;
+		}
 
-a#sign-up-link {
-	font-size: 20px;
-	font-weight: bold;
-	margin-bottom: 10px;
-	display: block;
-}	
+		#sign-up-link {
+			font-size: 20px;
+			font-weight: bold;
+			margin-bottom: 10px;
+			display: block;
+		}	
 
-h1 {
-	margin-top: 5px;
-	padding-bottom: 10px;
-	border-bottom: 1px solid black;
-}
+		form {
+			font-size: 14px;
+		}
+			
+			p {
+				margin: 0 0 2px 0;
+			}
 
-div.footer {
-	padding-top: 5px;
-	margin-top: 25px;
-	border-top: 1px solid rgb(100,100,100);
-}
+			input {
+				clear: both;
+			}
 
-div.footer p {
-	color: rgb(100,100,100);
-}
+			fieldset {
+				border: none;
+				padding: 0 0 0 0;
+				margin: 0 0 0 0;
+				font-size: 14px;
+			}
 
-div.notification-section {
-	clear: both;
-}
+				#user-info {
+					margin-bottom: 10px;
+				}
 
-input.email-input {
-	margin-top: 2px;
-	margin-bottom: 3px;
-	width: 185px;
-}
+				#user-info span {
+					font-weight: bold;
+				}
 
-input.short-input {
-	margin-top: 2px;
-	margin-right: 5px;
-	width: 100px;
-	float: left;
-}
+				#user-info div {
+					float: left;
+					margin-right: 15px;
+				}
 
-span.after-short {
-	padding-top: 4px;
-	margin-left: 105px;
-	display: block;
-}
+				#user-info label {
+					display: block;
+				}
 
-select.dropdown-input {
-	margin-top: 5px;
-	margin-right: 5px;
-	margin-bottom: 8px;
-	width: 149px;
-	float: left;
-}
+			.email-input {
+				margin: 2px 5px 3px 0;
+				width: 185px;
+			}
 
-span.after-dropdown {
-	padding-top: 4px;
-	margin-left: 154px;
-	display: block;
-}
+			.short-input {
+				margin: 2px 5px 3px 0;
+				width: 100px;
+				float: left;
+			}
+			
+			.long-input {
+				margin: 2px 5px 3px 0;
+				width: 385px;
+			}
 
-span.help-text {
-	padding-top: 3px;
-	display: block;
-}
+			.dropdown-input {
+				margin: 2px 5px 3px 0;
+				width: 149px;
+			}
 
-span.help-text em {
-	color: rgb(100, 100, 100);
-}
+			.form-error {
+				margin: 2px 0 1px 0;
+				color: red;
+				display: block;
+			}
 
-input.long-input {
-	margin-top: 2px;
-	margin-bottom: 3px;
-	width: 385px;
-}
+				#general-form-error {
+					margin: 0 0 10px 0;
+					font-weight: bold;
+					display: block;
+				}
 
-head#preferences-page input.long-input {
-	width: 300px;
-}
+			.extra-options {
+				overflow: auto;
+				margin: 3px 0 4px 26px;
+			}	
 
-#subscriber-info {
-	margin-bottom: 10px;
-	overflow: auto;
-}
+				.help-text {
+					padding-top: 3px;
+					display: block;
+					color: rgb(100, 100, 100);
+				}
 
-div.subscriber-info span.user-field {
-	font-weight: bold;
-}
+				.extra-options label {
+					display: block;
+				}
 
-div.collapse-section {
-	margin-left: 26px;
-	margin-top: 6px;
-	margin-bottom: 8px;
-}
+				.after-short {
+					padding: 4px 0 0 0;
+					margin: 0 0 0 105px;
+					display: block;
+				}
 
-span.form-error {
-	margin-top: 2px;
-	color: red;
-	display: block;
-}
+				.extra-options div {
+					margin: 3px 0 4px 0;
+				}
 
-div.section-help-text {
-	margin-bottom: 5px;
-}
+				.extra-options p {
+					margin: 0 0 0 0;
+				}
 
-div.field-row {
-	margin-bottom: 5px;
-}
+			#submit-button {
+				font-size: 18px;
+				margin-top: 25px;
+			}
+			
+			#more-info {
+				margin-left: 5px;
+			}
 
-span.big-form-error {
-	padding-top: 10px;
-	color: red;
-	display: block;
-	font-weight: bold;
-}
+		.footer {
+			padding: 5px 0 0 0;
+			margin: 25px 0 0 0;
+			border-top: 1px solid rgb(100,100,100);
+			color: rgb(100, 100, 100);
+		}
 
-input#submit-button {
-	font-size: 18px;
-	margin-top: 25px;
-}
+			#weather-legal {
+				font-style: italic;
+				font-size: 14px;
+				margin: 0 0 10px 0;
+			}
 
-.block {
-	display: block;
-	clear: both;
-}
+			#trademark {
+				text-align: center;
+				font-size: 12px;
+				margin: 0 0 1px 0;
+			}
 
-form {
-	font-size: 14px;
-}
-
-
-
-a.more-info-link {
-	display: none;
-	font-size: 12px;
-}
-
-span.more-info-text {
-	display: inline;
-}
-
-span#more-info {
-	margin-left: 5px;
-}
-
-div#pref-user-info {
-	font-size: 16px;
-	margin-bottom: 10px;
-}
-
-div.license {
-	text-align: center;
-	font-size: 0.8em;
-	margin-top: 20px;
-}
+			#creative-commons {
+				text-align: center;
+				font-size: 12px;
+				margin: 0 0 1px 0;
+			}
 
