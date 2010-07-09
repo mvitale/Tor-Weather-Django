@@ -13,67 +13,71 @@
 {% block user-info %}
 {% endblock user-info %}
 
-{% for error in form.non_field_errors %}<span class="big-form-error">{{ error }}</span>{% endfor %}
+{% block notification-info %}
 
-<div class="notification-info">
-	<div class="notification-section">
-		{{ form.get_node_down }}
-		<label for="id_get_node_down">{{ form.get_node_down.label }}</label>
-		<div class="collapse-section" id="node-down-section">
-			<div class="field-row" id="node-down-grace-pd-row">
-				<label for="id_node_down_grace_pd" class="block">{{ form.node_down_grace_pd.label }}</label>
-				{% for error in form.node_down_grace_pd.errors %}<span class="form-error">{{ error }}</span>{% endfor %}
-				{{ form.node_down_grace_pd }}
-				<span class="help-text after-short">
-					<em>{{ form.node_down_grace_pd.help_text }}</em>
-				</span>
-			</div>
-		</div>
+<fieldset id="notification-info">
+	{% for error in form.non_field_errors %}
+	<span class="big-form-error">{{ error }}</span>
+	{% endfor %}
+
+	{{ form.get_node_down }}
+	<label for="id_get_node_down">{{ form.get_node_down.label }}</label>
+	<div class="collapse-section" id="node-down-section">
+		<label for="id_node_down_grace_pd">
+			{{ form.node_down_grace_pd.label }}
+		</label>
+		{% for error in form.node_down_grace_pd.errors %}
+		<p class="form-error">
+			{{ error }}
+		</p>
+		{% endfor %}
+		{{ form.node_down_grace_pd }}
+		<em class="help-text after-short">
+			{{ form.node_down_grace_pd.help_text }}
+		</em>
 	</div>
 
-	<div class="notification-section">
-		{{ form.get_version }}
-		<label for="id_get_version">{{ form.get_version.label }}</label>
-		<div class="collapse-section" id="version-section">
-			<div class="section-help-text">
-				{{ form.version_text.label|safe }}
-			</div>
-			<div class="field-row" id="version-type-row">
-				<label for="id_version_type" class="block">{{ form.version_type.label }}</label>
-				{% for error in form.version_type.errors %}<span class="form-error">{{ error }}</span>{% endfor %}
-				{{ form.version_type }}
-			</div>
-		</div>
+	{{ form.get_version }}
+	<label for="id_get_version">{{ form.get_version.label }}</label>
+	<div class="collapse-section" id="version-section">
+		{{ form.version_text.label|safe }}
+		<label for="id_version_type">
+			{{ form.version_type.label }}
+		</label>
+		{% for error in form.version_type.errors %}
+		<p class="form-error">
+			{{ error }}
+		</p>
+		{% endfor %}
+		{{ form.version_type }}
 	</div>
 
-	<div class="notification-section">
-		{{ form.get_band_low }}
-		<label for="id_get_band_low">{{ form.get_band_low.label }}</label>
-		<div class="collapse-section" id="band-low-section">
-			<div class="section-help-text">
-				{{ form.band_low_text.label|safe }}
-			</div>
-			<div class="field-row" id="band-low-threshold-row">
-				<label for="band_low_threshold" class="block">{{ form.band_low_threshold.label }}</label>
-				{% for error in form.band_low_threshold.errors %}<span class="form-error">{{ error }}</span>{% endfor %}
-				{{ form.band_low_threshold }}
-				<span class="help-text after-short">
-					<em>{{ form.band_low_threshold.help_text }}</em>
-				</span>
-			</div>
-		</div>
+	{{ form.get_band_low }}
+	<label for="id_get_band_low">{{ form.get_band_low.label }}</label>
+	<div class="collapse-section" id="band-low-section">
+		{{ form.band_low_text.label|safe }}
+		<label for="id_band_low_threshold">
+			{{ form.band_low_threshold.label }}
+		</label>
+		{% for error in form.band_low_threshold.errors %}
+		<p class="form-error">
+			{{ error }}
+		</p>
+		{% endfor %}
+		{{ form.band_low_threshold }}
+		<em class="help-text after-dropdown">
+			{{ form.band_low_threshold.help_text }}
+		</em>
 	</div>
 
-	<div class="notification-section">
-		{{ form.get_t_shirt }}
-		<label for="get_t_shirt">{{ form.get_t_shirt.label|safe }}</label>
-		<div class="collapse-section" id="t-shirt-section">
-			<div class="section-help-text">
-				{{ form.t_shirt_text.label|safe }}
-			</div>
-		</div>
+	{{ form.get_t_shirt }}
+	<label for="id_get_t_shirt">{{ form.get_t_shirt.label|safe }}</label>
+	<div class="collapse-section" id="t-shirt-section">
+		{{ form.t_shirt_text.label|safe }}
 	</div>
-</div>
+</fieldset>
+
+{% endblock notification-info %}
 
 {% block submit-button %}
 {% endblock submit-button %}

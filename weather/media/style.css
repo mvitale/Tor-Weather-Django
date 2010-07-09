@@ -1,3 +1,13 @@
+fieldset {
+	border: none;
+}
+
+#user-info div {
+	float: left;
+	margin-right: 15px;
+}
+
+
 div.center {
 	max-width: 760px;
 }
@@ -85,8 +95,9 @@ head#preferences-page input.long-input {
 	width: 300px;
 }
 
-div.subscriber-info {
+#subscriber-info {
 	margin-bottom: 10px;
+	overflow: auto;
 }
 
 div.subscriber-info span.user-field {
@@ -120,7 +131,7 @@ span.big-form-error {
 	font-weight: bold;
 }
 
-input.submit-button {
+input#submit-button {
 	font-size: 18px;
 	margin-top: 25px;
 }
@@ -134,10 +145,7 @@ form {
 	font-size: 14px;
 }
 
-div.floater {
-	float: left;
-	margin-right: 15px;
-}
+
 
 a.more-info-link {
 	display: none;
