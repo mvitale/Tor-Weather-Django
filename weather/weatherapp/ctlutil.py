@@ -495,25 +495,25 @@ class CtlUtil:
             if line.startswith('contact '):
                 contact = contact + line
         clean_line = contact.replace('<', ' ').replace('>', ' ') 
-        email = re.search('[^ <]*@.*\.[^\n \)\(>]*', clean_line)
+        email = re.search('[^\s]+@.+\.[^\n\s\)\(]+', clean_line)
         if email == None:
-            email = re.search('[^\s]*(?:@|at|['+punct+'\s]*at['+punct+'\s]*' +
-            ').*\s(?:\.|dot|d0t|['+punct+']*dot['+punct+']*)\s[^\n\)\(]*',
-            clean_line, re.IGNORECASE)
+            email = re.search('[^\s]+['+punct+'\s]+at['+punct+'\s]+' +
+                    '.+['+punct+'\s]+dot['+punct+'\s]+[^\n\s\)\(]+',
+                    clean_line, re.IGNORECASE)
             if email == None:
-                email = re.search('[^\s]*(?:@|at|['+punct+'\s]at['+punct+
-                                '\s]).*\.[^\n\)\(]*', clean_line, 
+                email = re.search('[^\s]+(?:@|['+punct+'\s]at['+punct+
+                                '\s]).+\.[^\n\)\(]+', clean_line, 
                                                             re.IGNORECASE)
         if email == None:
-            logging.info("Couldn't parse an email address from:\n%s" %contact)
+            logging.info("Couldn't parse an email address from:\n%s" % contact)
             unparsable.write(contact + '\n')
             email = ""
 
         else:
             email = email.group()
             email = email.lower()
-            email = re.sub('['+punct+'\s]*at['+punct+'\s]*', '@', email)
-            email = re.sub('['+punct+'\s]*dot['+punct+'\s]*', '.', email)
+            email = re.sub('['+punct+'\s]+at['+punct+'\s]+', '@', email)
+            email = re.sub('['+punct+'\s]+dot['+punct+'\s]+', '.', email)
             email = email.replace(' d0t ', '.').replace(' hyphen ', '-').\
                     replace(' ', '')
 
