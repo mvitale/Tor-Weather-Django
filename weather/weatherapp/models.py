@@ -8,14 +8,14 @@ and change preferences pages.
 from datetime import datetime
 import base64
 import os
+import re
+from copy import copy
 
 import emails
 from config import url_helper
 
 from django.db import models
 from django import forms
-
-from copy import copy
 
 class Router(models.Model):
     """A model that stores information about every router on the Tor network.
@@ -40,7 +40,7 @@ class Router(models.Model):
     """
 
     fingerprint = models.CharField(max_length=40, unique=True)
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, default = "Unnamed")
     welcomed = models.BooleanField(default=False)
     last_seen = models.DateTimeField(default=datetime.now)
     up = models.BooleanField(default=True)
@@ -145,6 +145,107 @@ class Subscriber(models.Model):
         @return: The subscriber's email.
         """
         return self.email
+
+    def has_node_down_sub(self):
+        """Checks if this subscriber object has a node down subscription.
+
+        @rtype: Bool
+        @return: Whether a node down subscription exists for this subscriber.
+        """
+
+        try:
+            NodeDownSub.objects.get(subscriber = self)
+        except NodeDownSub.DoesNotExist:
+            return False
+        else:
+            return True
+
+    def has_version_sub(self):
+        """Checks if this subscriber object has a version subscription.
+        
+        @rtype: Bool
+        @return: Whether a version subscription exists for this subscriber.
+        """
+
+        try:
+            VersionSub.objects.get(subscriber = self)
+        except VersionSub.DoesNotExist:
+            return False
+        else:
+            return True
+
+    def has_bandwidth_sub(self):
+        """Checks if this subscriber object has a bandwidth subscription.
+
+        @rtype: Bool
+        @return: Whether a bandwidth subscription exists for this subscriber.
+        """
+
+        try:
+            BandwidthSub.objects.get(subscriber = self)
+        except BandwidthSub.DoesNotExist:
+            return False
+        else:
+            return True
+
+    def has_t_shirt_sub(self):
+        """Checks if this subscriber object has a t-shirt subscription.
+        
+        @rtype: Bool
+        @return: Whether a t-shirt subscription exists for this subscriber.
+        """
+
+        try:
+            TShirtSub.objects.get(subscriber = self)
+        except TShirtSub.DoesNotExist:
+            return False
+        else:
+            return True
+
+    def get_preferences(self):
+        """Returns a dictionary of preferences for the subscriber object.
+        Key names are those used in the GenericForm, SubscribeForm, and
+        PreferencesForm. This is mainly to be used to determine a user's
+        current preferences in order to generate an initial preferences page.
+        Checks the database for subscriptions corresponding to the subscriebr,
+        and returns a dictionary of the settings of those subscriptions. The
+        dictionary contains entries for all fields of all subscriptions
+        subscribed to by the subscriber, but will not contain entries for
+        fields of subscriptions not subscribed to (except for the "get_xxx"
+        fields, which will always be defined for every subscription type).
+
+        @rtype: Dict {str: str}
+        @return: Dictionary of current preferences for this subscriber.
+        """
+        
+        data = {}
+
+        data['get_node_down'] = self.has_node_down_sub()
+        if data['get_node_down']:
+            n = NodeDownSub.objects.get(subscriber = self)
+            data['node_down_grace_pd'] = n.grace_pd
+        else:
+            data['node_down_grace_pd'] = GenericForm._INIT_PREFIX + \
+                    str(GenericForm._NODE_DOWN_GRACE_PD_INIT)
+
+        data['get_version'] = self.has_version_sub()
+        if data['get_version']:
+            v = VersionSub.objects.get(subscriber = self)
+            data['version_type'] = v.notify_type
+        else:
+            data['version_type'] = u'UNRECOMMENDED'
+
+        data['get_band_low'] = self.has_bandwidth_sub()
+        if data['get_band_low']:
+            b = BandwidthSub.objects.get(subscriber = self)
+            data['band_low_threshold'] = b.threshold
+        else:
+            data['band_low_threshold'] = GenericForm._INIT_PREFIX + \
+                    str(GenericForm._BAND_LOW_THRESHOLD_INIT)
+
+        data['get_t_shirt'] = self.has_t_shirt_sub()
+
+        return data
 
     def printer(self):
         """Returns a description of this subscriber. Meant to be used for
@@ -315,7 +416,7 @@ class BandwidthSub(Subscription):
     as soon as we this observed bandwidth crosses the threshold (no grace pd).
 
     @type threshold: int
-    @param threshold: The threshold for the bandwidth (in KB/s) that the user 
+    @ivar threshold: The threshold for the bandwidth (in KB/s) that the user 
         specifies for receiving notifications.
     """
     threshold = models.IntegerField(default = 20)
@@ -406,39 +507,39 @@ class GenericForm(forms.Form):
     """The basic form class that is inherited by the SubscribeForm class
     and the PreferencesForm class.
    
-    @type _INIT_GET_NODE_DOWN: Bool
-    @cvar _INIT_GET_NODE_DOWN: The initial value of the get_node_down checkbox
+    @type _GET_NODE_DOWN_INIT: Bool
+    @cvar _GET_NODE_DOWN_INIT: The initial value of the get_node_down checkbox
         when the form is loaded.
-    @type _INIT_GET_VERSION: Bool
-    @cvar _INIT_GET_VERSION: The initial value of the get_version checkbox when
+    @type _GET_VERSION_INIT: Bool
+    @cvar _GET_VERSION_INIT: The initial value of the get_version checkbox when
         the form is loaded.
-    @type _INIT_GET_BAND_LOW: Bool
-    @cvar _INIT_GET_BAND_LOW: The initial value of the get_band_low checkbox
+    @type _GET_BANDLOW_INIT: Bool
+    @cvar _GET_BANDLOW_INIT: The initial value of the get_band_low checkbox
         when the form is loaded.
-    @type _INIT_NODE_DOWN_GRACE_PD: int
-    @cvar_INIT_NODE_DOWN_GRACE_PD: The default initial node down grace pd (1 hr)
-    @type _MAX_NODE_DOWN_GRACE_PD: int
-    @cvar _MAX_NODE_DOWN_GRACE_PD: The maximum node down grace period in hours
-    @type _MIN_NODE_DOWN_GRACE_PD: int
-    @cvar _MIN_NODE_DOWN_GRACE_PD: The minimum node down grace period in hours
-    @type _INIT_BAND_LOW_THRESHOLD: int
-    @cvar _INIT_BAND_LOW_THRESHOLD: The initial low bandwidth threshold (kb/s)
-    @type _MIN_BAND_LOW_THRESHOLD: int
-    @cvar _MIN_BAND_LOW_THRESHOLD: The minimum low bandwidth threshold (kb/s)
-    @type _MAX_BAND_LOW_THRESHOLD: int
-    @cvar _MAX_BAND_LOW_THRESHOLD: The maximum low bandwidth threshold (KB/s)
+    @type _NODE_DOWN_GRACE_PD_INIT: int
+    @cvar _NODE_DOWN_GRACE_PD_INIT: The default initial node down grace pd (1 
+        hr)
+    @type _NODE_DOWN_GRACE_PD_MAX: int
+    @cvar _NODE_DOWN_GRACE_PD_MAX: The maximum node down grace period in hours
+    @type _NODE_DOWN_GRACE_PD_MIN: int
+    @cvar _NODE_DOWN_GRACE_PD_MIN: The minimum node down grace period in hours
+    @type _BAND_LOW_THRESHOLD_INIT: int
+    @cvar _BAND_LOW_THRESHOLD_INIT: The initial low bandwidth threshold (kb/s)
+    @type _BAND_LOW_THRESHOLD_MIN: int
+    @cvar _BAND_LOW_THRESHOLD_MIN: The minimum low bandwidth threshold (kb/s)
+    @type _BAND_LOW_THERSHOLD_MAX: int
+    @cvar _BAND_LOW_THERSHOLD_MAX: The maximum low bandwidth threshold (KB/s)
     @type _INIT_PREFIX: str
     @cvar _INIT_PREFIX: The prefix for strings that display before user has
         entered data.
+    @type _VERSION_INFO: str
+    @cvar _VERSION_INFO: Help text for the version notification field.
     @type get_node_down: BooleanField
     @ivar get_node_down: C{True} if the user wants to subscribe to node down 
         notifications, C{False} if not.
     @type node_down_grace_pd: IntegerField, processed into int
     @ivar node_down_grace_pd: Time before receiving a node down notification in 
         hours. Default = 1. Range = 1-4500.
-    @type node_down_text: BooleanField
-    @ivar node_down_text: Hidden field; used to display extra text in the form
-        template without having to hardcode the text into the template.
     @type get_version: BooleanField, processed into Bool
     @ivar get_version: C{True} if the user wants to receive version 
         notifications about their router, C{False} if not.
@@ -454,9 +555,6 @@ class GenericForm(forms.Form):
     @type band_low_threshold: IntegerField, processed into int
     @ivar band_low_threshold: The user's threshold (in KB/s) for low bandwidth
         notifications. Default = 20 KB/s.
-    @type band_low_text: BooleanField
-    @ivar band_low_text: Hidden field; used to display extra text in the form
-        template without having to hardcode the text into the template.
     @type get_t_shirt: BooleanField, processed into Bool
     @ivar get_t_shirt: C{True} if the user wants to receive a t-shirt 
         notification, C{False} if not.
@@ -468,79 +566,91 @@ class GenericForm(forms.Form):
     # NOTE: Most places inherit the min, max, and default values for fields
     # from here, but one notable exception is in the javascript file when
     # checking if textboxes haven't been altered.
-    _INIT_GET_NODE_DOWN = True
-    _INIT_GET_VERSION = False
-    _INIT_GET_BAND_LOW = False
-    _INIT_NODE_DOWN_GRACE_PD = 1
-    _MAX_NODE_DOWN_GRACE_PD = 4500
-    _MIN_NODE_DOWN_GRACE_PD = 1
-    _INIT_BAND_LOW_THRESHOLD = 20
-    _MIN_BAND_LOW_THRESHOLD = 0
-    _MAX_BAND_LOW_THRESHOLD = 100000
+    _GET_NODE_DOWN_INIT = True
+    _GET_VERSION_INIT = False
+    _GET_BANDLOW_INIT = False
+    _NODE_DOWN_GRACE_PD_INIT = 1
+    _NODE_DOWN_GRACE_PD_MAX = 4500
+    _NODE_DOWN_GRACE_PD_MAX_DESC = ' (roughly six months)'
+    _NODE_DOWN_GRACE_PD_MIN = 1
+    _BAND_LOW_THRESHOLD_INIT = 20
+    _BAND_LOW_THRESHOLD_MIN = 0
+    _BAND_LOW_THRESHOLD_MAX = 100000
     _INIT_PREFIX = 'Default value is '
-    _NODE_DOWN_TEXT_BASIC = 'Notifications will be sent when the node goes \
-        offline from the Tor network for the specified length of time. \
-        Nodes that are in hibernation are not considered offline (hibernation \
-        will not trigger a notification).'
+    _VERSION_INFO = '<em>Recommended Updates:</em>  Emails when the router \
+            is not running the most up-to-date stable version of Tor. <br> \
+            <em>Required Updates:</em>  Emails when the router is running \
+            an obsolete version of Tor.'
+    _T_SHIRT_INFO = '<em>Note:</em> You must be the router\'s operator to claim your T-shirt.'
+    _NODE_DOWN_GRACE_PD_LABEL = 'How many hours of downtime before we send a \
+            notifcation?'
+    _NODE_DOWN_GRACE_PD_HELP_TEXT = 'Enter a value between ' + \
+            str(_NODE_DOWN_GRACE_PD_MIN) + ' and ' + \
+            str(_NODE_DOWN_GRACE_PD_MAX) + _NODE_DOWN_GRACE_PD_MAX_DESC
+    _VERSION_TYPE_LABEL = 'For what kind of updates would you like to be \
+            notified?'
+    _GET_VERSION_LABEL = 'Email me when the node\'s Tor version is out of date'
+    _GET_NODE_DOWN_LABEL = 'Email me when the node is down'
+    _GET_NODE_DOWN_ID = 'node-down-check'
+    _GET_VERSION_ID = 'version-check'
+    _VERSION_TYPE_CHOICE_1 = (u'UNRECOMMENDED', u'Recommended Updates')
+    _VERSION_TYPE_CHOICE_2 = (u'OBSOLETE', u'Required Updates')
+    _CLASS_SHORT = 'short-input'
+    _CLASS_DROPDOWN = 'dropdown-input'
+    _GET_BAND_LOW_LABEL = 'Email me when the router has low bandwidth capacity'
+    _GET_BAND_LOW_ID = 'band-low-check'
+    _BAND_LOW_THRESHOLD_LABEL = 'For what citical bandwidth, in kB/s, should \
+            we send notifications?'
+    _BAND_LOW_THRESHOLD_HELP_TEXT = 'Enter a value between ' + \
+            str(_BAND_LOW_THRESHOLD_MIN) + ' and ' + \
+            str(_BAND_LOW_THRESHOLD_MAX)
+    _T_SHIRT_URL = 'https://www.torproject.org/tshirt.html.en'
+    _GET_T_SHIRT_LABEL = 'Email me when my router has earned me a \
+            <a href="' + _T_SHIRT_URL + '">Tor t-shirt</a>'
+    _GET_T_SHIRT_ID = 't-shirt-check'
 
-    get_node_down = forms.BooleanField(initial=_INIT_GET_NODE_DOWN,
+
+    get_node_down = forms.BooleanField(initial=_GET_NODE_DOWN_INIT,
             required=False,
-            label='Receive notifications when node is down',
-            widget=forms.CheckboxInput(attrs={'id':'node-down-check'}))
-    node_down_text = forms.BooleanField(required=False,
-            label= _NODE_DOWN_TEXT_BASIC)
+            label=_GET_NODE_DOWN_LABEL,
+            widget=forms.CheckboxInput(attrs={'id':_GET_NODE_DOWN_ID}))
     node_down_grace_pd = forms.IntegerField(
-            initial=_INIT_PREFIX + str(_INIT_NODE_DOWN_GRACE_PD),
+            initial=_INIT_PREFIX + str(_NODE_DOWN_GRACE_PD_INIT),
             required=False,
-            max_value=_MAX_NODE_DOWN_GRACE_PD,
-            min_value=_MIN_NODE_DOWN_GRACE_PD,
-            label='How many hours of downtime before \
-                       we send a notifcation?',
-            help_text='Enter a value between 1 and 4,500 (roughly six months)',
-            widget=forms.TextInput(attrs={'class':'short-input'}))
+            max_value=_NODE_DOWN_GRACE_PD_MAX,
+            min_value=_NODE_DOWN_GRACE_PD_MIN,
+            label=_NODE_DOWN_GRACE_PD_LABEL,
+            help_text=_NODE_DOWN_GRACE_PD_HELP_TEXT,
+            widget=forms.TextInput(attrs={'class':_CLASS_SHORT}))
     
-    get_version = forms.BooleanField(initial=_INIT_GET_VERSION,
+    get_version = forms.BooleanField(initial=_GET_VERSION_INIT,
             required=False,
-            label='Receive notifications when node\'s Tor version is out of \
-                    date',
-            widget=forms.CheckboxInput(attrs={'id':'version-check'}))
+            label=_GET_VERSION_LABEL,
+            widget=forms.CheckboxInput(attrs={'id':_GET_VERSION_ID}))
     version_text = forms.BooleanField(required=False,
-            label='General info.',
-            help_text='\'Recommended Updates\' will send a notification \
-                        when the node\'s version of Tor becomes \
-                        unrecommended; \'Required Updates\' \
-                        will send a notification when the \
-                        node\'s version of Tor becomes obsolete.')
+            label= _VERSION_INFO)
     version_type = forms.ChoiceField(required=False,
-            choices=((u'UNRECOMMENDED', u'Recommended Updates'),
-                     (u'OBSOLETE', u'Required Updates')),
-                label='For what kind of updates would you like to be \
-                        notified?',
-                
-            widget=forms.Select(attrs={'class':'dropdown-input'}))
+            choices=(_VERSION_TYPE_CHOICE_1, _VERSION_TYPE_CHOICE_2),
+            label=_VERSION_TYPE_LABEL,
+            widget=forms.Select(attrs={'class':_CLASS_DROPDOWN}))
     
-    get_band_low = forms.BooleanField(initial=_INIT_GET_BAND_LOW,
+    get_band_low = forms.BooleanField(initial=_GET_BANDLOW_INIT,
             required=False,
-            label='Receive notifications when node has low bandwidth',
-            widget=forms.CheckboxInput(attrs={'id':'band-low-check'}))
-    band_low_text = forms.BooleanField(required=False,
-            label='General info.',
-            help_text='Bla bla technical details.')
+            label=_GET_BAND_LOW_LABEL,
+            widget=forms.CheckboxInput(attrs={'id':_GET_BAND_LOW_ID}))
     band_low_threshold = forms.IntegerField(
-            initial=_INIT_PREFIX + str(_INIT_BAND_LOW_THRESHOLD),
-            required=False, max_value=_MAX_BAND_LOW_THRESHOLD,
-            min_value=_MIN_BAND_LOW_THRESHOLD, 
-            label='For what critical bandwidth, in kB/s, should we send \
-                   notifications?',
-            help_text='Enter a value between 0 and 100,000',
-            widget=forms.TextInput(attrs={'class':'short-input'}))
+            initial=_INIT_PREFIX + str(_BAND_LOW_THRESHOLD_INIT),
+            required=False, max_value=_BAND_LOW_THRESHOLD_MAX,
+            min_value=_BAND_LOW_THRESHOLD_MIN, 
+            label=_BAND_LOW_THRESHOLD_LABEL,
+            help_text=_BAND_LOW_THRESHOLD_HELP_TEXT,
+            widget=forms.TextInput(attrs={'class':_CLASS_SHORT}))
     
     get_t_shirt = forms.BooleanField(initial=False, required=False,
-            label='Receive notification when node has earned a t-shirt',
-            widget=forms.CheckboxInput(attrs={'id':'t-shirt-check'}))
+            label=_GET_T_SHIRT_LABEL,
+            widget=forms.CheckboxInput(attrs={'id':_GET_T_SHIRT_ID}))
     t_shirt_text = forms.BooleanField(required=False,
-            label='General info.',
-            help_text='Bla bla technical details.')
+            label=_T_SHIRT_INFO) 
 
     @staticmethod
     def clean_post_data(post_data):
@@ -567,17 +677,17 @@ class GenericForm(forms.Form):
 
         data = copy(post_data)
 
-        if data['node_down_grace_pd'] == \
-                GenericForm._INIT_PREFIX + \
-                str(GenericForm._INIT_NODE_DOWN_GRACE_PD) \
-                or data['node_down_grace_pd'] == '':
-            data['node_down_grace_pd'] = GenericForm._INIT_NODE_DOWN_GRACE_PD
+        if data['node_down_grace_pd'] == GenericForm._INIT_PREFIX + \
+                str(GenericForm._NODE_DOWN_GRACE_PD_INIT) \
+           or data['node_down_grace_pd'] == '' \
+           or 'get_node_down' not in data:
+            data['node_down_grace_pd'] = GenericForm._NODE_DOWN_GRACE_PD_INIT
 
-        if data['band_low_threshold'] == \
-                GenericForm._INIT_PREFIX + \
-                str(GenericForm._INIT_BAND_LOW_THRESHOLD) \
-                or data['band_low_threshold'] == '':
-            data['band_low_threshold'] = GenericForm._INIT_BAND_LOW_THRESHOLD  
+        if data['band_low_threshold'] == GenericForm._INIT_PREFIX + \
+                str(GenericForm._BAND_LOW_THRESHOLD_INIT) \
+           or data['band_low_threshold'] == '' \
+           or 'get_band_low' not in data:
+            data['band_low_threshold'] = GenericForm._BAND_LOW_THRESHOLD_INIT  
         
         return data
  
@@ -619,15 +729,23 @@ class SubscribeForm(GenericForm):
     @ivar fingerprint: The fingerprint of the router the user wants to 
         monitor.
     """
-    email_1 = forms.EmailField(label='Enter Email:',
-            widget=forms.TextInput(attrs={'class':'email-input'}),
-            max_length=75)
+    _EMAIL_1_LABEL = 'Enter Email:'
+    _EMAIL_MAX_LEN = 75
+    _EMAIL_2_LABEL = 'Re-enter Email:'
+    _FINGERPRINT_LABEL = 'Node Fingerprint:'
+    _FINGERPRINT_MAX_LEN = 40
+    _CLASS_EMAIL = 'email-input'
+    _CLASS_LONG = 'long-input'
+
+    email_1 = forms.EmailField(label=_EMAIL_1_LABEL,
+            widget=forms.TextInput(attrs={'class':_CLASS_EMAIL}),
+            max_length=_EMAIL_MAX_LEN)
     email_2 = forms.EmailField(label='Re-enter Email:',
-            widget=forms.TextInput(attrs={'class':'email-input'}),
-            max_length=75)
+            widget=forms.TextInput(attrs={'class':_CLASS_EMAIL}),
+            max_length=_EMAIL_MAX_LEN)
     fingerprint = forms.CharField(label='Node Fingerprint:',
-            widget=forms.TextInput(attrs={'class':'long-input'}),
-            max_length=40)
+            widget=forms.TextInput(attrs={'class':_CLASS_LONG}),
+            max_length=_FINGERPRINT_MAX_LEN)
 
     def clean(self):
         """Called when the is_valid method is evaluated for a SubscribeForm 
@@ -738,56 +856,55 @@ class PreferencesForm(GenericForm):
     (i.e. if they haven't selected a subscription type, the box for that field 
     is unchecked). The PreferencesForm form inherits L{GenericForm}.
     """
+    
+    _USER_INFO_STR = '<span class="user-field">Email:</span> %s<br /> \
+            <span class="user-field">Router name:</span> %s<br /> \
+            <span class="user-field">Router id:</span> %s'
+    _EMAIL_LABEL = 'Email:'
+    _ROUTER_NAME_LABEL = 'Router Name:'
+    _ROUTER_FINGERPRINT_LABEL = 'Router Fingerprint:'
+    _CLASS_EMAIL = 'email-input'
+    _CLASS_SHORT = 'short-input'
+    _CLASS_LONG = 'long-input'
 
-    def set_initial_info(self, user):
-        """Checks the database for subscriptions corresponding to the user
-        provided and returns a dictionary of their settings, and also
-        sets the initial unbound form to display these settings. The dictionary
-        will always provide entries for all get_xxx fields, but will not 
-        contain entries for fields in subscription types not susbcribed to
-        previously.
+    email = forms.EmailField(label=_EMAIL_LABEL,
+            widget=forms.TextInput(attrs={
+                'class':_CLASS_EMAIL,
+                'readonly':'readonly'}))
+    router_name = forms.CharField(label=_ROUTER_NAME_LABEL,
+            widget=forms.TextInput(attrs={
+                'class':_CLASS_SHORT,
+                'readonly':'readonly'}))
+    fingerprint = forms.CharField(label=_ROUTER_FINGERPRINT_LABEL,
+            widget=forms.TextInput(attrs={
+                'class':_CLASS_LONG,
+                'disabled':'disabled'}))
 
-        @type user: Subscriber
-        @param user: The user/subscriber whose previous info is being pulled
-            to render the preferences form.
-        """
-        data = {}
-
-        try:
-            node_down_sub = NodeDownSub.objects.get(subscriber = user)
-        except NodeDownSub.DoesNotExist:
-            data['get_node_down'] = False
+    
+    def __init__(self, user, data = None):
+        if data == None:
+            super(GenericForm, self).__init__(initial=user.get_preferences())
         else:
-            data['get_node_down'] = True
-            data['node_down_grace_pd'] = node_down_sub.grace_pd
+            super(GenericForm, self).__init__(data)
  
-        try:
-            version_sub = VersionSub.objects.get(subscriber = user)
-        except VersionSub.DoesNotExist:
-            data['get_version'] = False
-        else:
-            data['get_version'] = True
-            data['version_type'] = version_sub.notify_type
+        self.user = user
 
-        try:
-            bandwidth_sub = BandwidthSub.objects.get(subscriber = user)
-        except BandwidthSub.DoesNotExist:
-            data['get_band_low'] = False
-        else:
-            data['get_band_low'] = True
-            data['band_low_threshold'] = bandwidth_sub.threshold
+        fingerprint_text = str(self.user.router.fingerprint)
+        regex = r'(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)' + \
+                r'(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)'
+        m = re.match(regex, fingerprint_text)
+        fingerprint_groups = m.groups()
+        fingerprint_text = '%s %s %s %s %s %s %s %s %s %s' % \
+                fingerprint_groups
+        
+        self.fields['email'].initial=user.email
+        self.fields['router_name'].initial=user.router.name
+        self.fields['fingerprint'].initial=fingerprint_text
 
-        try:
-            t_shirt_sub = TShirtSub.objects.get(subscriber = user)
-        except TShirtSub.DoesNotExist:
-            data['get_band_low'] = False
-        else:
-            data['get_band_low'] = True
+        self.user_info = PreferencesForm._USER_INFO_STR % (self.user.email, \
+                self.user.router.name, fingerprint_text)
 
-        self.initial = data
-        return data
-
-    def change_subscriptions(self, subscriber):
+    def change_subscriptions(self, old_data, new_data):
         """Change the subscriptions and options if they are specified.
         
         @type subscriber: Subscriber
@@ -796,60 +913,60 @@ class PreferencesForm(GenericForm):
 
         # If there already was a subscription, get it and update it or delete
         # it depending on the current value.
-        if self.initial['get_node_down']:
-            n = NodeDownSub.objects.get(subscriber = subscriber)
-            if self.cleaned_data['get_node_down']:
-                n.grace_pd = self.cleaned_data['node_down_grace_pd']
+        if old_data['get_node_down']:
+            n = NodeDownSub.objects.get(subscriber = self.user)
+            if new_data['get_node_down']:
+                n.grace_pd = new_data['node_down_grace_pd']
                 n.save()
             else:
                 n.delete()
         # If there wasn't a subscription before and it is checked now, then 
         # make one.
-        elif self.cleaned_data['get_node_down']:
+        elif new_data['get_node_down']:
             n = NodeDownSub(subscriber=subscriber, 
-                    grace_pd=self.cleaned_data['node_down_grace_pd'])
+                    grace_pd=new_data['node_down_grace_pd'])
             n.save()
 
         # If there already was a subscription, get it and update it or delete
         # it depending on the current value.
-        if self.initial['get_version']:
-            v = VersionSub.objects.get(subscriber = subscriber)
-            if self.cleaned_data['get_version']:
-                v.notify_type = self.cleaned_data['version_type']
+        if old_data['get_version']:
+            v = VersionSub.objects.get(subscriber = self.user)
+            if new_data['get_version']:
+                v.notify_type = new_data['version_type']
                 v.save()
             else:
                 v.delete()
         # If there wasn't a subscription before and it is checked now, then 
         # make one.
-        elif self.cleaned_data['get_version']:
-            v = VersionSub(subscriber=subscriber, 
-                    notify_type=self.cleaned_data['version_type'])
+        elif new_data['get_version']:
+            v = VersionSub(subscriber=self.user, 
+                    notify_type=new_data['version_type'])
             v.save()
 
         # If there already was a subscription, get it and update it or delete
         # it depending on the current value.
-        if self.initial['get_band_low']:
-            b = BandwidthSub.objects.get(subscriber = subscriber)
-            if self.cleaned_data['get_band_low']:
-                b.threshold = self.cleaned_data['band_low_threshold']
+        if old_data['get_band_low']:
+            b = BandwidthSub.objects.get(subscriber = self.user)
+            if new_data['get_band_low']:
+                b.threshold = new_data['band_low_threshold']
                 b.save()
             else:
                 b.delete()
         # If there wasn't a subscription before and it is checked now, then
         # make one.
-        elif self.cleaned_data['get_band_low']:
-            b = BandwidthSub(subscriber=subscriber,
-                    notify_type=self.cleaned_data['version_type'])
+        elif new_data['get_band_low']:
+            b = BandwidthSub(subscriber=self.user,
+                    threshold=new_data['band_low_threshold'])
             b.save()
 
         # If there already was a subscription, get it and delete it if it's no
         # longer selected.
-        if self.initial['get_t_shirt']:
-            t = TShirtSub.objects.get(subscriber = subscriber)
-            if not self.initial['get_t_shirt']:
+        if old_data['get_t_shirt']:
+            t = TShirtSub.objects.get(subscriber = self.user)
+            if not new_data['get_t_shirt']:
                 t.delete()
         # If there wasn't a subscription before and it is checked now, then
         # make one.
-        elif self.cleaned_data['get_t_shirt']:
-            t = TShirtSub(subscriber=subscriber)
+        elif new_data['get_t_shirt']:
+            t = TShirtSub(subscriber=self.user)
             t.save()

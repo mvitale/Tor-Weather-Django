@@ -1,0 +1,7 @@
+Add in the mass mailing stuff in updaters
+
+Take out run_updaters method in listener
+
+Do something about TorCtl
+
+Change the base_url in url_helper

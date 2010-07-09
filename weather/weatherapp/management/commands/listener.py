@@ -36,7 +36,3 @@ def listen():
 
 def run_updaters():#just for testing
     updaters.run_all()
-
-#if __name__ == '__main__':
-#    run_updaters()
-    #main()

@@ -19,13 +19,9 @@ h1 {
 	border-bottom: 1px solid black;
 }
 
-h2 {
-	font-size: 18px;
-}
-
 div.footer {
 	padding-top: 5px;
-	margin-top: 50px;
+	margin-top: 25px;
 	border-top: 1px solid rgb(100,100,100);
 }
 
@@ -57,8 +53,9 @@ span.after-short {
 }
 
 select.dropdown-input {
-	margin-top: 2px;
+	margin-top: 5px;
 	margin-right: 5px;
+	margin-bottom: 8px;
 	width: 149px;
 	float: left;
 }
@@ -84,14 +81,22 @@ input.long-input {
 	width: 385px;
 }
 
+head#preferences-page input.long-input {
+	width: 300px;
+}
+
+div.subscriber-info {
+	margin-bottom: 10px;
+}
+
+div.subscriber-info span.user-field {
+	font-weight: bold;
+}
+
 div.collapse-section {
 	margin-left: 26px;
 	margin-top: 6px;
 	margin-bottom: 8px;
-}
-
-div#subscriber-info {
-	margin-bottom: 10px;
 }
 
 span.form-error {
@@ -115,7 +120,7 @@ span.big-form-error {
 	font-weight: bold;
 }
 
-form#subscribe-form input[type='submit'] {
+input.submit-button {
 	font-size: 18px;
 	margin-top: 25px;
 }
@@ -129,7 +134,7 @@ form {
 	font-size: 14px;
 }
 
-div.email-block {
+div.floater {
 	float: left;
 	margin-right: 15px;
 }
@@ -145,5 +150,16 @@ span.more-info-text {
 
 span#more-info {
 	margin-left: 5px;
+}
+
+div#pref-user-info {
+	font-size: 16px;
+	margin-bottom: 10px;
+}
+
+div.license {
+	text-align: center;
+	font-size: 0.8em;
+	margin-top: 20px;
 }
 

@@ -1,5 +1,9 @@
 {% extends "generic_form.html" %}
 
+{% block head-tag %}
+<head id="subscribe-page">
+{% endblock head-tag %}
+
 {% block header %}
 Tor Weather - Sign Up!
 {% endblock header %}
@@ -14,18 +18,18 @@ Tor Weather - Sign Up!
 
 {% block user-info %}
 
-<div id="subscriber-info">
-	<div class="email-block">
+<div class="subscriber-info">
+	<div class="floater">
 		<label for="id_email_1" class="block">{{form.email_1.label}}</label>
 		{% for error in form.email_1.errors %}<span class="form-error">{{ error }}</span>{% endfor %}
 		{{ form.email_1 }}
 	</div>
-	<div class="email-block">
+	<div class="floater">
 		<label for="id_email_2" class="block">{{ form.email_2.label }}</label>
 		{% for error in form.email_2.errors %}<span class="form-error">{{ error }}</span>{% endfor %}
 		{{ form.email_2 }}
 	</div>
-	<div class="block">
+	<div class="floater">
 		<label for="id_fingerprint" class="block">{{ form.fingerprint.label }}</label>
 		{% for error in form.fingerprint.errors %}<span class="form-error">{{ error|safe}}</span>{% endfor %}
 		{{ form.fingerprint }}
@@ -33,3 +37,7 @@ Tor Weather - Sign Up!
 </div>
 
 {% endblock user-info %}
+
+{% block submit-button %}
+<input class="submit-button" type="submit" value="Subscribe to Tor Weather!" />
+{% endblock submit-button %}
