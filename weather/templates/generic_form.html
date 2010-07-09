@@ -20,7 +20,7 @@
 		{{ form.get_node_down }}
 		<label for="id_get_node_down">{{ form.get_node_down.label }}</label>
 		<div class="collapse-section" id="node-down-section">
-				<div class="field-row" id="node-down-grace-pd-row">
+			<div class="field-row" id="node-down-grace-pd-row">
 				<label for="id_node_down_grace_pd" class="block">{{ form.node_down_grace_pd.label }}</label>
 				{% for error in form.node_down_grace_pd.errors %}<span class="form-error">{{ error }}</span>{% endfor %}
 				{{ form.node_down_grace_pd }}
