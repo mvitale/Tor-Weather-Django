@@ -49,10 +49,10 @@ $(document).ready(function() {
 	// By, default (ie, with javascript turned off), all sections will be 
 	// shown since they are only ever hidden here. Also, sets the sections
 	// to expand/collapse upon click.
-	showOrHideSect("input#node-down-check", "div#node-down-section");
-	showOrHideSect("input##version-check", "div#version-section");
-	showOrHideSect("input#band-low-check", "div#band-low-section");
-	showOrHideSect("input#t-shirt-check", "div#t-shirt-section");
+	showOrHideSect("input#id_get_node_down", "div#node-down-section");
+	showOrHideSect("input#id_get_version", "div#version-section");
+	showOrHideSect("input#id_get_band_low", "div#band-low-section");
+	showOrHideSect("input#id_get_t_shirt", "div#t-shirt-section");
 
 	// Turns the input field text gray and makes the text disappear on click
 	// if it has the "Default Value is ---" when the page loads.
