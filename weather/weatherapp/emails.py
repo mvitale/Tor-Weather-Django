@@ -92,7 +92,7 @@ _VERSION_MAIL = "This is a Tor Weather Report.\n\n"+\
 _LOW_BANDWIDTH_SUBJ = 'Low bandwidth!'
 _LOW_BANDWIDTH_MAIL = "The is a Tor Weather Report.\n\n"+\
     "It appears that a tor node %s you elected to monitor "+\
-    "has an observed bandwidth capacity of less than %KB/s. "+\
+    "has an observed bandwidth capacity of less than %skB/s. "+\
     "You may wish to look at it to see why.\n\n You can "+\
     "unsubscribe from these reports at any time by visiting the "+\
     "following url:\n\n%s\n\n or change your Tor Weather notification "\
@@ -221,11 +221,11 @@ def bandwidth_tuple(recipient, fingerprint, threshold, unsubs_auth, pref_auth):
     @param pref_auth: The user's unique preferences auth key
     """
     name = _get_router_name(fingerprint)
-    subj = _SUBJECT_HEADER + LOW_BANDWIDTH_SUBJ
+    subj = _SUBJECT_HEADER + _LOW_BANDWIDTH_SUBJ
     sender = _SENDER
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
-    msg = _LOW_BANDWIDTH_MAIL % (name, unsubURL, prefURL)
+    msg = _LOW_BANDWIDTH_MAIL % (name, threshold, unsubURL, prefURL)
 
     return (subj, msg, sender, [recipient])
 
