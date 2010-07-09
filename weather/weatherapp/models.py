@@ -907,30 +907,10 @@ class PreferencesForm(GenericForm):
     is unchecked). The PreferencesForm form inherits L{GenericForm}.
     """
     
-    _USER_INFO_STR = '<span class="user-field">Email:</span> %s<br /> \
-            <span class="user-field">Router name:</span> %s<br /> \
-            <span class="user-field">Router id:</span> %s'
-    _EMAIL_LABEL = 'Email:'
-    _ROUTER_NAME_LABEL = 'Router Name:'
-    _ROUTER_FINGERPRINT_LABEL = 'Router Fingerprint:'
-    _CLASS_EMAIL = 'email-input'
-    _CLASS_SHORT = 'short-input'
-    _CLASS_LONG = 'long-input'
+    _USER_INFO_STR = '<p><span>Email:</span> %s</p> \
+            <p><span>Router name:</span> %s</p> \
+            <p><span>Router id:</span> %s</p>'
 
-    email = forms.EmailField(label=_EMAIL_LABEL,
-            widget=forms.TextInput(attrs={
-                'class':_CLASS_EMAIL,
-                'readonly':'readonly'}))
-    router_name = forms.CharField(label=_ROUTER_NAME_LABEL,
-            widget=forms.TextInput(attrs={
-                'class':_CLASS_SHORT,
-                'readonly':'readonly'}))
-    fingerprint = forms.CharField(label=_ROUTER_FINGERPRINT_LABEL,
-            widget=forms.TextInput(attrs={
-                'class':_CLASS_LONG,
-                'disabled':'disabled'}))
-
-    
     def __init__(self, user, data = None):
         if data == None:
             super(GenericForm, self).__init__(initial=user.get_preferences())
@@ -940,17 +920,9 @@ class PreferencesForm(GenericForm):
         self.user = user
 
         fingerprint_text = str(self.user.router.fingerprint)
-        regex = r'(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)' + \
-                r'(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)'
-        m = re.match(regex, fingerprint_text)
-        fingerprint_groups = m.groups()
-        fingerprint_text = '%s %s %s %s %s %s %s %s %s %s' % \
-                fingerprint_groups
+        fingerprint_list = re.findall('.{4}', fingerprint_text)
+        fingerprint_text = ' '.join(fingerprint_list)
         
-        self.fields['email'].initial=user.email
-        self.fields['router_name'].initial=user.router.name
-        self.fields['fingerprint'].initial=fingerprint_text
-
         self.user_info = PreferencesForm._USER_INFO_STR % (self.user.email, \
                 self.user.router.name, fingerprint_text)
 

@@ -26,23 +26,6 @@ function showDefault(row, defVal) {
 	}
 }
 
-// Hides the more info text and shows the more info link initially, and sets
-// the ilnk to display the text upon click.
-function swapText(infoSect) {
-	$(infoSect + " .more-info-link").css("display", "inline");
-	$(infoSect + " .more-info-text").css("display", "none");
-	
-	$(infoSect + " .more-info-link").click(function() {
-		if ($(infoSect + " .more-info-link").text() == "(More detail)") {
-			$(infoSect + " .more-info-text").css("display", "inline");
-			$(infoSect + " .more-info-link").text("(Less detail)");
-		} else {
-			$(infoSect + " .more-info-text").css("display", "none");
-			$(infoSect + " .more-info-link").text("(More detail)");
-		}
-	});
-}
-
 $(document).ready(function() {
 
 	// Shows or hides sections based on the initial selection of checkboxes.
@@ -56,8 +39,8 @@ $(document).ready(function() {
 
 	// Turns the input field text gray and makes the text disappear on click
 	// if it has the "Default Value is ---" when the page loads.
-	showDefault("div#node-down-grace-pd-row", 1);
-	showDefault("div#band-low-threshold-row", 20);
+	showDefault("div#node-down-section", 1);
+	showDefault("div#band-low-section", 20);
 
 	// Initially hides the 'more info' text and displays a link, then sets
 	// that link to display the text upon click (and hide itself). Without
@@ -67,8 +50,8 @@ $(document).ready(function() {
 	swapText("span#band-low-more-info");
 	swapText("span#t-shirt-more-info");
 
-	$("span#more-info a").hover(function() {
-		$("span#more-info-hover").toggle();
+	$("#more-info a").hover(function() {
+		$("#more-info span").toggle();
 	});
 });
 
