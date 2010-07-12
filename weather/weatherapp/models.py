@@ -54,6 +54,22 @@ class Router(models.Model):
         """
         return self.fingerprint
 
+    def spaced_fingerprint(self):
+        """Returns the fingerprint for this router as a string with spaces
+        inserted every 4 characters.
+        
+        @rtype: str
+        @return: The router's fingerprint with spaces inserted.
+        """
+
+        return ' '.join(re.findall('.{4}', str(self.fingerprint)))
+
+        #fingerprint_text = str(self.user.router.fingerprint)
+        #fingerprint_list = re.findall('.{4}', fingerprint_text)
+        #fingerprint_text = ' '.join(fingerprint_list)
+        
+ 
+
     def printer(self):
         """Returns a description of this router. Meant to be used for testing
         purposes in the shell
@@ -502,6 +518,19 @@ class TShirtSub(Subscription):
               '\nAverage Bandwidth: ' + str(self.avg_bandwidth) + \
               '\nLast Changed:' + str(self.last_changed)
 
+class DefaultTextIntegerField(forms.IntegerField):
+    """An Integer Field that accepts input of the form "Default value is ---"
+    and parses it as simply --- in its to_python method. Replaces the
+    previous process of overwriting post data, which was an ugly workaround.
+    """
+
+    def to_python(self, value):
+        if value.startswith('Default value is '):
+            v = super(forms.IntegerField, self).to_python(value[17:])
+        else:
+            v = super(forms.IntegerField, self).to_python(value)
+        print v
+        return v
 
 class GenericForm(forms.Form):
     """The basic form class that is inherited by the SubscribeForm class
@@ -551,8 +580,6 @@ class GenericForm(forms.Form):
     @type _GET_BAND_LOW_LABEL:
     @type _GET_BAND_LOW_ID:
     @type _BAND_LOW_THRESHOLD_INIT:
-    
-
     """
     
     
@@ -609,7 +636,7 @@ class GenericForm(forms.Form):
     get_node_down = forms.BooleanField(initial=_GET_NODE_DOWN_INIT,
             required=False,
             label=_GET_NODE_DOWN_LABEL)
-    node_down_grace_pd = forms.IntegerField(
+    node_down_grace_pd = DefaultTextIntegerField(
             initial=_INIT_PREFIX + str(_NODE_DOWN_GRACE_PD_INIT),
             required=False,
             max_value=_NODE_DOWN_GRACE_PD_MAX,
@@ -670,11 +697,11 @@ class GenericForm(forms.Form):
 
         data = copy(post_data)
 
-        if data['node_down_grace_pd'] == GenericForm._INIT_PREFIX + \
-                str(GenericForm._NODE_DOWN_GRACE_PD_INIT) \
-           or data['node_down_grace_pd'] == '' \
-           or 'get_node_down' not in data:
-            data['node_down_grace_pd'] = GenericForm._NODE_DOWN_GRACE_PD_INIT
+        #if data['node_down_grace_pd'] == GenericForm._INIT_PREFIX + \
+        #        str(GenericForm._NODE_DOWN_GRACE_PD_INIT) \
+        #   or data['node_down_grace_pd'] == '' \
+        #   or 'get_node_down' not in data:
+        #    data['node_down_grace_pd'] = GenericForm._NODE_DOWN_GRACE_PD_INIT
 
         if data['band_low_threshold'] == GenericForm._INIT_PREFIX + \
                 str(GenericForm._BAND_LOW_THRESHOLD_INIT) \
@@ -738,7 +765,8 @@ class SubscribeForm(GenericForm):
             max_length=_EMAIL_MAX_LEN)
     fingerprint = forms.CharField(label='Node Fingerprint:',
             widget=forms.TextInput(attrs={'class':_CLASS_LONG, 
-            'id':'fingerprint'}), max_length=_FINGERPRINT_MAX_LEN)
+                'id':'fingerprint', 'autocomplete':'off'}),
+            max_length=_FINGERPRINT_MAX_LEN)
 
     def clean(self):
         """Called when the is_valid method is evaluated for a SubscribeForm 
@@ -862,12 +890,8 @@ class PreferencesForm(GenericForm):
  
         self.user = user
 
-        fingerprint_text = str(self.user.router.fingerprint)
-        fingerprint_list = re.findall('.{4}', fingerprint_text)
-        fingerprint_text = ' '.join(fingerprint_list)
-        
         self.user_info = PreferencesForm._USER_INFO_STR % (self.user.email, \
-                self.user.router.name, fingerprint_text)
+                self.user.router.name, user.spaced_fingerprint())
 
     def change_subscriptions(self, old_data, new_data):
         """Change the subscriptions and options if they are specified.
