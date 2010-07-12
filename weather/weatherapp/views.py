@@ -200,7 +200,8 @@ def preferences(request, pref_auth):
         # clean_post_data, which replaces 'Default value is ---' with the 
         # integer value, so that to_python() methods don't get upset.
         form = PreferencesForm(user, GenericForm.clean_post_data(request.POST))
-
+        print form.is_valid()
+        print form.errors
         if form.is_valid():
             # Creates/changes/deletes subscriptions and subscription info
             # based on form data

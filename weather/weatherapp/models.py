@@ -563,57 +563,109 @@ class GenericForm(forms.Form):
         template without having to hardcode the text into the template.
     """
    
+    """
+    @type _GET_NODE_DOWN_INIT: Bool
+    @cvar _GET_NODE_DOWN_INIT: Initial display value and default submission
+        value of the L{get_node_down} checkbox.
+    @type _GET_NODE_DOWN_LABEL: Str
+    @cvar _GET_NODE_DOWN_LABEL: Text displayed next to L{get_node_down} 
+        checkbox.
+    @type _GET_NODE_DOWN_ID: Str
+    @cvar _GET_NODE_DOWN_ID: HTML/CSS id for L{get_node_down} checkbox.
+    @type _NODE_DOWN_GRACE_PD_INIT: int
+    @cvar _NODE_DOWN_GRACE_PD_INIT: Initial display value and default
+        submission value of the L{node_down_grace_pd} field.
+    @type _NODE_DOWN_GRACE_PD_MAX: int
+    @cvar _NODE_DOWN_GRACE_PD_MAX: Maximum allowed value for the
+        L{node_down_grace_pd} field.
+    @type _NODE_DOWN_GRACE_PD_MAX_DESC: Str
+    @cvar _NODE_DOWN_GRACE_PD_MAX_DESC: English approximation of
+        L{_NODE_DOWN_GRACE_PD_MAX} for display purposes.
+    @type _NODE_DOWN_GRACE_PD_MIN: int
+    @cvar _NODE_DOWN_GRACE_PD_MIN: Minimum allowed value for the 
+        L{node_down_grace_pd} field.
+    @type _NODE_DOWN_GRACE_PD_LABEL: Str
+    @cvar _NODE_DOWN_GRACE_PD_LABEL: Text displayed above 
+        L{node_down_grace_pd} checkbox.
+    @type _NODE_DOWN_GRACE_PD_HELP_TEXT: Str
+    @cvar _NODE_DOWN_GRACE_PD_HELP_TEXT: Text displayed next to 
+        L{node_down_grace_pd} checkbox.
+    
+    @type _GET_VERSION_INIT: Bool
+    @cvar _GET_VERSION_INIT: Initial display value and default submission 
+        value of the L{get_version} checkbox.
+    @type _GET_VERSION_LABEL: Str
+    @cvar _GET_VERSION_LABEL: Text displayed next to L{get_version} checkbox.
+    @type _GET_VERSION_ID: Str
+    @cvar _GET_VERSION_ID: HTML/CSS id for L{get_version} checkbox.
+    @type _VERSION_TYPE_LABEL:
+    @type _VERSION_TYPE_CHOICE_1:
+    @type _VERSION_TYPE_CHOICE_2:
+    @type _VERSION_TYPE_CHOICES:
+    @type _VERSION_INFO:
+
+    @type _GET_BAND_LOW_INIT:
+    @type _GET_BAND_LOW_LABEL:
+    @type _GET_BAND_LOW_ID:
+    @type _BAND_LOW_THRESHOLD_INIT:
+    
+
+    """
+    
+    
+    
     # NOTE: Most places inherit the min, max, and default values for fields
     # from here, but one notable exception is in the javascript file when
     # checking if textboxes haven't been altered.
     _GET_NODE_DOWN_INIT = True
-    _GET_VERSION_INIT = False
-    _GET_BANDLOW_INIT = False
+    _GET_NODE_DOWN_LABEL = 'Email me when the node is down'
     _NODE_DOWN_GRACE_PD_INIT = 1
     _NODE_DOWN_GRACE_PD_MAX = 4500
     _NODE_DOWN_GRACE_PD_MAX_DESC = ' (roughly six months)'
     _NODE_DOWN_GRACE_PD_MIN = 1
-    _BAND_LOW_THRESHOLD_INIT = 20
-    _BAND_LOW_THRESHOLD_MIN = 0
-    _BAND_LOW_THRESHOLD_MAX = 100000
-    _INIT_PREFIX = 'Default value is '
-    _VERSION_INFO = '<em>Recommended Updates:</em>  Emails when the router \
-            is not running the most up-to-date stable version of Tor. <br> \
-            <em>Required Updates:</em>  Emails when the router is running \
-            an obsolete version of Tor.'
-    _T_SHIRT_INFO = '<em>Note:</em> You must be the router\'s operator to claim your T-shirt.'
     _NODE_DOWN_GRACE_PD_LABEL = 'How many hours of downtime before we send a \
             notifcation?'
     _NODE_DOWN_GRACE_PD_HELP_TEXT = 'Enter a value between ' + \
             str(_NODE_DOWN_GRACE_PD_MIN) + ' and ' + \
             str(_NODE_DOWN_GRACE_PD_MAX) + _NODE_DOWN_GRACE_PD_MAX_DESC
+
+    _GET_VERSION_INIT = False
+    _GET_VERSION_LABEL = 'Email me when the node\'s Tor version is out of date'
     _VERSION_TYPE_LABEL = 'For what kind of updates would you like to be \
             notified?'
-    _GET_VERSION_LABEL = 'Email me when the node\'s Tor version is out of date'
-    _GET_NODE_DOWN_LABEL = 'Email me when the node is down'
-    _GET_NODE_DOWN_ID = 'node-down-check'
-    _GET_VERSION_ID = 'version-check'
     _VERSION_TYPE_CHOICE_1 = (u'UNRECOMMENDED', u'Recommended Updates')
     _VERSION_TYPE_CHOICE_2 = (u'OBSOLETE', u'Required Updates')
-    _CLASS_SHORT = 'short-input'
-    _CLASS_DROPDOWN = 'dropdown-input'
+    _VERSION_TYPE_CHOICES = (_VERSION_TYPE_CHOICE_1, _VERSION_TYPE_CHOICE_2)
+    _VERSION_INFO = '<p><em>Recommended Updates:</em>  Emails when the router \
+            is not running the most up-to-date stable version of Tor.</p> \
+            <p><em>Required Updates:</em>  Emails when the router is running \
+            an obsolete version of Tor.</p>'
+
+    _GET_BAND_LOW_INIT = False
     _GET_BAND_LOW_LABEL = 'Email me when the router has low bandwidth capacity'
-    _GET_BAND_LOW_ID = 'band-low-check'
+    _BAND_LOW_THRESHOLD_INIT = 20
+    _BAND_LOW_THRESHOLD_MIN = 0
+    _BAND_LOW_THRESHOLD_MAX = 100000
     _BAND_LOW_THRESHOLD_LABEL = 'For what citical bandwidth, in kB/s, should \
             we send notifications?'
     _BAND_LOW_THRESHOLD_HELP_TEXT = 'Enter a value between ' + \
             str(_BAND_LOW_THRESHOLD_MIN) + ' and ' + \
             str(_BAND_LOW_THRESHOLD_MAX)
+   
+    _GET_T_SHIRT_INIT = False
     _T_SHIRT_URL = 'https://www.torproject.org/tshirt.html.en'
     _GET_T_SHIRT_LABEL = 'Email me when my router has earned me a \
             <a href="' + _T_SHIRT_URL + '">Tor t-shirt</a>'
-    _GET_T_SHIRT_ID = 't-shirt-check'
+    _T_SHIRT_INFO = '<em>Note:</em> You must be the router\'s operator to \
+            claim your T-shirt.'
 
+    _INIT_PREFIX = 'Default value is '
+    _CLASS_SHORT = 'short-input'
+    _CLASS_DROPDOWN = 'dropdown-input'
 
     get_node_down = forms.BooleanField(initial=_GET_NODE_DOWN_INIT,
             required=False,
-            label=_GET_NODE_DOWN_LABEL,
-            widget=forms.CheckboxInput(attrs={'id':_GET_NODE_DOWN_ID}))
+            label=_GET_NODE_DOWN_LABEL)
     node_down_grace_pd = forms.IntegerField(
             initial=_INIT_PREFIX + str(_NODE_DOWN_GRACE_PD_INIT),
             required=False,
@@ -625,19 +677,17 @@ class GenericForm(forms.Form):
     
     get_version = forms.BooleanField(initial=_GET_VERSION_INIT,
             required=False,
-            label=_GET_VERSION_LABEL,
-            widget=forms.CheckboxInput(attrs={'id':_GET_VERSION_ID}))
+            label=_GET_VERSION_LABEL)
     version_text = forms.BooleanField(required=False,
             label= _VERSION_INFO)
     version_type = forms.ChoiceField(required=False,
-            choices=(_VERSION_TYPE_CHOICE_1, _VERSION_TYPE_CHOICE_2),
+            choices=(_VERSION_TYPE_CHOICES),
             label=_VERSION_TYPE_LABEL,
             widget=forms.Select(attrs={'class':_CLASS_DROPDOWN}))
     
-    get_band_low = forms.BooleanField(initial=_GET_BANDLOW_INIT,
+    get_band_low = forms.BooleanField(initial=_GET_BAND_LOW_INIT,
             required=False,
-            label=_GET_BAND_LOW_LABEL,
-            widget=forms.CheckboxInput(attrs={'id':_GET_BAND_LOW_ID}))
+            label=_GET_BAND_LOW_LABEL)
     band_low_threshold = forms.IntegerField(
             initial=_INIT_PREFIX + str(_BAND_LOW_THRESHOLD_INIT),
             required=False, max_value=_BAND_LOW_THRESHOLD_MAX,
@@ -646,9 +696,9 @@ class GenericForm(forms.Form):
             help_text=_BAND_LOW_THRESHOLD_HELP_TEXT,
             widget=forms.TextInput(attrs={'class':_CLASS_SHORT}))
     
-    get_t_shirt = forms.BooleanField(initial=False, required=False,
-            label=_GET_T_SHIRT_LABEL,
-            widget=forms.CheckboxInput(attrs={'id':_GET_T_SHIRT_ID}))
+    get_t_shirt = forms.BooleanField(initial=_GET_T_SHIRT_INIT, 
+            required=False,
+            label=_GET_T_SHIRT_LABEL)
     t_shirt_text = forms.BooleanField(required=False,
             label=_T_SHIRT_INFO) 
 
@@ -857,15 +907,9 @@ class PreferencesForm(GenericForm):
     is unchecked). The PreferencesForm form inherits L{GenericForm}.
     """
     
-    _USER_INFO_STR = '<span class="user-field">Email:</span> %s<br /> \
-            <span class="user-field">Router name:</span> %s<br /> \
-            <span class="user-field">Router id:</span> %s'
-    _EMAIL_LABEL = 'Email:'
-    _ROUTER_NAME_LABEL = 'Router Name:'
-    _ROUTER_FINGERPRINT_LABEL = 'Router Fingerprint:'
-    _CLASS_EMAIL = 'email-input'
-    _CLASS_SHORT = 'short-input'
-    _CLASS_LONG = 'long-input'
+    _USER_INFO_STR = '<p><span>Email:</span> %s</p> \
+            <p><span>Router name:</span> %s</p> \
+            <p><span>Router id:</span> %s</p>'
 
     def __init__(self, user, data = None):
         if data == None:
@@ -878,7 +922,6 @@ class PreferencesForm(GenericForm):
         fingerprint_text = str(self.user.router.fingerprint)
         fingerprint_list = re.findall('.{4}', fingerprint_text)
         fingerprint_text = ' '.join(fingerprint_list)
-                
         self.user_info = PreferencesForm._USER_INFO_STR % (self.user.email, \
                 self.user.router.name, fingerprint_text)
 
