@@ -15,7 +15,7 @@ parameter.
 """
 import socket, sys, os
 import threading
-import datetime
+from datetime import datetime
 import time
 import logging
 from smtplib import SMTPException
