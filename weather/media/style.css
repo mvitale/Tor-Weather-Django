@@ -68,7 +68,7 @@
 			
 			.long-input {
 				margin: 2px 5px 3px 0;
-				width: 385px;
+				width: 390px;
 			}
 
 			.dropdown-input {
@@ -136,7 +136,7 @@
 			#weather-legal {
 				font-style: italic;
 				font-size: 14px;
-				margin: 0 0 10px 0;
+				margin: 0 0 20px 0;
 			}
 
 			#trademark {
