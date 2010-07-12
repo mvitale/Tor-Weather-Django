@@ -378,7 +378,7 @@ class CtlUtil:
         
         return finger_list
 
-    def get_new_avg_bandwidth(avg_bandwidth, hours_up, obs_bandwidth):
+    def get_new_avg_bandwidth(self, avg_bandwidth, hours_up, obs_bandwidth):
         """Calculates the new average bandwidth for a router.
         
         @type avg_bandwidth: int
