@@ -921,7 +921,6 @@ class PreferencesForm(GenericForm):
         fingerprint_text = str(self.user.router.fingerprint)
         fingerprint_list = re.findall('.{4}', fingerprint_text)
         fingerprint_text = ' '.join(fingerprint_list)
-        
         self.user_info = PreferencesForm._USER_INFO_STR % (self.user.email, \
                 self.user.router.name, fingerprint_text)
 
