@@ -15,15 +15,15 @@ parameter.
 """
 import socket, sys, os
 import threading
-import datetime
+from datetime import datetime
 import time
 import logging
 from smtplib import SMTPException
 
-from weatherapp.ctlutil import CtlUtil
-from weatherapp.models import *
-import weatherapp.emails
-from config import config 
+from ctlutil import CtlUtil
+from models import Subscriber, Router, NodeDownSub, BandwidthSub, TShirtSub, \
+                   VersionSub
+import emails
 
 from django.core.mail import send_mass_mail
 
@@ -54,18 +54,19 @@ def check_node_down(email_list):
                    sub.last_changed = datetime.now()
             else:
                 if sub.triggered:
+                    if sub.emailed == False:
                     #if sub.is_grace_passed() and sub.emailed == False:------enable after debugging---
-                    recipient = sub.subscriber.email
-                    fingerprint = sub.subscriber.router.fingerprint
-                    grace_pd = sub.grace_pd
-                    unsubs_auth = sub.subscriber.unsubs_auth
-                    pref_auth = sub.subscriber.pref_auth
-                    
-                    email = emails.node_down_tuple(recipient, fingerprint, 
-                                                   grace_pd, unsubs_auth,
-                                                   pref_auth)
-                    email_list.append(email)
-                    sub.emailed = True 
+                        recipient = sub.subscriber.email
+                        fingerprint = sub.subscriber.router.fingerprint
+                        grace_pd = sub.grace_pd
+                        unsubs_auth = sub.subscriber.unsubs_auth
+                        pref_auth = sub.subscriber.pref_auth
+                        
+                        email = emails.node_down_tuple(recipient, fingerprint, 
+                                                       grace_pd, unsubs_auth,
+                                                       pref_auth)
+                        email_list.append(email)
+                        sub.emailed = True 
                 else:
                     sub.triggered = True
                     sub.last_changed = datetime.now()
@@ -87,15 +88,17 @@ def check_low_bandwidth(email_list):
     for sub in subs:
         fingerprint = sub.subscriber.router.fingerprint
         if sub.subscriber.confirmed:
-            if ctl_util.get_bandwidth(fingerprint) < sub.threshold and\
+            observed = self.ctlutil.get_bandwidth(fingerprint)
+            if observed < sub.threshold and\
             sub.emailed == False:
                 recipient = sub.subscriber.email
                 threshold = sub.threshold
                 unsubs_auth = sub.subscriber.unsubs_auth
                 pref_auth = sub.subscriber.pref_auth
 
-                email_list.append(emails.bandwidth_tuple(recipient, fingerprint,
-                                  threshold, unsubs_auth, pref_auth)) 
+                email_list.append(emails.bandwidth_tuple(recipient, 
+                                  fingerprint, observed, threshold,
+                                  unsubs_auth, pref_auth)) 
 
                 sub.emailed = True
 
@@ -132,7 +135,7 @@ def check_earn_tshirt(email_list):
                 sub.avg_bandwidth = 0
                 sub.last_changed = datetime.now()
             elif is_up:
-                descriptor = ctl_ultil.get_single_descriptor(fingerprint)
+                descriptor = ctl_util.get_single_descriptor(fingerprint)
                 current_bandwidth = ctl_util.get_bandwidth(fingerprint)
                 if sub.triggered == False:
                 # router just came back, reset values
@@ -176,25 +179,36 @@ def check_version(email_list):
     subs = VersionSub.objects.all()
 
     for sub in subs:
-        version_type = ctl_util.get_version_type(
-                       sub.subscriber.router.fingerprint)
         if sub.subscriber.confirmed:
-            if version_type == sub.notify_type and sub.emailed == False:
-            
-                fingerprint = sub.subscriber.router.fingerprint
-                recipient = sub.subscriber.email
-                unsubs_auth = sub.subscriber.unsubs_auth
-                pref_auth = sub.subscriber.pref_auth
-                email_list.append(emails.version_tuple(recipient, fingerprint,
-                                                       version_type, 
-                                                       unsubs_auth, pref_auth))
-                sub.emailed = True
+            version_type = ctl_util.get_version_type(
+                           str(sub.subscriber.router.fingerprint))
 
-        #if the user has their desired version type, we need to set emailed
-        #to False so that we can email them in the future if we need to
+            if version_type != 'ERROR':
+                if version_type == sub.notify_type and sub.emailed == False:
+                
+                    fingerprint = sub.subscriber.router.fingerprint
+                    recipient = sub.subscriber.email
+                    unsubs_auth = sub.subscriber.unsubs_auth
+                    pref_auth = sub.subscriber.pref_auth
+                    email_list.append(emails.version_tuple(recipient,     
+                                                           fingerprint,
+                                                           version_type,
+                                                           unsubs_auth,
+                                                           pref_auth))
+                    sub.emailed = True
+
+            #if the user has their desired version type, we need to set emailed
+            #to False so that we can email them in the future if we need to
+                else:
+                    sub.emailed = False
+
             else:
-                sub.emailed = False
+                logging.INFO("Couldn't parse the version relay %s is running" \
+                              % fingerprint)
 
+            sub.save()
+
+    return email_list
         
                 
 def check_all_subs(email_list):
@@ -237,7 +251,7 @@ def update_all_routers(email_list):
         finger = router[0]
         name = router[1]
         is_up_hiber = ctl_util.is_up_or_hibernating(finger)
-        print '%s is %s' % (name, is_up_hiber)
+        print '%s is up or hibernating: %s' % (name, is_up_hiber)
 
 
         if is_up_hiber:
@@ -290,7 +304,3 @@ def run_all():
     #except SMTPException, e:
         #logging.INFO(e)
         #failed.write(e + '\n')
-
-
-if __name__ == "__main__":
-    run_all()

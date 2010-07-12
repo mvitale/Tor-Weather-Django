@@ -11,7 +11,6 @@ import os
 import re
 from copy import copy
 
-import emails
 from config import url_helper
 
 from django.db import models
@@ -533,9 +532,12 @@ class PrefixedIntegerField(forms.IntegerField):
 
     default_error_messages = {
         'invalid': 'Enter a whole number.',
-        'max_value': 'Ensure this value is less than or equal to %(limit_value)s.',
-        'min_value': 'Ensure this value is greater than or equal to %(limit_value)s.',
-        'empty': 'yo, dawg; I am empty and no user should see this error message.',
+        'max_value': 'Ensure this value is less than or equal to \
+                %(limit_value)s.',
+        'min_value': 'Ensure this value is greater than or equal to \
+                %(limit_value)s.',
+        'empty': 'yo, dawg; I am empty and no user should see this error \
+                message.',
     }
 
     def __init__(self, max_value=None, min_value=None, *args, **kwargs):
@@ -786,13 +788,15 @@ class SubscribeForm(GenericForm):
             if PrefixedIntegerField.default_error_messages['empty'] in \
                     str(self._errors['node_down_grace_pd']):
                del self._errors['node_down_grace_pd']
-               data['node_down_grace_pd'] = GenericForm._NODE_DOWN_GRACE_PD_INIT
+               data['node_down_grace_pd'] = \
+                       GenericForm._NODE_DOWN_GRACE_PD_INIT
 
         if 'band_low_threshold' in self._errors:
             if PrefixedIntegerField.default_error_messages['empty'] in \
                     str(self._errors['band_low_threshold']):
                 del self._errors['band_low_threshold']
-                data['band_low_threshold'] = GenericForm._BAND_LOW_THRESHOLD_INIT
+                data['band_low_threshold'] = \
+                        GenericForm._BAND_LOW_THRESHOLD_INIT
 
         return data
 
@@ -899,7 +903,7 @@ class PreferencesForm(GenericForm):
         self.user = user
 
         self.user_info = PreferencesForm._USER_INFO_STR % (self.user.email, \
-                self.user.router.name, user.spaced_fingerprint())
+                self.user.router.name, user.router.spaced_fingerprint())
 
     def change_subscriptions(self, old_data, new_data):
         """Change the subscriptions and options if they are specified.

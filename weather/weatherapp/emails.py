@@ -49,6 +49,7 @@ send_mass_mail() method. Emails are sent after all database checks/updates.
 import re
 
 from config import url_helper
+from models import Router
 
 from django.core.mail import send_mail
 
@@ -91,11 +92,12 @@ _VERSION_MAIL = "This is a Tor Weather Report.\n\n"+\
 
 _LOW_BANDWIDTH_SUBJ = 'Low bandwidth!'
 _LOW_BANDWIDTH_MAIL = "The is a Tor Weather Report.\n\n"+\
-    "It appears that a tor node %s you elected to monitor "+\
-    "has an observed bandwidth capacity of less than %skB/s. "+\
-    "You may wish to look at it to see why.\n\n You can "+\
+    "It appears that the tor node %s "+\
+    "has an observed bandwidth capacity of %s kB/s. You elected to receive "+\
+    "notifications if this node's bandwidth capacity passed a threshold of "+\
+    "%s kB/s. You may wish to look at your router to see why.\n\nYou can "+\
     "unsubscribe from these reports at any time by visiting the "+\
-    "following url:\n\n%s\n\n or change your Tor Weather notification "\
+    "following url:\n\n%s\n\nor change your Tor Weather notification "\
     "preferences here:\n\n%s\n"
 
 _T_SHIRT_SUBJ = 'Congratulations! Have a T-shirt!'
@@ -146,14 +148,14 @@ _LEGAL_INFO = "Additionally, since you are running as an exit node, you " +\
 
 def _get_router_name(fingerprint):
     """"""
-    name = "(id: " + fingerprint + ")"
+    name = "(id: " + _insert_fingerprint_spaces(fingerprint) + ")"
     try:
         router = Router.objects.get(fingerprint = fingerprint)
     except:
         pass
     else:
         if router.name != "Unnamed":
-            name = router.name + " ," + name
+            name = router.name + ", " + name
     return name
 
 def send_confirmation(recipient,
@@ -206,13 +208,16 @@ def send_confirmed(recipient,
     msg = _CONFIRMED_MAIL % (name, unsubURL, prefURL) 
     send_mail(subj, msg, sender, [recipient], fail_silently=False)
 
-def bandwidth_tuple(recipient, fingerprint, threshold, unsubs_auth, pref_auth):
+def bandwidth_tuple(recipient, fingerprint, observed, threshold, unsubs_auth,
+                    pref_auth):
     """Returns the tuple for a low bandwidth email.
     @type recipient: str
     @param recipient: The user's email address
     @type fingerprint: str
     @param fingerprint: The fingerprint of the node this user wishes to
         monitor.
+    @type observed: int
+    @param observed: The observed bandwidth (kB/s)
     @type threshold: int
     @param threshold: The user's specified threshold for low bandwidth (KB/s)
     @type unsubs_auth: str
@@ -225,7 +230,7 @@ def bandwidth_tuple(recipient, fingerprint, threshold, unsubs_auth, pref_auth):
     sender = _SENDER
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
-    msg = _LOW_BANDWIDTH_MAIL % (name, threshold, unsubURL, prefURL)
+    msg = _LOW_BANDWIDTH_MAIL % (name, observed, threshold, unsubURL, prefURL)
 
     return (subj, msg, sender, [recipient])
 
