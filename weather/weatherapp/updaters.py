@@ -179,25 +179,36 @@ def check_version(email_list):
     subs = VersionSub.objects.all()
 
     for sub in subs:
-        version_type = ctl_util.get_version_type(
-                       sub.subscriber.router.fingerprint)
         if sub.subscriber.confirmed:
-            if version_type == sub.notify_type and sub.emailed == False:
-            
-                fingerprint = sub.subscriber.router.fingerprint
-                recipient = sub.subscriber.email
-                unsubs_auth = sub.subscriber.unsubs_auth
-                pref_auth = sub.subscriber.pref_auth
-                email_list.append(emails.version_tuple(recipient, fingerprint,
-                                                       version_type, 
-                                                       unsubs_auth, pref_auth))
-                sub.emailed = True
+            version_type = ctl_util.get_version_type(
+                           str(sub.subscriber.router.fingerprint))
 
-        #if the user has their desired version type, we need to set emailed
-        #to False so that we can email them in the future if we need to
+            if version_type != 'ERROR':
+                if version_type == sub.notify_type and sub.emailed == False:
+                
+                    fingerprint = sub.subscriber.router.fingerprint
+                    recipient = sub.subscriber.email
+                    unsubs_auth = sub.subscriber.unsubs_auth
+                    pref_auth = sub.subscriber.pref_auth
+                    email_list.append(emails.version_tuple(recipient,     
+                                                           fingerprint,
+                                                           version_type,
+                                                           unsubs_auth,
+                                                           pref_auth))
+                    sub.emailed = True
+
+            #if the user has their desired version type, we need to set emailed
+            #to False so that we can email them in the future if we need to
+                else:
+                    sub.emailed = False
+
             else:
-                sub.emailed = False
+                logging.INFO("Couldn't parse the version relay %s is running" \
+                              % fingerprint)
 
+            sub.save()
+
+    return email_list
         
                 
 def check_all_subs(email_list):
@@ -293,7 +304,3 @@ def run_all():
     #except SMTPException, e:
         #logging.INFO(e)
         #failed.write(e + '\n')
-
-
-if __name__ == "__main__":
-    run_all()
