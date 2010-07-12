@@ -16,6 +16,8 @@ from config import url_helper
 
 from django.db import models
 from django import forms
+from django.core import validators
+from django.core.exceptions import ValidationError
 
 class Router(models.Model):
     """A model that stores information about every router on the Tor network.
@@ -518,19 +520,49 @@ class TShirtSub(Subscription):
               '\nAverage Bandwidth: ' + str(self.avg_bandwidth) + \
               '\nLast Changed:' + str(self.last_changed)
 
-class DefaultTextIntegerField(forms.IntegerField):
-    """An Integer Field that accepts input of the form "Default value is ---"
-    and parses it as simply --- in its to_python method. Replaces the
+class PrefixedIntegerField(forms.IntegerField):
+    """An Integer Field that accepts input of the form "-prefix- -integer-"
+    and parses it as simply -integer- in its to_python method. Replaces the
     previous process of overwriting post data, which was an ugly workaround.
+    A PrefixedIntegerField will not accept empty input, but will throw a
+    validationerror specifying that it was left empty, so that this error can
+    be intercepted and dealth with cleanly.
     """
 
+    _PREFIX = 'Default value is '
+
+    default_error_messages = {
+        'invalid': 'Enter a whole number.',
+        'max_value': 'Ensure this value is less than or equal to %(limit_value)s.',
+        'min_value': 'Ensure this value is greater than or equal to %(limit_value)s.',
+        'empty': 'yo, dawg; I am empty and no user should see this error message.',
+    }
+
+    def __init__(self, max_value=None, min_value=None, *args, **kwargs):
+        super(forms.IntegerField, self).__init__(*args, **kwargs)
+
+        if max_value is not None:
+            self.validators.append(validators.MaxValueValidator(max_value))
+        if min_value is not None:
+            self.validators.append(validators.MinValueValidator(min_value))
+
     def to_python(self, value):
-        if value.startswith('Default value is '):
-            v = super(forms.IntegerField, self).to_python(value[17:])
-        else:
-            v = super(forms.IntegerField, self).to_python(value)
-        print v
-        return v
+        prefix = PrefixedIntegerField._PREFIX
+
+        if value == '':
+            raise ValidationError(self.error_messages['empty'])
+
+        try:
+            if value.startswith(prefix):
+                value = int(super(forms.IntegerField, self).to_python(
+                                                value[len(prefix):]))
+            else:
+                value = int(super(forms.IntegerField, self).to_python(
+                                                value))
+        except (ValueError, TypeError):
+            raise ValidationError(self.error_messages['invalid'])
+
+        return value
 
 class GenericForm(forms.Form):
     """The basic form class that is inherited by the SubscribeForm class
@@ -581,9 +613,7 @@ class GenericForm(forms.Form):
     @type _GET_BAND_LOW_ID:
     @type _BAND_LOW_THRESHOLD_INIT:
     """
-    
-    
-    
+      
     # NOTE: Most places inherit the min, max, and default values for fields
     # from here, but one notable exception is in the javascript file when
     # checking if textboxes haven't been altered.
@@ -636,7 +666,7 @@ class GenericForm(forms.Form):
     get_node_down = forms.BooleanField(initial=_GET_NODE_DOWN_INIT,
             required=False,
             label=_GET_NODE_DOWN_LABEL)
-    node_down_grace_pd = DefaultTextIntegerField(
+    node_down_grace_pd = PrefixedIntegerField(
             initial=_INIT_PREFIX + str(_NODE_DOWN_GRACE_PD_INIT),
             required=False,
             max_value=_NODE_DOWN_GRACE_PD_MAX,
@@ -658,7 +688,7 @@ class GenericForm(forms.Form):
     get_band_low = forms.BooleanField(initial=_GET_BAND_LOW_INIT,
             required=False,
             label=_GET_BAND_LOW_LABEL)
-    band_low_threshold = forms.IntegerField(
+    band_low_threshold = PrefixedIntegerField(
             initial=_INIT_PREFIX + str(_BAND_LOW_THRESHOLD_INIT),
             required=False, max_value=_BAND_LOW_THRESHOLD_MAX,
             min_value=_BAND_LOW_THRESHOLD_MIN, 
@@ -672,45 +702,6 @@ class GenericForm(forms.Form):
     t_shirt_text = forms.BooleanField(required=False,
             label=_T_SHIRT_INFO) 
 
-    @staticmethod
-    def clean_post_data(post_data):
-        """Checks if POST data contains fields that still say "Default value 
-        is C{-DEFAULT-VALUE-}" or are left blank and returns a POST dictionary
-        with those fields replaced with just C{-DEFAULT-VALUE-}. Also sets
-        the field_name_manipulated fields to C{on} or C{off} depending on
-        whether POST data has been manipulated at this stage (there is a
-        hidden form field that stores this value, and the template renders
-        a hidden input field, with val='true' if the hidden form field is true,
-        and val='false' if the hidden form field is false; the javascript then
-        will know to put 'Default value is _' for that field by referring to
-        the hidden input field). Has no side-effects on the original POST 
-        dictionary passed as an argument (which is immutable anyway). The 
-        output POST data is meant to be passed into the GenericForm being
-        created.
-        
-        @type post_data: QueryDict
-        @param post_data: POST request data.
-        @rtype: QueryDict
-        @return: POST request data with "Default value is C{-DEFAULT-VALUE-}
-            replaced with C{-DEFAULT-VALUE-}.
-        """
-
-        data = copy(post_data)
-
-        #if data['node_down_grace_pd'] == GenericForm._INIT_PREFIX + \
-        #        str(GenericForm._NODE_DOWN_GRACE_PD_INIT) \
-        #   or data['node_down_grace_pd'] == '' \
-        #   or 'get_node_down' not in data:
-        #    data['node_down_grace_pd'] = GenericForm._NODE_DOWN_GRACE_PD_INIT
-
-        if data['band_low_threshold'] == GenericForm._INIT_PREFIX + \
-                str(GenericForm._BAND_LOW_THRESHOLD_INIT) \
-           or data['band_low_threshold'] == '' \
-           or 'get_band_low' not in data:
-            data['band_low_threshold'] = GenericForm._BAND_LOW_THRESHOLD_INIT  
-        
-        return data
- 
     def check_if_sub_checked(self, data):
         """Throws a validation error if no subscriptions are checked. 
         Abstracted out of clean() so that there isn't any redundancy in 
@@ -753,7 +744,7 @@ class SubscribeForm(GenericForm):
     _EMAIL_MAX_LEN = 75
     _EMAIL_2_LABEL = 'Re-enter Email:'
     _FINGERPRINT_LABEL = 'Node Fingerprint:'
-    _FINGERPRINT_MAX_LEN = 40
+    _FINGERPRINT_MAX_LEN = 80
     _CLASS_EMAIL = 'email-input'
     _CLASS_LONG = 'long-input'
 
@@ -790,7 +781,19 @@ class SubscribeForm(GenericForm):
                 
                 del data['email_1']
                 del data['email_2']
-       
+
+        if 'node_down_grace_pd' in self._errors:
+            if PrefixedIntegerField.default_error_messages['empty'] in \
+                    str(self._errors['node_down_grace_pd']):
+               del self._errors['node_down_grace_pd']
+               data['node_down_grace_pd'] = GenericForm._NODE_DOWN_GRACE_PD_INIT
+
+        if 'band_low_threshold' in self._errors:
+            if PrefixedIntegerField.default_error_messages['empty'] in \
+                    str(self._errors['band_low_threshold']):
+                del self._errors['band_low_threshold']
+                data['band_low_threshold'] = GenericForm._BAND_LOW_THRESHOLD_INIT
+
         return data
 
     def clean_fingerprint(self):
@@ -800,7 +803,12 @@ class SubscribeForm(GenericForm):
         isn't (along with helpful information).
         """
         fingerprint = self.cleaned_data.get('fingerprint')
-        fingerprint.replace(' ', '')
+        
+        # Removes 'Name: ' from fingerprint field.
+        fingerprint = re.sub(r'.*: ', '', fingerprint)
+
+        # Removes spaces from fingerprint field.
+        fingerprint = re.sub(r' ', '', fingerprint)
 
         if self.is_valid_router(fingerprint):
             return fingerprint
