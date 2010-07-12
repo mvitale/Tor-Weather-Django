@@ -208,12 +208,12 @@ class CtlUtil:
                  '' if the version cannot be retrieved.
         """
         desc = self.get_single_descriptor(fingerprint)
-        
         search = re.search('\nplatform\sTor\s.*\s', desc)
-        #if search != None:
-        return search.group().split()[2].replace(' ', '')
-        #else:
-        #    return ''
+
+        if search != None:
+            return search.group().split()[2].replace(' ', '')
+        else:
+            return ''
         
     def get_version_type(self, fingerprint):
         """Get the type of version the relay with fingerprint C{fingerprint}
