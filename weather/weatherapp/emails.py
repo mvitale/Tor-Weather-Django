@@ -226,7 +226,7 @@ def bandwidth_tuple(recipient, fingerprint, observed, threshold, unsubs_auth,
     @param pref_auth: The user's unique preferences auth key
     """
     name = _get_router_name(fingerprint)
-    subj = _SUBJECT_HEADER + LOW_BANDWIDTH_SUBJ
+    subj = _SUBJECT_HEADER + _LOW_BANDWIDTH_SUBJ
     sender = _SENDER
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
