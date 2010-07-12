@@ -508,63 +508,6 @@ class GenericForm(forms.Form):
     and the PreferencesForm class.
    
     @type _GET_NODE_DOWN_INIT: Bool
-    @cvar _GET_NODE_DOWN_INIT: The initial value of the get_node_down checkbox
-        when the form is loaded.
-    @type _GET_VERSION_INIT: Bool
-    @cvar _GET_VERSION_INIT: The initial value of the get_version checkbox when
-        the form is loaded.
-    @type _GET_BANDLOW_INIT: Bool
-    @cvar _GET_BANDLOW_INIT: The initial value of the get_band_low checkbox
-        when the form is loaded.
-    @type _NODE_DOWN_GRACE_PD_INIT: int
-    @cvar _NODE_DOWN_GRACE_PD_INIT: The default initial node down grace pd (1 
-        hr)
-    @type _NODE_DOWN_GRACE_PD_MAX: int
-    @cvar _NODE_DOWN_GRACE_PD_MAX: The maximum node down grace period in hours
-    @type _NODE_DOWN_GRACE_PD_MIN: int
-    @cvar _NODE_DOWN_GRACE_PD_MIN: The minimum node down grace period in hours
-    @type _BAND_LOW_THRESHOLD_INIT: int
-    @cvar _BAND_LOW_THRESHOLD_INIT: The initial low bandwidth threshold (kb/s)
-    @type _BAND_LOW_THRESHOLD_MIN: int
-    @cvar _BAND_LOW_THRESHOLD_MIN: The minimum low bandwidth threshold (kb/s)
-    @type _BAND_LOW_THERSHOLD_MAX: int
-    @cvar _BAND_LOW_THERSHOLD_MAX: The maximum low bandwidth threshold (KB/s)
-    @type _INIT_PREFIX: str
-    @cvar _INIT_PREFIX: The prefix for strings that display before user has
-        entered data.
-    @type _VERSION_INFO: str
-    @cvar _VERSION_INFO: Help text for the version notification field.
-    @type get_node_down: BooleanField
-    @ivar get_node_down: C{True} if the user wants to subscribe to node down 
-        notifications, C{False} if not.
-    @type node_down_grace_pd: IntegerField, processed into int
-    @ivar node_down_grace_pd: Time before receiving a node down notification in 
-        hours. Default = 1. Range = 1-4500.
-    @type get_version: BooleanField, processed into Bool
-    @ivar get_version: C{True} if the user wants to receive version 
-        notifications about their router, C{False} if not.
-    @type version_type: ChoiceField, processed into str
-    @ivar version_type: The type of version notifications the user 
-        wants
-    @type version_text: BooleanField
-    @ivar version_text: Hidden field; used to display extra text in the form
-        template without having to hardcode the text into the template.
-    @type get_band_low: BooleanField, processed into Bool
-    @ivar get_band_low: C{True} if the user wants to receive low bandwidth 
-        notifications, C{False} if not.
-    @type band_low_threshold: IntegerField, processed into int
-    @ivar band_low_threshold: The user's threshold (in KB/s) for low bandwidth
-        notifications. Default = 20 KB/s.
-    @type get_t_shirt: BooleanField, processed into Bool
-    @ivar get_t_shirt: C{True} if the user wants to receive a t-shirt 
-        notification, C{False} if not.
-    @type t_shirt_text: BooleanField
-    @ivar t_shirt_text: Hidden field; used to display extra text in the form
-        template without having to hardcode the text into the template.
-    """
-   
-    """
-    @type _GET_NODE_DOWN_INIT: Bool
     @cvar _GET_NODE_DOWN_INIT: Initial display value and default submission
         value of the L{get_node_down} checkbox.
     @type _GET_NODE_DOWN_LABEL: Str
@@ -794,8 +737,8 @@ class SubscribeForm(GenericForm):
             widget=forms.TextInput(attrs={'class':_CLASS_EMAIL}),
             max_length=_EMAIL_MAX_LEN)
     fingerprint = forms.CharField(label='Node Fingerprint:',
-            widget=forms.TextInput(attrs={'class':_CLASS_LONG}),
-            max_length=_FINGERPRINT_MAX_LEN)
+            widget=forms.TextInput(attrs={'class':_CLASS_LONG, 
+            'id':'fingerprint'}), max_length=_FINGERPRINT_MAX_LEN)
 
     def clean(self):
         """Called when the is_valid method is evaluated for a SubscribeForm 
@@ -836,7 +779,7 @@ class SubscribeForm(GenericForm):
         else:
             info_extension = url_helper.get_fingerprint_info_ext(fingerprint)
             msg = 'We could not locate a Tor node with that fingerprint. \
-                   (<a href=%s>More info</a>)' % info_extension
+                   (<a target=_BLANK href=%s>More info</a>)' % info_extension
             raise forms.ValidationError(msg)
 
     def is_valid_router(self, fingerprint):
