@@ -26,49 +26,24 @@ function showDefault(row, defVal) {
 	}
 }
 
-// Hides the more info text and shows the more info link initially, and sets
-// the ilnk to display the text upon click.
-function swapText(infoSect) {
-	$(infoSect + " .more-info-link").css("display", "inline");
-	$(infoSect + " .more-info-text").css("display", "none");
-	
-	$(infoSect + " .more-info-link").click(function() {
-		if ($(infoSect + " .more-info-link").text() == "(More detail)") {
-			$(infoSect + " .more-info-text").css("display", "inline");
-			$(infoSect + " .more-info-link").text("(Less detail)");
-		} else {
-			$(infoSect + " .more-info-text").css("display", "none");
-			$(infoSect + " .more-info-link").text("(More detail)");
-		}
-	});
-}
-
 $(document).ready(function() {
 
 	// Shows or hides sections based on the initial selection of checkboxes.
 	// By, default (ie, with javascript turned off), all sections will be 
 	// shown since they are only ever hidden here. Also, sets the sections
 	// to expand/collapse upon click.
-	showOrHideSect("input#node-down-check", "div#node-down-section");
-	showOrHideSect("input##version-check", "div#version-section");
-	showOrHideSect("input#band-low-check", "div#band-low-section");
-	showOrHideSect("input#t-shirt-check", "div#t-shirt-section");
+	showOrHideSect("input#id_get_node_down", "div#node-down-section");
+	showOrHideSect("input#id_get_version", "div#version-section");
+	showOrHideSect("input#id_get_band_low", "div#band-low-section");
+	showOrHideSect("input#id_get_t_shirt", "div#t-shirt-section");
 
 	// Turns the input field text gray and makes the text disappear on click
 	// if it has the "Default Value is ---" when the page loads.
-	showDefault("div#node-down-grace-pd-row", 1);
-	showDefault("div#band-low-threshold-row", 20);
+	showDefault("div#node-down-section", 1);
+	showDefault("div#band-low-section", 20);
 
-	// Initially hides the 'more info' text and displays a link, then sets
-	// that link to display the text upon click (and hide itself). Without
-	// javascript, the more info text will be shown and the link will be
-	// hidden.
-	swapText("span#version-more-info");
-	swapText("span#band-low-more-info");
-	swapText("span#t-shirt-more-info");
-
-	$("span#more-info a").hover(function() {
-		$("span#more-info-hover").toggle();
+	$("#more-info a").hover(function() {
+		$("#more-info span").toggle();
 	});
 });
 
