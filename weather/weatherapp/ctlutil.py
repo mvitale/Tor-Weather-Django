@@ -204,13 +204,17 @@ class CtlUtil:
         @param fingerprint: The fingerprint of the Tor relay to check.
 
         @rtype: str
-        @return: The version of the Tor software that this relay is running.
+        @return: The version of the Tor software that this relay is running or
+                 '' if the version cannot be retrieved.
         """
         desc = self.get_single_descriptor(fingerprint)
-        return re.search('\nplatform\sTor\s.*\s', desc).group()\
-        .split()[2].replace(' ', '')
         
-
+        search = re.search('\nplatform\sTor\s.*\s', desc)
+        #if search != None:
+        return search.group().split()[2].replace(' ', '')
+        #else:
+        #    return ''
+        
     def get_version_type(self, fingerprint):
         """Get the type of version the relay with fingerprint C{fingerprint}
         is running. 
@@ -225,10 +229,14 @@ class CtlUtil:
         recent unstable release , UNRECOMMENDED
         if it is running an older version than the most recent stable release
         that is contained in the list returned by C{get_rec_version_list()},
-        and OBSOLETE if the version isn't on the list.
+        and OBSOLETE if the version isn't on the list. If the relay's version
+        cannot be determined, return ERROR.
         """
         version_list = self.get_rec_version_list()
         client_version = self.get_version(fingerprint)
+
+        if client_version == '':
+            return 'ERROR'
 
         current_stable_index = -1
         for version in version_list:
