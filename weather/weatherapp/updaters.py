@@ -133,7 +133,7 @@ def check_earn_tshirt(email_list):
                 sub.avg_bandwidth = 0
                 sub.last_changed = datetime.now()
             elif is_up:
-                descriptor = ctl_ultil.get_single_descriptor(fingerprint)
+                descriptor = ctl_util.get_single_descriptor(fingerprint)
                 current_bandwidth = ctl_util.get_bandwidth(fingerprint)
                 if sub.triggered == False:
                 # router just came back, reset values
@@ -199,9 +199,11 @@ def check_version(email_list):
             #to False so that we can email them in the future if we need to
                 else:
                     sub.emailed = False
+
             else:
                 logging.INFO("Couldn't parse the version relay %s is running" \
                               % fingerprint)
+
             sub.save()
 
     return email_list
