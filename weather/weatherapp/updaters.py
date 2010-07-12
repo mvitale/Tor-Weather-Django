@@ -54,18 +54,19 @@ def check_node_down(email_list):
                    sub.last_changed = datetime.now()
             else:
                 if sub.triggered:
+                    if sub.emailed == False:
                     #if sub.is_grace_passed() and sub.emailed == False:------enable after debugging---
-                    recipient = sub.subscriber.email
-                    fingerprint = sub.subscriber.router.fingerprint
-                    grace_pd = sub.grace_pd
-                    unsubs_auth = sub.subscriber.unsubs_auth
-                    pref_auth = sub.subscriber.pref_auth
-                    
-                    email = emails.node_down_tuple(recipient, fingerprint, 
-                                                   grace_pd, unsubs_auth,
-                                                   pref_auth)
-                    email_list.append(email)
-                    sub.emailed = True 
+                        recipient = sub.subscriber.email
+                        fingerprint = sub.subscriber.router.fingerprint
+                        grace_pd = sub.grace_pd
+                        unsubs_auth = sub.subscriber.unsubs_auth
+                        pref_auth = sub.subscriber.pref_auth
+                        
+                        email = emails.node_down_tuple(recipient, fingerprint, 
+                                                       grace_pd, unsubs_auth,
+                                                       pref_auth)
+                        email_list.append(email)
+                        sub.emailed = True 
                 else:
                     sub.triggered = True
                     sub.last_changed = datetime.now()
@@ -237,7 +238,7 @@ def update_all_routers(email_list):
         finger = router[0]
         name = router[1]
         is_up_hiber = ctl_util.is_up_or_hibernating(finger)
-        print '%s is %s' % (name, is_up_hiber)
+        print '%s is up or hibernating: %s' % (name, is_up_hiber)
 
 
         if is_up_hiber:
