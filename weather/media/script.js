@@ -15,13 +15,18 @@ function showOrHideSect(check, sect) {
 // Turns the input field in row row gray and makes text disappear on click
 // if it initially had "Default value is --def_val--".
 function showDefault(row, defVal) {
-	var val = $(row + " input[type='text']").val();
-	if (val == "Default value is " + defVal) {
-		$(row + " input[type='text']").css("color", "rgb(150, 150, 150)");
+	var box = $(row + " input[type='text']")
 
-		$(row + " input[type='text']").click(function() {
-			$(row + " input[type='text']").val("");
-			$(row + " input[type='text']").css("color", "black");
+	if (box.val() === "") {
+		box.val("Default value is " + defVal);
+	}
+
+	if (box.val() == "Default value is " + defVal) {
+		box.css("color", "rgb(150, 150, 150)");
+
+		box.click(function() {
+			box.val("");
+			box.css("color", "black");
 		});
 	}
 }

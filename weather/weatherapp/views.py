@@ -40,10 +40,7 @@ def subscribe(request):
         # User hasn't submitted info, so just display empty subscribe form.
         form = SubscribeForm()
     else:
-        # Handle the submitted form, with the POST data cleaned by
-        # clean_post_data, which replaces 'Default value is ---' with the
-        # integer value so that to_python() methods don't get upset.
-        form = SubscribeForm(GenericForm.clean_post_data(request.POST))
+        form = SubscribeForm(request.POST)
 
         if form.is_valid():
             # Tries to save the new subscriber, but redirects if saving the
@@ -198,10 +195,7 @@ def preferences(request, pref_auth):
     if request.method != "POST":
         form = PreferencesForm(user)
     else:
-        # Handle the submitted form, with the POST data cleaned by 
-        # clean_post_data, which replaces 'Default value is ---' with the 
-        # integer value, so that to_python() methods don't get upset.
-        form = PreferencesForm(user, GenericForm.clean_post_data(request.POST))
+        form = PreferencesForm(user, request.POST)
         if form.is_valid():
             # Creates/changes/deletes subscriptions and subscription info
             # based on form data
