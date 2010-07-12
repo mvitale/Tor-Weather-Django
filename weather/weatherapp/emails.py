@@ -49,6 +49,7 @@ send_mass_mail() method. Emails are sent after all database checks/updates.
 import re
 
 from config import url_helper
+from models import Router
 
 from django.core.mail import send_mail
 
@@ -147,14 +148,14 @@ _LEGAL_INFO = "Additionally, since you are running as an exit node, you " +\
 
 def _get_router_name(fingerprint):
     """"""
-    name = "(id: " + fingerprint + ")"
+    name = "(id: " + _insert_fingerprint_spaces(fingerprint) + ")"
     try:
         router = Router.objects.get(fingerprint = fingerprint)
     except:
         pass
     else:
         if router.name != "Unnamed":
-            name = router.name + " ," + name
+            name = router.name + ", " + name
     return name
 
 def send_confirmation(recipient,

@@ -11,7 +11,6 @@ import os
 import re
 from copy import copy
 
-import emails
 from config import url_helper
 
 from django.db import models

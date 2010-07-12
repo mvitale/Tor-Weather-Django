@@ -250,9 +250,9 @@ def update_all_routers(email_list):
                 router_data.exit = is_exit
                 #send a welcome email if indicated
                 if router_data.welcomed == False and ctl_util.is_stable(finger):
-                    email = ctl_util.get_email(finger)
-                    if not email == "":
-                        email = emails.welcome_tuple(email, finger, is_exit)
+                    address = ctl_util.get_email(finger)
+                    if not address == "":
+                        email = emails.welcome_tuple(address, finger, is_exit)
                         email_list.append(email)
                     router_data.welcomed = True
                 router_data.save()
