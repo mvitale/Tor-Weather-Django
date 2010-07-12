@@ -15,15 +15,15 @@ parameter.
 """
 import socket, sys, os
 import threading
-import datetime
+from datetime import datetime
 import time
 import logging
 from smtplib import SMTPException
 
-from weatherapp.ctlutil import CtlUtil
-from weatherapp.models import *
-import weatherapp.emails
-from config import config 
+from ctlutil import CtlUtil
+from models import Subscriber, Router, NodeDownSub, BandwidthSub, TShirtSub, \
+                   VersionSub
+import emails
 
 from django.core.mail import send_mass_mail
 
@@ -135,7 +135,7 @@ def check_earn_tshirt(email_list):
                 sub.avg_bandwidth = 0
                 sub.last_changed = datetime.now()
             elif is_up:
-                descriptor = ctl_ultil.get_single_descriptor(fingerprint)
+                descriptor = ctl_util.get_single_descriptor(fingerprint)
                 current_bandwidth = ctl_util.get_bandwidth(fingerprint)
                 if sub.triggered == False:
                 # router just came back, reset values
