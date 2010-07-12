@@ -92,12 +92,12 @@ _VERSION_MAIL = "This is a Tor Weather Report.\n\n"+\
 
 _LOW_BANDWIDTH_SUBJ = 'Low bandwidth!'
 _LOW_BANDWIDTH_MAIL = "The is a Tor Weather Report.\n\n"+\
-    "It appears that a tor node %s you elected to monitor "+\
+    "It appears that the tor node %s "+\
     "has an observed bandwidth capacity of %s kB/s. You elected to receive "+\
-    "notifications if your bandwidth capacity passed a threshold of %s kB/s. "+\
-    "You may wish to look at your router to see why.\n\n You can "+\
+    "notifications if this node's bandwidth capacity passed a threshold of "+\
+    "%s kB/s. You may wish to look at your router to see why.\n\nYou can "+\
     "unsubscribe from these reports at any time by visiting the "+\
-    "following url:\n\n%s\n\n or change your Tor Weather notification "\
+    "following url:\n\n%s\n\nor change your Tor Weather notification "\
     "preferences here:\n\n%s\n"
 
 _T_SHIRT_SUBJ = 'Congratulations! Have a T-shirt!'
