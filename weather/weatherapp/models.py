@@ -867,20 +867,6 @@ class PreferencesForm(GenericForm):
     _CLASS_SHORT = 'short-input'
     _CLASS_LONG = 'long-input'
 
-    email = forms.EmailField(label=_EMAIL_LABEL,
-            widget=forms.TextInput(attrs={
-                'class':_CLASS_EMAIL,
-                'readonly':'readonly'}))
-    router_name = forms.CharField(label=_ROUTER_NAME_LABEL,
-            widget=forms.TextInput(attrs={
-                'class':_CLASS_SHORT,
-                'readonly':'readonly'}))
-    fingerprint = forms.CharField(label=_ROUTER_FINGERPRINT_LABEL,
-            widget=forms.TextInput(attrs={
-                'class':_CLASS_LONG,
-                'disabled':'disabled'}))
-
-    
     def __init__(self, user, data = None):
         if data == None:
             super(GenericForm, self).__init__(initial=user.get_preferences())
@@ -890,17 +876,9 @@ class PreferencesForm(GenericForm):
         self.user = user
 
         fingerprint_text = str(self.user.router.fingerprint)
-        regex = r'(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)' + \
-                r'(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)(\d\d\d\d)'
-        m = re.match(regex, fingerprint_text)
-        fingerprint_groups = m.groups()
-        fingerprint_text = '%s %s %s %s %s %s %s %s %s %s' % \
-                fingerprint_groups
-        
-        self.fields['email'].initial=user.email
-        self.fields['router_name'].initial=user.router.name
-        self.fields['fingerprint'].initial=fingerprint_text
-
+        fingerprint_list = re.findall('.{4}', fingerprint_text)
+        fingerprint_text = ' '.join(fingerprint_list)
+                
         self.user_info = PreferencesForm._USER_INFO_STR % (self.user.email, \
                 self.user.router.name, fingerprint_text)
 

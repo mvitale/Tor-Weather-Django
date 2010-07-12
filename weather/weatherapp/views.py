@@ -204,8 +204,7 @@ def preferences(request, pref_auth):
         if form.is_valid():
             # Creates/changes/deletes subscriptions and subscription info
             # based on form data
-            form.change_subscriptions(user, user.get_preferences(), 
-                                      form.cleaned_data)
+            form.change_subscriptions(user.get_preferences(), form.cleaned_data)
             
             # Redirect the user to the pending page
             url_extension = url_helper.get_confirm_pref_ext(pref_auth)
