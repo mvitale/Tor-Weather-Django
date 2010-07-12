@@ -20,10 +20,10 @@ import time
 import logging
 from smtplib import SMTPException
 
-from weatherapp.ctlutil import CtlUtil
-from weatherapp.models import *
-import weatherapp.emails
-from config import config 
+from ctlutil import CtlUtil
+from models import Subscriber, Router, NodeDownSub, BandwidthSub, TShirtSub, \
+                   VersionSub
+import emails
 
 from django.core.mail import send_mass_mail
 
