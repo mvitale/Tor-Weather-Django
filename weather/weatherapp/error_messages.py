@@ -17,20 +17,20 @@ the user via the web pages and the method to access the correct message.
 from weather.weatherapp.models import Subscriber
 from weather.config import url_helper
 
-_ALREADY_CONFIRMED = "You have already confirmed your Tor Weather " +\
+_ALREADY_CONFIRMED = "<p>You have already confirmed your Tor Weather " +\
     "subscription. The link you followed is no longer functional. " +\
     "</p><p>You can change your preferences by following this link: " +\
-    "<br><a href=%s>%s</a></p>" +\
+    "<br /><a href=%s>%s</a></p>" +\
     "<p>You can unsubscribe at any time here:" +\
     "<br><a href=%s>%s</a></p>"
-_ALREADY_SUBSCRIBED = "You are already subscribed to receive email " +\
-    "alerts about the node you specified. If you'd like, you can " +\
-    " <a href = '%s'>change your preferences here</a>."
-_NEED_CONFIRMATION ="You have not yet confirmed your subscription to Tor "+\
+_ALREADY_SUBSCRIBED = "<p>You are already subscribed to receive email " +\
+    "alerts about the node you specified.</p><p>If you'd like, you can " +\
+    " <a href = '%s'>change your preferences here</a>.</p>"
+_NEED_CONFIRMATION ="<p>You have not yet confirmed your subscription to Tor "+\
     "Weather. You should have received an email at %s from Tor Weather "+\
     "with a link to your confirmation page.</p><p>If you would like us "+\
     "to resend the email with a link to your confirmation page, "+\
-    "<a href=%s>click here</a>."
+    "<a href=%s>click here</a>.</p>"
 _DEFAULT = "Tor Weather has encountered an error in trying to redirect "+\
     "to this page."
 
