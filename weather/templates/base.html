@@ -5,10 +5,10 @@
 <head>
 {% endblock head-tag %}
 	<title>{% block header %}Tor Weather{% endblock %}</title>
-	<link rel="stylesheet" type="text/css" 
-	href="http://weather.torproject.org/stylesheet.css">
+	<link rel="stylesheet" type="text/css" href="http://weather.torproject.org/stylesheet.css">
 	<link rel="stylesheet" type="text/css" href="/media/style.css">
-	{% block script %}{% endblock %}
+	{% block extra_css %}{% endblock extra_css %}
+	{% block script %}{% endblock script %}
 </head>
 
 <body>

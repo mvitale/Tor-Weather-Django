@@ -12,6 +12,15 @@ Tor Weather - Sign Up!
 Tor Weather - Sign Up!
 {% endblock title %}
 
+{% block extra_script %}
+<script type="text/javascript" src="/media/dimensions.js"></script>
+<script type="text/javascript" src="/media/autocomplete.js"></script>
+{% endblock extra_script %}
+
+{% block extra_css %}
+<link type="text/css" rel="stylesheet" href="/media/autocomplete.css">
+{% endblock extra_css %}
+
 {% block form-tag %}
 <form method="post" action="/subscribe/" id="subscribe-form">{% csrf_token %}
 {% endblock form-tag %}
@@ -34,8 +43,14 @@ Tor Weather - Sign Up!
 </div>
 
 <div>
-	<label for="id_fingerprint">{{ form.fingerprint.label }}</label>
+	<script type="text/javascript"><!--
+		$(function(){
+			setAutoComplete("fingerprint", "results", "/auto_fingerprint_lookup/?query=");
+		});
+	--></script>
+	<label for="fingerprint">{{ form.fingerprint.label }}</label>
 	{% for error in form.fingerprint.errors %}
+	<div id="fingerprint_results"></div>
 	<p class="form-error">{{ error|safe}}</p>
 	{% endfor %}
 	{{ form.fingerprint }}
