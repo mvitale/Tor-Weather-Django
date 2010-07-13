@@ -75,16 +75,16 @@ _CONFIRMED_MAIL="Dear human,\n\nThis is the Tor Weather Report "+\
 
 _NODE_DOWN_SUBJ = 'Node Down!'
 _NODE_DOWN_MAIL = "This is a Tor Weather Report.\n\n" +\
-    "It appears that the node %s that you elected to monitor " +\
-    "has been uncontactable through the Tor network for at least %s "+\
-    "hour(s). You may wish to look at it to see why.\n\nYou can "+\
+    "It appears that the node %s you've been observing" +\
+    "has been uncontactable through the Tor network for at least %s. "+\
+    "You may wish to look at it to see why.\n\nYou can "+\
     "unsubscribe from these reports at any time by visiting the "+\
     "following url:\n\n%s\n\nor change your Tor Weather notification "+\
     "preferences here:\n\n%s\n"
 
 _VERSION_SUBJ = 'Node Out of Date!'
 _VERSION_MAIL = "This is a Tor Weather Report.\n\n"+\
-    "It appears that a Tor node you elected to monitor, %s, "+\
+    "It appears that the Tor node %s you've been observing "+\
     "is running an %s version of Tor. You can download the "+\
     "latest version of Tor at %s.\n\nYou can unsubscribe from these "+\
     "reports at any time by visiting the following url:\n\n%s\n\n"+\
@@ -92,7 +92,7 @@ _VERSION_MAIL = "This is a Tor Weather Report.\n\n"+\
 
 _LOW_BANDWIDTH_SUBJ = 'Low bandwidth!'
 _LOW_BANDWIDTH_MAIL = "The is a Tor Weather Report.\n\n"+\
-    "It appears that the tor node %s "+\
+    "It appears that the tor node %s you've been observing "+\
     "has an observed bandwidth capacity of %s kB/s. You elected to receive "+\
     "notifications if this node's bandwidth capacity passed a threshold of "+\
     "%s kB/s. You may wish to look at your router to see why.\n\nYou can "+\
@@ -102,7 +102,7 @@ _LOW_BANDWIDTH_MAIL = "The is a Tor Weather Report.\n\n"+\
 
 _T_SHIRT_SUBJ = 'Congratulations! Have a T-shirt!'
 _T_SHIRT_MAIL = "This is a Tor Weather Report.\n\n"+\
-    "Congratulations! The node you've been observing, %s, has been %s for %s "+\
+    "Congratulations! The node %s you've been observing has been %s for %s "+\
     "days with an average bandwidth of %s KB/s," +\
     "which makes the operator eligible to receive an official Tor "+\
     "T-shirt! If you're interested in claiming your shirt, please visit "+\
@@ -254,9 +254,12 @@ def node_down_tuple(recipient, fingerprint, grace_pd, unsubs_auth, pref_auth):
     name = _get_router_name(fingerprint)
     subj = _SUBJECT_HEADER + _NODE_DOWN_SUBJ
     sender = _SENDER
+    num_hours = grace_pd + " hour"
+    if grace_pd > 1:
+        num_hours += "s"
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
-    msg = _NODE_DOWN_MAIL % (name, grace_pd, unsubURL, prefURL)
+    msg = _NODE_DOWN_MAIL % (name, num_hours, unsubURL, prefURL)
     return (subj, msg, sender, [recipient])
 
 def t_shirt_tuple(recipient,
