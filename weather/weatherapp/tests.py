@@ -3,6 +3,7 @@ The test module. To run tests, cd to weather and run 'python manage.py
 test weatherapp'.
 """
 import time
+from datetime import datetime, timedelta
 
 from models import Subscriber, Subscription, Router, NodeDownSub, TShirtSub,\
                    VersionSub, BandwidthSub
@@ -25,7 +26,7 @@ class TestWeb(TestCase):
     def setUp(self):
         """Set up the test database with a dummy router"""
         self.client = Client()
-        r = Router(fingerprint = '1234', name = 'abc')
+        r = Router(fingerprint = '1234', name = 'abc', exit=True)
         r.save()
 
     def test_subscribe_node_down(self):
@@ -327,3 +328,69 @@ class TestWeb(TestCase):
         new_avg = ctl_util.get_new_avg_bandwidth(avg_bandwidth, hours_up,
                                                  current_bandwidth)
         self.assertEqual(new_avg, 92)
+
+    def test_earn_shirt(self):
+        """Make sure checking conditions for earning a T-shirt works for 
+        non-exit routers."""   
+        #Create a non-exit router
+        router = Router(fingerprint = '654', name='abc', exit=False)
+        router.save()
+
+        #Create a Subscriber
+        subscriber = Subscriber(email = 'name@place.com', router = router) 
+        subscriber.save()
+
+        #Create a T-Shirt subscription following a router that's been running 
+        #for 1464 hours, or 61 days (the minimum for earning a T-shirt)
+        time_change = timedelta(61)
+        then = datetime.now() - time_change
+        shirt_sub = TShirtSub(subscriber = subscriber, avg_bandwidth = 500,
+                              triggered = True, last_changed = then)
+        shirt_sub.save()
+
+        #Check to see that the email should be sent.
+        hours_up = shirt_sub.get_hours_since_triggered()
+        self.assertEqual(hours_up, 1464)
+        self.assertEqual(shirt_sub.should_email(hours_up), True)
+
+        #Make sure should_email is set to False if the bandwidth is too low
+        shirt_sub.avg_bandwidth = 499
+        self.assertEqual(shirt_sub.should_email(hours_up), False)
+
+        #Make sure should_email is set to False if hours_up < 1464
+        shirt_sub.avg_bandwidth = 500
+        hours_up = 1463
+        self.assertEqual(shirt_sub.should_email(hours_up), False)
+
+    def test_earn_shirt_exit(self):
+        """Make sure checking conditions for earning a T-shirt works for 
+        exit routers."""
+        #Create a router, set it to be an exit
+        router = Router(fingerprint = '54321', name='abc', exit=True)
+        router.save()
+
+        #Create a Subscriber
+        subscriber = Subscriber(email = 'name@place.com', router = router) 
+        subscriber.save()
+
+        #Create a T-Shirt subscription following a router that's been running 
+        #for 1464 hours, or 61 days (the minimum for earning a T-shirt)
+        time_change = timedelta(61)
+        then = datetime.now() - time_change
+        shirt_sub = TShirtSub(subscriber = subscriber, avg_bandwidth = 100,
+                              triggered = True, last_changed = then)
+        shirt_sub.save()
+
+        #Check to see that the email should be sent.
+        hours_up = shirt_sub.get_hours_since_triggered()
+        self.assertEqual(hours_up, 1464)
+        self.assertEqual(shirt_sub.should_email(hours_up), True)
+
+        #Make sure should_email is set to False if the bandwidth is too low
+        shirt_sub.avg_bandwidth = 99
+        self.assertEqual(shirt_sub.should_email(hours_up), False)
+
+        #Make sure should_email is set to False if hours_up < 1464
+        shirt_sub.avg_bandwidth = 100
+        hours_up = 1463
+        self.assertEqual(shirt_sub.should_email(hours_up), False)
