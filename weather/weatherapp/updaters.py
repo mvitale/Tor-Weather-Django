@@ -86,23 +86,20 @@ def check_low_bandwidth(email_list):
     subs = BandwidthSub.objects.all()
 
     for sub in subs:
-        fingerprint = sub.subscriber.router.fingerprint
+        fingerprint = str(sub.subscriber.router.fingerprint)
         if sub.subscriber.confirmed:
-            if ctl_util.get_bandwidth(fingerprint) < sub.threshold and\
-            sub.emailed == False:
-                recipient = sub.subscriber.email
-                threshold = sub.threshold
-                unsubs_auth = sub.subscriber.unsubs_auth
-                pref_auth = sub.subscriber.pref_auth
-
-                email_list.append(emails.bandwidth_tuple(recipient, fingerprint,
-                                  threshold, unsubs_auth, pref_auth)) 
-
-                sub.emailed = True
-
+            if ctl_util.get_bandwidth(fingerprint) < sub.threshold: 
+                if sub.emailed == False:
+                    recipient = sub.subscriber.email
+                    threshold = sub.threshold
+                    unsubs_auth = sub.subscriber.unsubs_auth
+                    pref_auth = sub.subscriber.pref_auth
+                    email_list.append(emails.bandwidth_tuple(recipient, 
+                    fingerprint, threshold, unsubs_auth, pref_auth)) 
+                    sub.emailed = True
             else:
                 sub.emailed = False
-
+            
             sub.save()
     return email_list
 
@@ -126,7 +123,7 @@ def check_earn_tshirt(email_list):
             # first, update the database 
             router = sub.subscriber.router
             is_up = router.up
-            fingerprint = router.fingerprint
+            fingerprint = str(router.fingerprint)
             if not is_up and sub.triggered:
                 # reset the data if the node goes down
                 sub.triggered = False
@@ -182,18 +179,20 @@ def check_version(email_list):
                            str(sub.subscriber.router.fingerprint))
 
             if version_type != 'ERROR':
-                if version_type == sub.notify_type and sub.emailed == False:
+                if (version_type == 'OBSOLETE' or sub.notify_type == \
+                    version_type): 
+                    if sub.emailed == False:
                 
-                    fingerprint = sub.subscriber.router.fingerprint
-                    recipient = sub.subscriber.email
-                    unsubs_auth = sub.subscriber.unsubs_auth
-                    pref_auth = sub.subscriber.pref_auth
-                    email_list.append(emails.version_tuple(recipient,     
-                                                           fingerprint,
-                                                           version_type,
-                                                           unsubs_auth,
-                                                           pref_auth))
-                    sub.emailed = True
+                        fingerprint = sub.subscriber.router.fingerprint
+                        recipient = sub.subscriber.email
+                        unsubs_auth = sub.subscriber.unsubs_auth
+                        pref_auth = sub.subscriber.pref_auth
+                        email_list.append(emails.version_tuple(recipient,     
+                                                               fingerprint,
+                                                               version_type,
+                                                               unsubs_auth,
+                                                               pref_auth))
+                        sub.emailed = True
 
             #if the user has their desired version type, we need to set emailed
             #to False so that we can email them in the future if we need to
@@ -235,11 +234,16 @@ def update_all_routers(email_list):
     @return: The updated list of tuples representing emails to send.
     """
 
-    #set the 'up' flag to False for every router in the DB
+    
     router_set = Router.objects.all()
     for router in router_set:
-        router.up = False
-        router.save()
+        #remove routers that we haven't seen for more than a year 
+        if (datetime.now() - router.last_seen).days > 365:
+            router.delete()
+        #Set the 'up' flag to False. 
+        else:
+            router.up = False
+            router.save()
 
     #Get a list of fingerprint/name tuples in the current descriptor file
     finger_name = ctl_util.get_finger_name_list()

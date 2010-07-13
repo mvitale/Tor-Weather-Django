@@ -343,7 +343,7 @@ def version_tuple(recipient, fingerprint, version_type, unsubs_auth, pref_auth):
     name = _get_router_name(fingerprint)
     subj = _SUBJECT_HEADER + _VERSION_SUBJ
     sender = _SENDER
-    version_type = lower(version_type)
+    version_type = version_type.lower()
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
     downloadURL = url_helper.get_download_url()
