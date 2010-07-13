@@ -86,7 +86,11 @@ def check_low_bandwidth(email_list):
     subs = BandwidthSub.objects.all()
 
     for sub in subs:
+
+        #TorCtl does type checking, so fingerprint needs to be converted from
+        #a unicode string to a python str
         fingerprint = str(sub.subscriber.router.fingerprint)
+
         if sub.subscriber.confirmed:
             bandwidth = ctl_util.get_bandwidth(fingerprint)
             if bandwidth < sub.threshold: 
@@ -217,10 +221,13 @@ def check_all_subs(email_list):
     @rtype: list
     @return: The updated list of tuples representing emails to send.
     """
-
+    logging.debug('Checking node down subscriptions.')
     email_list = check_node_down(email_list)
+    logging.debug('Checking version subscriptions.')
     check_version(email_list)
+    logging.debug('Checking bandwidth subscriptions.')
     check_low_bandwidth(email_list)
+    logging.debug('Checking shirt subscriptions.')
     email_list = check_earn_tshirt(email_list)
     return email_list
 
@@ -291,13 +298,13 @@ def run_all():
     email_list = check_all_subs(email_list)
     logging.info('Finished checking subscriptions. About to send emails.')
     mails = tuple(email_list)
-    logging.info('Finished sending emails.')
 
     #-------commented out for safety!---------------
     try:
-        send_mass_mail(mails, fail_silently=false)
+        send_mass_mail(mails, fail_silently = False)
     except SMTPException, e:
         logging.info(e)
         failed = open(failed_email_file, 'w')
         failed.write(e + '\n')
         failed.close()
+    logging.info('Finished sending emails.')
