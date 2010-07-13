@@ -69,7 +69,7 @@ _CONFIRMATION_MAIL = "Dear human,\n\n" +\
 _CONFIRMED_SUBJ = 'Confirmation Successful'
 _CONFIRMED_MAIL="Dear human,\n\nThis is the Tor Weather Report "+\
     "system.You successfully subscribed for Weather Reports about a Tor "+\
-    "node %s\n\nYou can unsubscribe from these reports at any time "+\
+    "node %s.\n\nYou can unsubscribe from these reports at any time "+\
     "by visiting the following url:\n\n%s\n\nor change your Tor Weather "+\
     "notification preferences here: \n\n%s\n"
 
@@ -84,7 +84,7 @@ _NODE_DOWN_MAIL = "This is a Tor Weather Report.\n\n" +\
 
 _VERSION_SUBJ = 'Node Out of Date!'
 _VERSION_MAIL = "This is a Tor Weather Report.\n\n"+\
-    "It appears that a Tor node %s you elected to monitor "+\
+    "It appears that a Tor node you elected to monitor, %s, "+\
     "is running an %s version of Tor. You can download the "+\
     "latest version of Tor at %s.\n\nYou can unsubscribe from these "+\
     "reports at any time by visiting the following url:\n\n%s\n\n"+\
@@ -155,7 +155,7 @@ def _get_router_name(fingerprint):
         pass
     else:
         if router.name != "Unnamed":
-            name = router.name + ", " + name
+            name = router.name + " " + name
     return name
 
 def send_confirmation(recipient,
@@ -259,7 +259,6 @@ def node_down_tuple(recipient, fingerprint, grace_pd, unsubs_auth, pref_auth):
     msg = _NODE_DOWN_MAIL % (name, grace_pd, unsubURL, prefURL)
     return (subj, msg, sender, [recipient])
 
-#add fingerprint parameter
 def t_shirt_tuple(recipient,
                   fingerprint,
                   avg_bandwidth,
