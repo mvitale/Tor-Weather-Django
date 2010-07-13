@@ -65,11 +65,18 @@ class Router(models.Model):
 
         return ' '.join(re.findall('.{4}', str(self.fingerprint)))
 
-        #fingerprint_text = str(self.user.router.fingerprint)
-        #fingerprint_list = re.findall('.{4}', fingerprint_text)
-        #fingerprint_text = ' '.join(fingerprint_list)
-        
- 
+    def display_string(self):
+        """Returns a string representation of the name and fingerprint of
+        this router. Example form:    WesCSTor (id: 409480348...)
+
+        @rtype: str
+        @return: name/fingerprint display.
+        """
+
+        if self.name == 'Unnamed':
+            return '(id: ' + self.spaced_fingerprint() + ')'
+        else:
+            return self.name + '(id: ' + self.spaced_fingerprint() + ')'
 
     def printer(self):
         """Returns a description of this router. Meant to be used for testing
@@ -166,7 +173,7 @@ class Subscriber(models.Model):
     def has_node_down_sub(self):
         """Checks if this subscriber object has a node down subscription.
 
-        @rtype: Bool
+        @rtype: bool
         @return: Whether a node down subscription exists for this subscriber.
         """
 
@@ -180,7 +187,7 @@ class Subscriber(models.Model):
     def has_version_sub(self):
         """Checks if this subscriber object has a version subscription.
         
-        @rtype: Bool
+        @rtype: bool
         @return: Whether a version subscription exists for this subscriber.
         """
 
@@ -194,7 +201,7 @@ class Subscriber(models.Model):
     def has_bandwidth_sub(self):
         """Checks if this subscriber object has a bandwidth subscription.
 
-        @rtype: Bool
+        @rtype: bool
         @return: Whether a bandwidth subscription exists for this subscriber.
         """
 
@@ -208,7 +215,7 @@ class Subscriber(models.Model):
     def has_t_shirt_sub(self):
         """Checks if this subscriber object has a t-shirt subscription.
         
-        @rtype: Bool
+        @rtype: bool
         @return: Whether a t-shirt subscription exists for this subscriber.
         """
 
@@ -567,12 +574,15 @@ class PrefixedIntegerField(forms.IntegerField):
 
 class GenericForm(forms.Form):
     """The basic form class that is inherited by the SubscribeForm class
-    and the PreferencesForm class.
+    and the PreferencesForm class. Class variables specifying the types of 
+    fields that instances of GenericForm receive are labeled as instance
+    variables in this epydoc documentation since the specifications for fields
+    can be thought of as the fields that act like instance variables.
    
-    @type _GET_NODE_DOWN_INIT: Bool
+    @type _GET_NODE_DOWN_INIT: bool
     @cvar _GET_NODE_DOWN_INIT: Initial display value and default submission
         value of the L{get_node_down} checkbox.
-    @type _GET_NODE_DOWN_LABEL: Str
+    @type _GET_NODE_DOWN_LABEL: str
     @cvar _GET_NODE_DOWN_LABEL: Text displayed next to L{get_node_down} 
         checkbox.
     @type _NODE_DOWN_GRACE_PD_INIT: int
@@ -581,63 +591,110 @@ class GenericForm(forms.Form):
     @type _NODE_DOWN_GRACE_PD_MAX: int
     @cvar _NODE_DOWN_GRACE_PD_MAX: Maximum allowed value for the
         L{node_down_grace_pd} field.
-    @type _NODE_DOWN_GRACE_PD_MAX_DESC: Str
+    @type _NODE_DOWN_GRACE_PD_MAX_DESC: str
     @cvar _NODE_DOWN_GRACE_PD_MAX_DESC: English approximation of
         L{_NODE_DOWN_GRACE_PD_MAX} for display purposes.
     @type _NODE_DOWN_GRACE_PD_MIN: int
     @cvar _NODE_DOWN_GRACE_PD_MIN: Minimum allowed value for the 
         L{node_down_grace_pd} field.
-    @type _NODE_DOWN_GRACE_PD_LABEL: Str
+    @type _NODE_DOWN_GRACE_PD_LABEL: str
     @cvar _NODE_DOWN_GRACE_PD_LABEL: Text displayed above 
         L{node_down_grace_pd} checkbox.
-    @type _NODE_DOWN_GRACE_PD_HELP_TEXT: Str
+    @type _NODE_DOWN_GRACE_PD_HELP_TEXT: str
     @cvar _NODE_DOWN_GRACE_PD_HELP_TEXT: Text displayed next to 
         L{node_down_grace_pd} checkbox.
     
-    @type _GET_VERSION_INIT: Bool
+    @type _GET_VERSION_INIT: bool
     @cvar _GET_VERSION_INIT: Initial display value and default submission 
         value of the L{get_version} checkbox.
-    @type _GET_VERSION_LABEL: Str
+    @type _GET_VERSION_LABEL: str
     @cvar _GET_VERSION_LABEL: Text displayed next to L{get_version} checkbox.
-    @type _VERSION_TYPE_LABEL: Str
-    @cvar _VERSION_TYPE_LABEL: Text displayed next to L{version_type} field.
-    @type _VERSION_TYPE_CHOICE_1: tuple (unicode, unicode)
-    @cvar _VERSION_TYPE_CHOICE_1: The first (and default) choice for the
-        version type field, represented as a tuple of unicode strings, with 
-        the first element being the backend name and the second element
-        being the frontend name.
-    @type _VERSION_TYPE_CHOICE_2: tuple (unicode, unicode)
-    @cvar _VERSION_TYPE_CHOICE_2: The second choice for the version type
-        field, represented as a tuple of unicode strings, with the first
-        element being the backend name and the second element being the 
-        frontend name.
-    @type _VERSION_TYPE_CHOICES: tuple
-    @cvar _VERSION_TYPE_CHOICES: The tuple of choices for the version type
+    @type _VERSION_TYPE_CHOICE_1: str
+    @cvar _VERSION_TYPE_CHOICE_1: Backend name for the first choice of the
+        L{version_type} field.
+    @type _VERSION_TYPE_CHOICE_1_H: str
+    @cvar _VERSION_TYPE_CHOICE_1_H: Frontend (human readable) name for the
+        first choice of the L{version_type} field.
+    @type _VERSION_TYPE_CHOICE_2: str
+    @cvar _VERSION_TYPE_CHOICE_2: Backend name for the second choice of the 
+        L{version_type} field.
+    @type _VERSION_TYPE_CHOICE_2_H: str
+    @cvar _VERSION_TYPE_CHOICE_2_H: Frontend (human readable) name for the
+        second choice of the L{version_type} field.
+    @type _VERSION_TYPE_CHOICES: list [tuple (str)]
+    @cvar _VERSION_TYPE_CHOICES: List of tuples of backend and frontend names
+        for each choice of the L{version_type} field.
+    @type _VERSION_TYPE_INIT: str
+    @cvar _VERSION_TYPE_INIT: Initial display value of the L{version_type} 
         field.
-    @type _VERSION_INFO: Str
-    @cvar _VERSION_INFO: Informative text displayed in the expandable version
-        section of the form, with HTML enabled.
+    @type _VERSION_INFO: str
+    @cvar _VERSION_INFO: Text explaining the version subscription,  displayed
+        in the expandable version section of the form, with HTML enabled.
 
-    @type _GET_BAND_LOW_INIT: Bool
+    @type _GET_BAND_LOW_INIT: bool
     @cvar _GET_BAND_LOW_INIT: Initial display value and default submission
         value of the L{get_version} checkbox.
-    @type _GET_BAND_LOW_LABEL:
-    @type _GET_BAND_LOW_ID:
-    @type _BAND_LOW_THRESHOLD_INIT:
-    @type _BAND_LOW_THRESHOLD_MIN:
-    @type _BAND_LOW_THRESHOLD_MAX:
-    @type _BAND_LOW_THRESHOLD_LABEL:
-    @type _BAND_LOW_THRESHOLD_HELP_TEXT:
+    @type _GET_BAND_LOW_LABEL: str
+    @cvar _GET_BAND_LOW_LABEL: Text displayed next to L{get_version} checkbox.
+    @type _BAND_LOW_THRESHOLD_INIT: int
+    @cvar _BAND_LOW_THRESHOLD_INIT: Initial display value and default
+        submission value of the L{band_low_threshold} field.
+    @type _BAND_LOW_THRESHOLD_MIN: int
+    @cvar _BAND_LOW_THRESHOLD_MIN: Minimum allowed value for the 
+        L{band_low_threshold} field.
+    @type _BAND_LOW_THRESHOLD_MAX: int
+    @cvar _BAND_LOW_THRESHOLD_MAX: Maximum allowed value for the 
+        L{band_low_threshold} field.
+    @type _BAND_LOW_THRESHOLD_LABEL: str
+    @cvar _BAND_LOW_THRESHOLD_LABEL: Text displayed above the
+        L{band_low_threshold} field.
+    @type _BAND_LOW_THRESHOLD_HELP_TEXT: str
+    @cvar _BAND_LOW_THRESHOLD_HELP_TEXT: Text displayed next to the
+        L{band_low_threshold} field.
 
-    @type _T_SHIRT_URL:
-    @type _GET_T_SHIRT_LABEL:
-    @type _GET_T_SHIRT_INIT:
-    @type _T_SHIRT_INFO:
+    @type _T_SHIRT_URL: str
+    @cvar _T_SHIRT_URL: URL for information about T-Shirts on Tor wesbite
+    @type _GET_T_SHIRT_LABEL: str
+    @cvar _GET_T_SHIRT_LABEL: Text displayed above the L{get_t_shirt} checkbox.
+    @type _GET_T_SHIRT_INIT: bool
+    @cvar _GET_T_SHIRT_INIT: Initial display value and default submission 
+        value of the L{get_t_shirt} checkbox.
+    @type _T_SHIRT_INFO: str
+    @cvar _T_SHIRT_INFO: Text explaining the t-shirt subscription, displayed
+        in the expandable version section of the form, with HTML enabled.
 
-    @type _INIT_PREFIX:
-    @type _CLASS_SHORT:
-    @type _CLASS_DROPDOWN:
+    @type _INIT_PREFIX: str
+    @cvar _INIT_PREFIX: Prefix for display of default values.
+    @type _CLASS_SHORT: str
+    @cvar _CLASS_SHORT: HTML/CSS class to use for integer input fields.
+    @type _CLASS_DROPDOWN: str
+    @cvar _CLASS_DROPDOWN: HTML/CSS class to use for dropdown fields.
 
+
+    @type get_node_down: forms.BooleanField
+    @ivar get_node_down: Checkbox letting users choose to subscribe to a
+        L{NodeDownSub}.
+    @type node_down_grace_pd: PrefixedIntegerField
+    @ivar node_down_grace_pd: Integer field (displaying prefix) letting users
+        specify their grace period for a L{NodeDownSub}.
+
+    @type get_version: forms.BooleanField
+    @ivar get_version: Checkbox letting users choose to subscribe to a 
+        L{VersionSub}.
+    @type version_type: forms.ChoiceField
+    @ivar version_type: Dropdown list letting users choose the type of
+        L{VersionSub} to subscribe to.
+    
+    @type get_band_low: forms.BooleanField
+    @ivar get_band_low: Checkbox letting users choose to subscribe to a
+        L{BandwidthSub}.
+    @type band_low_threshold: PrefixedIntegerField
+    @ivar band_low_threshold: Integer field (displaying prefix) letting users
+        specify their threshold for a L{BandwidthSub}.
+
+    @type get_t_shirt: forms.BooleanField
+    @ivar get_t_shirt: Checkbox letting users choose to subscribe to a 
+        L{TShirtSub}.
     """
       
     # NOTE: Most places inherit the min, max, and default values for fields
@@ -657,12 +714,13 @@ class GenericForm(forms.Form):
 
     _GET_VERSION_INIT = False
     _GET_VERSION_LABEL = 'Email me when the node\'s Tor version is out of date'
-    _VERSION_TYPE_LABEL = 'For what kind of updates would you like to be \
-            notified?'
-    _VERSION_TYPE_CHOICE_1 = (u'UNRECOMMENDED', u'Recommended Updates')
-    _VERSION_TYPE_CHOICE_2 = (u'OBSOLETE', u'Required Updates')
-    _VERSION_TYPE_CHOICES = (_VERSION_TYPE_CHOICE_1, _VERSION_TYPE_CHOICE_2)
-    _VERSION_TYPE_INIT = _VERSION_TYPE_CHOICE_2
+    _VERSION_TYPE_CHOICE_1 = 'UNRECOMMENDED'
+    _VERSION_TYPE_CHOICE_1_H = 'Recommended Updates'
+    _VERSION_TYPE_CHOICE_2 = 'OBSOLETE'
+    _VERSION_TYPE_CHOICE_2_H = 'Required Updates'
+    _VERSION_TYPE_CHOICES = [(_VERSION_TYPE_CHOICE_1, _VERSION_TYPE_CHOICE_1_H),
+                             (_VERSION_TYPE_CHOICE_2, _VERSION_TYPE_CHOICE_2_H)]
+    _VERSION_TYPE_INIT = _VERSION_TYPE_CHOICE_1
     _VERSION_SECTION_INFO = '<p><em>Recommended Updates:</em>  Emails when the router \
             is not running the most up-to-date stable version of Tor.</p> \
             <p><em>Required Updates:</em>  Emails when the router is running \
@@ -679,26 +737,29 @@ class GenericForm(forms.Form):
             str(_BAND_LOW_THRESHOLD_MIN) + ' and ' + \
             str(_BAND_LOW_THRESHOLD_MAX)
    
-    _T_SHIRT_URL = 'https://www.torproject.org/tshirt.html.en'
     _GET_T_SHIRT_INIT = False
     _GET_T_SHIRT_LABEL = 'Email me when my router has earned me a \
-            <a href="' + _T_SHIRT_URL + '">Tor t-shirt</a>'
+            <a target=_BLANK href="' + url_helper.get_t_shirt_url() + \
+            '">Tor t-shirt</a>'
     _T_SHIRT_SECTION_INFO = '<em>Note:</em> You must be the router\'s operator to \
             claim your T-shirt.'
 
     _INIT_PREFIX = 'Default value is '
     _CLASS_SHORT = 'short-input'
     _CLASS_DROPDOWN = 'dropdown-input'
-    _INIT_MAPPING = { 'get_node_down': _GET_NODE_DOWN_INIT,
-                      'node_down_grace_pd': _INIT_PREFIX + \
-                              str(_NODE_DOWN_GRACE_PD_INIT),
-                      'get_version': _GET_VERSION_INIT,
-                      'version_type': _VERSION_TYPE_INIT,
-                      'get_band_low': _GET_BAND_LOW_INIT,
-                      'band_low_threshold': _INIT_PREFIX + \
-                              str(_BAND_LOW_THRESHOLD_INIT),
-                      'get_t_shirt': _GET_T_SHIRT_INIT }
+    _INIT_MAPPING = {'get_node_down': _GET_NODE_DOWN_INIT,
+                     'node_down_grace_pd': _INIT_PREFIX + \
+                             str(_NODE_DOWN_GRACE_PD_INIT),
+                     'get_version': _GET_VERSION_INIT,
+                     'version_type': _VERSION_TYPE_INIT,
+                     'get_band_low': _GET_BAND_LOW_INIT,
+                     'band_low_threshold': _INIT_PREFIX + \
+                             str(_BAND_LOW_THRESHOLD_INIT),
+                     'get_t_shirt': _GET_T_SHIRT_INIT}
 
+    # These variables look like class variables, but are actually Django
+    # shorthand for instance variables. Upon __init__, these fields will
+    # be generated in instance's list of fields.
     get_node_down = forms.BooleanField(required=False,
             label=_GET_NODE_DOWN_LABEL)
     node_down_grace_pd = PrefixedIntegerField(required=False,
@@ -712,9 +773,7 @@ class GenericForm(forms.Form):
             label=_GET_VERSION_LABEL)
     version_type = forms.ChoiceField(required=False,
             choices=(_VERSION_TYPE_CHOICES),
-            initial=_VERSION_TYPE_INIT,
-            label=_VERSION_TYPE_LABEL,
-            widget=forms.Select(attrs={'class':_CLASS_DROPDOWN}))
+            widget=forms.RadioSelect(attrs={'class':_CLASS_DROPDOWN}))
     
     get_band_low = forms.BooleanField(required=False,
             label=_GET_BAND_LOW_LABEL)
@@ -797,9 +856,12 @@ class SubscribeForm(GenericForm):
                 'id':'fingerprint', 'autocomplete':'off'}),
             max_length=_FINGERPRINT_MAX_LEN)
 
-    def __init__(self, data = None):
+    def __init__(self, data = None, initial = None):
         if data == None:
-            GenericForm.__init__(self)
+            if initial == None:
+                GenericForm.__init__(self)
+            else:
+                GenericForm.__init__(self, initial=initial)
         else:
             GenericForm.__init__(self, data)
 

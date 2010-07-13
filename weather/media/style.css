@@ -93,7 +93,7 @@
 				}
 
 			.extra-options {
-				overflow: auto;
+				overflow: hidden;
 				margin: 4px 0 4px 26px;
 			}	
 
@@ -119,6 +119,22 @@
 
 				.extra-options p {
 					margin: 0 0 0 0;
+				}
+
+				.extra-options ul {
+					list-style-type: none;
+					padding: 0 0 0 0;
+					margin: 0 0 0 0;
+				}
+
+				.extra-options li {
+					margin: 0 0 0 0;
+				}
+
+				.extra-options li input {
+					position: relative;
+					top: 2px;
+					margin: 0 5px 0 5px;
 				}
 
 			#submit-button {
