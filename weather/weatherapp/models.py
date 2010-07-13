@@ -536,8 +536,7 @@ class PrefixedIntegerField(forms.IntegerField):
                 %(limit_value)s.',
         'min_value': 'Ensure this value is greater than or equal to \
                 %(limit_value)s.',
-        'empty': 'yo, dawg; I am empty and no user should see this error \
-                message.',
+        'empty': 'yo, dawg; I am empty and no user should see this error',
     }
 
     def __init__(self, max_value=None, min_value=None, *args, **kwargs):
@@ -576,8 +575,6 @@ class GenericForm(forms.Form):
     @type _GET_NODE_DOWN_LABEL: Str
     @cvar _GET_NODE_DOWN_LABEL: Text displayed next to L{get_node_down} 
         checkbox.
-    @type _GET_NODE_DOWN_ID: Str
-    @cvar _GET_NODE_DOWN_ID: HTML/CSS id for L{get_node_down} checkbox.
     @type _NODE_DOWN_GRACE_PD_INIT: int
     @cvar _NODE_DOWN_GRACE_PD_INIT: Initial display value and default
         submission value of the L{node_down_grace_pd} field.
@@ -602,18 +599,45 @@ class GenericForm(forms.Form):
         value of the L{get_version} checkbox.
     @type _GET_VERSION_LABEL: Str
     @cvar _GET_VERSION_LABEL: Text displayed next to L{get_version} checkbox.
-    @type _GET_VERSION_ID: Str
-    @cvar _GET_VERSION_ID: HTML/CSS id for L{get_version} checkbox.
-    @type _VERSION_TYPE_LABEL:
-    @type _VERSION_TYPE_CHOICE_1:
-    @type _VERSION_TYPE_CHOICE_2:
-    @type _VERSION_TYPE_CHOICES:
-    @type _VERSION_INFO:
+    @type _VERSION_TYPE_LABEL: Str
+    @cvar _VERSION_TYPE_LABEL: Text displayed next to L{version_type} field.
+    @type _VERSION_TYPE_CHOICE_1: tuple (unicode, unicode)
+    @cvar _VERSION_TYPE_CHOICE_1: The first (and default) choice for the
+        version type field, represented as a tuple of unicode strings, with 
+        the first element being the backend name and the second element
+        being the frontend name.
+    @type _VERSION_TYPE_CHOICE_2: tuple (unicode, unicode)
+    @cvar _VERSION_TYPE_CHOICE_2: The second choice for the version type
+        field, represented as a tuple of unicode strings, with the first
+        element being the backend name and the second element being the 
+        frontend name.
+    @type _VERSION_TYPE_CHOICES: tuple
+    @cvar _VERSION_TYPE_CHOICES: The tuple of choices for the version type
+        field.
+    @type _VERSION_INFO: Str
+    @cvar _VERSION_INFO: Informative text displayed in the expandable version
+        section of the form, with HTML enabled.
 
-    @type _GET_BAND_LOW_INIT:
+    @type _GET_BAND_LOW_INIT: Bool
+    @cvar _GET_BAND_LOW_INIT: Initial display value and default submission
+        value of the L{get_version} checkbox.
     @type _GET_BAND_LOW_LABEL:
     @type _GET_BAND_LOW_ID:
     @type _BAND_LOW_THRESHOLD_INIT:
+    @type _BAND_LOW_THRESHOLD_MIN:
+    @type _BAND_LOW_THRESHOLD_MAX:
+    @type _BAND_LOW_THRESHOLD_LABEL:
+    @type _BAND_LOW_THRESHOLD_HELP_TEXT:
+
+    @type _T_SHIRT_URL:
+    @type _GET_T_SHIRT_LABEL:
+    @type _GET_T_SHIRT_INIT:
+    @type _T_SHIRT_INFO:
+
+    @type _INIT_PREFIX:
+    @type _CLASS_SHORT:
+    @type _CLASS_DROPDOWN:
+
     """
       
     # NOTE: Most places inherit the min, max, and default values for fields
@@ -638,7 +662,8 @@ class GenericForm(forms.Form):
     _VERSION_TYPE_CHOICE_1 = (u'UNRECOMMENDED', u'Recommended Updates')
     _VERSION_TYPE_CHOICE_2 = (u'OBSOLETE', u'Required Updates')
     _VERSION_TYPE_CHOICES = (_VERSION_TYPE_CHOICE_1, _VERSION_TYPE_CHOICE_2)
-    _VERSION_INFO = '<p><em>Recommended Updates:</em>  Emails when the router \
+    _VERSION_TYPE_INIT = _VERSION_TYPE_CHOICE_2
+    _VERSION_SECTION_INFO = '<p><em>Recommended Updates:</em>  Emails when the router \
             is not running the most up-to-date stable version of Tor.</p> \
             <p><em>Required Updates:</em>  Emails when the router is running \
             an obsolete version of Tor.</p>'
@@ -654,55 +679,67 @@ class GenericForm(forms.Form):
             str(_BAND_LOW_THRESHOLD_MIN) + ' and ' + \
             str(_BAND_LOW_THRESHOLD_MAX)
    
-    _GET_T_SHIRT_INIT = False
     _T_SHIRT_URL = 'https://www.torproject.org/tshirt.html.en'
+    _GET_T_SHIRT_INIT = False
     _GET_T_SHIRT_LABEL = 'Email me when my router has earned me a \
             <a href="' + _T_SHIRT_URL + '">Tor t-shirt</a>'
-    _T_SHIRT_INFO = '<em>Note:</em> You must be the router\'s operator to \
+    _T_SHIRT_SECTION_INFO = '<em>Note:</em> You must be the router\'s operator to \
             claim your T-shirt.'
 
     _INIT_PREFIX = 'Default value is '
     _CLASS_SHORT = 'short-input'
     _CLASS_DROPDOWN = 'dropdown-input'
+    _INIT_MAPPING = { 'get_node_down': _GET_NODE_DOWN_INIT,
+                      'node_down_grace_pd': _INIT_PREFIX + \
+                              str(_NODE_DOWN_GRACE_PD_INIT),
+                      'get_version': _GET_VERSION_INIT,
+                      'version_type': _VERSION_TYPE_INIT,
+                      'get_band_low': _GET_BAND_LOW_INIT,
+                      'band_low_threshold': _INIT_PREFIX + \
+                              str(_BAND_LOW_THRESHOLD_INIT),
+                      'get_t_shirt': _GET_T_SHIRT_INIT }
 
-    get_node_down = forms.BooleanField(initial=_GET_NODE_DOWN_INIT,
-            required=False,
+    get_node_down = forms.BooleanField(required=False,
             label=_GET_NODE_DOWN_LABEL)
-    node_down_grace_pd = PrefixedIntegerField(
-            initial=_INIT_PREFIX + str(_NODE_DOWN_GRACE_PD_INIT),
-            required=False,
+    node_down_grace_pd = PrefixedIntegerField(required=False,
             max_value=_NODE_DOWN_GRACE_PD_MAX,
             min_value=_NODE_DOWN_GRACE_PD_MIN,
             label=_NODE_DOWN_GRACE_PD_LABEL,
             help_text=_NODE_DOWN_GRACE_PD_HELP_TEXT,
             widget=forms.TextInput(attrs={'class':_CLASS_SHORT}))
     
-    get_version = forms.BooleanField(initial=_GET_VERSION_INIT,
-            required=False,
+    get_version = forms.BooleanField(required=False,
             label=_GET_VERSION_LABEL)
-    version_text = forms.BooleanField(required=False,
-            label= _VERSION_INFO)
     version_type = forms.ChoiceField(required=False,
             choices=(_VERSION_TYPE_CHOICES),
+            initial=_VERSION_TYPE_INIT,
             label=_VERSION_TYPE_LABEL,
             widget=forms.Select(attrs={'class':_CLASS_DROPDOWN}))
     
-    get_band_low = forms.BooleanField(initial=_GET_BAND_LOW_INIT,
-            required=False,
+    get_band_low = forms.BooleanField(required=False,
             label=_GET_BAND_LOW_LABEL)
-    band_low_threshold = PrefixedIntegerField(
-            initial=_INIT_PREFIX + str(_BAND_LOW_THRESHOLD_INIT),
-            required=False, max_value=_BAND_LOW_THRESHOLD_MAX,
+    band_low_threshold = PrefixedIntegerField(required=False, 
+            max_value=_BAND_LOW_THRESHOLD_MAX,
             min_value=_BAND_LOW_THRESHOLD_MIN, 
             label=_BAND_LOW_THRESHOLD_LABEL,
             help_text=_BAND_LOW_THRESHOLD_HELP_TEXT,
             widget=forms.TextInput(attrs={'class':_CLASS_SHORT}))
     
-    get_t_shirt = forms.BooleanField(initial=_GET_T_SHIRT_INIT, 
-            required=False,
+    get_t_shirt = forms.BooleanField(required=False,
             label=_GET_T_SHIRT_LABEL)
-    t_shirt_text = forms.BooleanField(required=False,
-            label=_T_SHIRT_INFO) 
+
+    def __init__(self, initial = None, data = None):
+        if data == None:
+            if initial == None:
+                super(forms.Form, self).__init__(
+                        initial=GenericForm._INIT_MAPPING)
+            else:
+                super(forms.Form, self).__init__(initial=initial)
+        else:
+            super(forms.Form, self).__init__(data)
+
+        self.version_section_text = GenericForm._VERSION_SECTION_INFO
+        self.t_shirt_section_text = GenericForm._T_SHIRT_SECTION_INFO
 
     def check_if_sub_checked(self, data):
         """Throws a validation error if no subscriptions are checked. 
@@ -760,6 +797,12 @@ class SubscribeForm(GenericForm):
             widget=forms.TextInput(attrs={'class':_CLASS_LONG, 
                 'id':'fingerprint', 'autocomplete':'off'}),
             max_length=_FINGERPRINT_MAX_LEN)
+
+    def __init__(self, data = None):
+        if data == None:
+            super(GenericForm, self).__init__()
+        else:
+            super(GenericForm, self).__init__(data)
 
     def clean(self):
         """Called when the is_valid method is evaluated for a SubscribeForm 
@@ -895,6 +938,8 @@ class PreferencesForm(GenericForm):
             <p><span>Router id:</span> %s</p>'
 
     def __init__(self, user, data = None):
+        # If no data, is provided, then create using preferences as initial
+        # form data. Otherwise, use provided data.
         if data == None:
             super(GenericForm, self).__init__(initial=user.get_preferences())
         else:
@@ -908,9 +953,11 @@ class PreferencesForm(GenericForm):
     def change_subscriptions(self, old_data, new_data):
         """Change the subscriptions and options if they are specified.
         
-        @type subscriber: Subscriber
-        @param subscriber: The subscriber whose subscriptions are being saved.
+        @type new_data: dict {unicode: various}
+        @param new_data: New preferences.
         """
+
+        old_data = self.user.get_preferences()
 
         # If there already was a subscription, get it and update it or delete
         # it depending on the current value.

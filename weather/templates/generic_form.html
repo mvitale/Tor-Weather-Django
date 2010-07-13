@@ -44,7 +44,7 @@
 	{{ form.get_version }}
 	<label for="id_get_version">{{ form.get_version.label }}</label>
 	<div class="extra-options" id="version-section">
-		<div>{{ form.version_text.label|safe }}</div>
+		<div>{{ form.version_section_text|safe }}</div>
 		<label for="id_version_type">
 			{{ form.version_type.label }}
 		</label>
@@ -60,7 +60,6 @@
 	{{ form.get_band_low }}
 	<label for="id_get_band_low">{{ form.get_band_low.label }}</label>
 	<div class="extra-options" id="band-low-section">
-		{{ form.band_low_text.label|safe }}
 		<label for="id_band_low_threshold">
 			{{ form.band_low_threshold.label }}
 		</label>
@@ -79,7 +78,7 @@
 	{{ form.get_t_shirt }}
 	<label for="id_get_t_shirt">{{ form.get_t_shirt.label|safe }}</label>
 	<div class="extra-options" id="t-shirt-section">
-		<div>{{ form.t_shirt_text.label|safe }}</div>
+		<div>{{ form.t_shirt_section_text|safe }}</div>
 	</div>
 
 	{% endblock notification-info %}
