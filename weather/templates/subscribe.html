@@ -55,17 +55,6 @@ Tor Weather - Sign Up!
 	{{ form.fingerprint }}
 	<div id="fingerprint_results"></div>
 </div>
-
-<div id="router-search">
-	<script type="text/javascript"><!--
-		$(function(){
-			setAutoComplete("router_name", "results", "/auto_router_name_lookup/?query=");
-		});
-		--></script>
-	<label for="router_name">{{ form.router_name.label }}</label>
-	{{ form.router_name }}
-	<div class="results"></div>
-</div>
 {% endblock user-info %}
 
 {% block submit-button %}
