@@ -27,6 +27,8 @@ urlpatterns = patterns('',
     (r'^notification_info/$', 'weatherapp.views.notification_info'),
     (r'^auto_fingerprint_lookup/$', 
                         'weatherapp.views.auto_fingerprint_lookup'),
+    (r'^auto_router_name_lookup/$',
+                        'weatherapp.views.auto_router_name_lookup'),
     (r'^jeff/$', 'weatherapp.views.pref_shortcut'),
 
     # This is for serving static files for the development server, mainly for

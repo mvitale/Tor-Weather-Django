@@ -667,8 +667,8 @@ class GenericForm(forms.Form):
     @cvar _INIT_PREFIX: Prefix for display of default values.
     @type _CLASS_SHORT: str
     @cvar _CLASS_SHORT: HTML/CSS class to use for integer input fields.
-    @type _CLASS_DROPDOWN: str
-    @cvar _CLASS_DROPDOWN: HTML/CSS class to use for dropdown fields.
+    @type _CLASS_RADIO: str
+    @cvar _CLASS_RADIO: HTML/CSS class to use for Radio button lists.
 
 
     @type get_node_down: forms.BooleanField
@@ -682,7 +682,7 @@ class GenericForm(forms.Form):
     @ivar get_version: Checkbox letting users choose to subscribe to a 
         L{VersionSub}.
     @type version_type: forms.ChoiceField
-    @ivar version_type: Dropdown list letting users choose the type of
+    @ivar version_type: Radio button list letting users choose the type of
         L{VersionSub} to subscribe to.
     
     @type get_band_low: forms.BooleanField
@@ -746,7 +746,7 @@ class GenericForm(forms.Form):
 
     _INIT_PREFIX = 'Default value is '
     _CLASS_SHORT = 'short-input'
-    _CLASS_DROPDOWN = 'dropdown-input'
+    _CLASS_RADIO = 'radio-input'
     _INIT_MAPPING = {'get_node_down': _GET_NODE_DOWN_INIT,
                      'node_down_grace_pd': _INIT_PREFIX + \
                              str(_NODE_DOWN_GRACE_PD_INIT),
@@ -773,7 +773,7 @@ class GenericForm(forms.Form):
             label=_GET_VERSION_LABEL)
     version_type = forms.ChoiceField(required=False,
             choices=(_VERSION_TYPE_CHOICES),
-            widget=forms.RadioSelect(attrs={'class':_CLASS_DROPDOWN}))
+            widget=forms.RadioSelect(attrs={'class':_CLASS_RADIO}))
     
     get_band_low = forms.BooleanField(required=False,
             label=_GET_BAND_LOW_LABEL)
