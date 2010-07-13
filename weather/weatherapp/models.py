@@ -540,7 +540,7 @@ class PrefixedIntegerField(forms.IntegerField):
     }
 
     def __init__(self, max_value=None, min_value=None, *args, **kwargs):
-        super(forms.IntegerField, self).__init__(*args, **kwargs)
+        forms.IntegerField.__init__(self, *args, **kwargs)
 
         if max_value is not None:
             self.validators.append(validators.MaxValueValidator(max_value))
@@ -555,10 +555,10 @@ class PrefixedIntegerField(forms.IntegerField):
 
         try:
             if value.startswith(prefix):
-                value = int(super(forms.IntegerField, self).to_python(
-                                                value[len(prefix):]))
+                value = int(forms.IntegerField.to_python(self, 
+                    value[len(prefix):]))
             else:
-                value = int(super(forms.IntegerField, self).to_python(
+                value = int(forms.IntegerField.to_python(self,
                                                 value))
         except (ValueError, TypeError):
             raise ValidationError(self.error_messages['invalid'])
@@ -728,15 +728,14 @@ class GenericForm(forms.Form):
     get_t_shirt = forms.BooleanField(required=False,
             label=_GET_T_SHIRT_LABEL)
 
-    def __init__(self, initial = None, data = None):
+    def __init__(self, data = None, initial = None):
         if data == None:
             if initial == None:
-                super(forms.Form, self).__init__(
-                        initial=GenericForm._INIT_MAPPING)
+                forms.Form.__init__(self, initial=GenericForm._INIT_MAPPING)
             else:
-                super(forms.Form, self).__init__(initial=initial)
+                forms.Form.__init__(self, initial=initial)
         else:
-            super(forms.Form, self).__init__(data)
+            forms.Form.__init__(self, data)
 
         self.version_section_text = GenericForm._VERSION_SECTION_INFO
         self.t_shirt_section_text = GenericForm._T_SHIRT_SECTION_INFO
@@ -800,9 +799,9 @@ class SubscribeForm(GenericForm):
 
     def __init__(self, data = None):
         if data == None:
-            super(GenericForm, self).__init__()
+            GenericForm.__init__(self)
         else:
-            super(GenericForm, self).__init__(data)
+            GenericForm.__init__(self, data)
 
     def clean(self):
         """Called when the is_valid method is evaluated for a SubscribeForm 
@@ -941,9 +940,9 @@ class PreferencesForm(GenericForm):
         # If no data, is provided, then create using preferences as initial
         # form data. Otherwise, use provided data.
         if data == None:
-            super(GenericForm, self).__init__(initial=user.get_preferences())
+            GenericForm.__init__(self, initial=user.get_preferences())
         else:
-            super(GenericForm, self).__init__(data)
+            GenericForm.__init__(self, data)
  
         self.user = user
 
