@@ -7,6 +7,7 @@ import time
 from models import Subscriber, Subscription, Router, NodeDownSub, TShirtSub,\
                    VersionSub, BandwidthSub
 import emails
+from ctlutil import CtlUtil
 
 from django.test import TestCase
 from django.test.client import Client
@@ -65,7 +66,7 @@ class TestWeb(TestCase):
                 self.assertEqual(subscriber.confirmed, True)
 
         #Verify that the subject of the message is correct.
-        self.assertEquals(mail.outbox[0].subject, 
+        self.assertEqual(mail.outbox[0].subject, 
                           '[Tor Weather] Confirmation Needed')
 
         # there should only be one subscription for this subscriber
@@ -96,7 +97,7 @@ class TestWeb(TestCase):
 
         #Test that one message has been sent
         time.sleep(0.5)
-        self.assertEquals(len(mail.outbox), 1)
+        self.assertEqual(len(mail.outbox), 1)
 
         #get the email message, make sure the confirm link works
         body = mail.outbox[0].body
@@ -145,7 +146,7 @@ class TestWeb(TestCase):
         
         #Test that one message has been sent
         time.sleep(0.5)
-        self.assertEquals(len(mail.outbox), 1)
+        self.assertEqual(len(mail.outbox), 1)
 
         #get the email message, make sure the confirm link works
         body = mail.outbox[0].body
@@ -157,7 +158,7 @@ class TestWeb(TestCase):
                 self.assertEqual(subscriber.confirmed, True)
 
         #Verify that the subject of the message is correct.
-        self.assertEquals(mail.outbox[0].subject, 
+        self.assertEqual(mail.outbox[0].subject, 
                           '[Tor Weather] Confirmation Needed')
 
         #Check if the correct subscriber info was stored
@@ -192,7 +193,7 @@ class TestWeb(TestCase):
         
         #Test that one message has been sent
         time.sleep(0.5)
-        self.assertEquals(len(mail.outbox), 1)
+        self.assertEqual(len(mail.outbox), 1)
 
         #get the email message, make sure the confirm link works
         body = mail.outbox[0].body
@@ -204,7 +205,7 @@ class TestWeb(TestCase):
                 self.assertEqual(subscriber.confirmed, True)
 
         #Verify that the subject of the message is correct.
-        self.assertEquals(mail.outbox[0].subject, 
+        self.assertEqual(mail.outbox[0].subject, 
                           '[Tor Weather] Confirmation Needed')
 
         #Check if the correct subscriber info was stored
@@ -255,7 +256,7 @@ class TestWeb(TestCase):
                 c.get(link)
                 self.assertEqual(subscriber.confirmed, True)
         #Verify that the subject of the message is correct.
-        self.assertEquals(mail.outbox[0].subject, 
+        self.assertEqual(mail.outbox[0].subject, 
                           '[Tor Weather] Confirmation Needed')
         
         # check that the subscriber was added correctly
@@ -307,6 +308,21 @@ class TestWeb(TestCase):
 
         #Test that no messages have been sent
         time.sleep(0.5)
-        self.assertEquals(len(mail.outbox), 0)
+        self.assertEqual(len(mail.outbox), 0)
 
-
+    def test_bandwidth_calc(self):
+        """Make sure bandwidth arithmetic works"""
+        ctl_util = CtlUtil()
+        avg_bandwidth = 100
+        hours_up = 1400
+        current_bandwidth = 0
+        new_avg = ctl_util.get_new_avg_bandwidth(avg_bandwidth, hours_up, 
+                                                 current_bandwidth)
+        self.assertEqual(new_avg, 99)
+        
+        avg_bandwidth = 10
+        hours_up = 5
+        current_bandwidth = 500
+        new_avg = ctl_util.get_new_avg_bandwidth(avg_bandwidth, hours_up,
+                                                 current_bandwidth)
+        self.assertEqual(new_avg, 91)
