@@ -201,7 +201,7 @@ def check_version(email_list):
                     sub.emailed = False
 
             else:
-                logging.INFO("Couldn't parse the version relay %s is running" \
+                logging.info("Couldn't parse the version relay %s is running" \
                               % fingerprint)
 
             sub.save()
@@ -287,17 +287,17 @@ def run_all():
     # the list of tuples of email info, gets updated w/ each call
     email_list = []
     email_list = update_all_routers(email_list)
-    logging.INFO('Finished updating routers. About to check all subscriptions.')
+    logging.info('Finished updating routers. About to check all subscriptions.')
     email_list = check_all_subs(email_list)
-    logging.INFO('Finished checking subscriptions. About to send emails.')
+    logging.info('Finished checking subscriptions. About to send emails.')
     mails = tuple(email_list)
-    logging.INFO('Finished sending emails.')
+    logging.info('Finished sending emails.')
 
     #-------commented out for safety!---------------
-    #try:
-    send_mass_mail(mails, fail_silently=false)
+    try:
+        send_mass_mail(mails, fail_silently=false)
     except SMTPException, e:
-        logging.INFO(e)
+        logging.info(e)
         failed = open(failed_email_file, 'w')
         failed.write(e + '\n')
         failed.close()
