@@ -248,13 +248,11 @@ def update_all_routers(email_list):
 
     #Get a list of fingerprint/name tuples in the current descriptor file
     finger_name = ctl_util.get_finger_name_list()
-    print 'fingerprint/name list: %s' % finger_name
 
     for router in finger_name:
         finger = router[0]
         name = router[1]
         is_up_hiber = ctl_util.is_up_or_hibernating(finger)
-        print '%s is up or hibernating: %s' % (name, is_up_hiber)
 
 
         if is_up_hiber:
@@ -273,8 +271,6 @@ def update_all_routers(email_list):
             router_data.up = True
             router_data.exit = is_exit
             #send a welcome email if indicated
-            print 'router is welcomed: %s' % router_data.welcomed
-            print 'stable: %s' % ctl_util.is_stable(finger)
             if router_data.welcomed == False and ctl_util.is_stable(finger):
                 address = ctl_util.get_email(finger)
                 print address
@@ -289,21 +285,14 @@ def update_all_routers(email_list):
 def run_all():
     """Run all updaters/checkers in proper sequence, send emails."""
     # the list of tuples of email info, gets updated w/ each call
-    print 'starting updaters.run_all()'
     email_list = []
-    print 'about to update routers'
     email_list = update_all_routers(email_list)
-    print 'finished updating routers. email list: %s' % email_list
-    print 'about to check all subs'
     email_list = check_all_subs(email_list)
-    print 'checked subs. email list: %s' % email_list
     mails = tuple(email_list)
 
     #-------commented out for safety!---------------
     #try:
-    print 'sending emails'
     send_mass_mail(mails, fail_silently=True)
-    print 'sent emails'
     #except SMTPException, e:
         #logging.INFO(e)
         #failed.write(e + '\n')
