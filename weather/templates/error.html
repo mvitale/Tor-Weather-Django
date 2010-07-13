@@ -9,10 +9,10 @@ Tor Weather - Oops!
 {% endblock title %}
 
 {% block content %}
-<p class="error">
+<div id="error">
 	{% block error-text %}
 	{# '|safe' will cause any html in error_message to be rendered as html #}
 	{{ error_message|safe }}
 	{% endblock error-text %}
-</p>
+</div>
 {% endblock content %}
