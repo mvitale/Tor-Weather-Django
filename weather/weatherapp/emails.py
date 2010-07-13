@@ -69,24 +69,24 @@ _CONFIRMATION_MAIL = "Dear human,\n\n" +\
 _CONFIRMED_SUBJ = 'Confirmation Successful'
 _CONFIRMED_MAIL="Dear human,\n\nThis is the Tor Weather Report "+\
     "system.You successfully subscribed for Weather Reports about a Tor "+\
-    "node %s\n\nYou can unsubscribe from these reports at any time "+\
-    "by visiting the following url:\n\n%s\n\n or change your Tor Weather "+\
+    "node %s.\n\nYou can unsubscribe from these reports at any time "+\
+    "by visiting the following url:\n\n%s\n\nor change your Tor Weather "+\
     "notification preferences here: \n\n%s\n"
 
 _NODE_DOWN_SUBJ = 'Node Down!'
 _NODE_DOWN_MAIL = "This is a Tor Weather Report.\n\n" +\
     "It appears that the node %s that you elected to monitor " +\
     "has been uncontactable through the Tor network for at least %s "+\
-    "hour(s). You may wish to look at it to see why.\n\n You can "+\
+    "hour(s). You may wish to look at it to see why.\n\nYou can "+\
     "unsubscribe from these reports at any time by visiting the "+\
-    "following url:\n\n%s\n\n or change your Tor Weather notification "+\
+    "following url:\n\n%s\n\nor change your Tor Weather notification "+\
     "preferences here:\n\n%s\n"
 
 _VERSION_SUBJ = 'Node Out of Date!'
 _VERSION_MAIL = "This is a Tor Weather Report.\n\n"+\
     "It appears that a Tor node you elected to monitor, %s, "+\
     "is running an %s version of Tor. You can download the "+\
-    "latest version of Tor at %s.\n\n You can unsubscribe from these "+\
+    "latest version of Tor at %s.\n\nYou can unsubscribe from these "+\
     "reports at any time by visiting the following url:\n\n%s\n\n"+\
     "or change your Tor Weather notification preferences here:\n\n%s\n"
 
@@ -259,7 +259,6 @@ def node_down_tuple(recipient, fingerprint, grace_pd, unsubs_auth, pref_auth):
     msg = _NODE_DOWN_MAIL % (name, grace_pd, unsubURL, prefURL)
     return (subj, msg, sender, [recipient])
 
-#add fingerprint parameter
 def t_shirt_tuple(recipient,
                   fingerprint,
                   avg_bandwidth,
