@@ -84,7 +84,7 @@ _NODE_DOWN_MAIL = "This is a Tor Weather Report.\n\n" +\
 
 _VERSION_SUBJ = 'Node Out of Date!'
 _VERSION_MAIL = "This is a Tor Weather Report.\n\n"+\
-    "It appears that a Tor node %s you elected to monitor "+\
+    "It appears that a Tor node you elected to monitor, %s, "+\
     "is running an %s version of Tor. You can download the "+\
     "latest version of Tor at %s.\n\n You can unsubscribe from these "+\
     "reports at any time by visiting the following url:\n\n%s\n\n"+\
@@ -155,7 +155,7 @@ def _get_router_name(fingerprint):
         pass
     else:
         if router.name != "Unnamed":
-            name = router.name + ", " + name
+            name = router.name + " " + name
     return name
 
 def send_confirmation(recipient,
