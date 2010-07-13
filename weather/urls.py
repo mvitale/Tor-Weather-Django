@@ -25,6 +25,8 @@ urlpatterns = patterns('',
     (r'^resend_conf/(?P<confirm_auth>.+)/$', 
                         'weatherapp.views.resend_conf'),
     (r'^notification_info/$', 'weatherapp.views.notification_info'),
+    (r'^auto_fingerprint_lookup/$', 
+                        'weatherapp.views.auto_fingerprint_lookup'),
 
     # This is for serving static files for the development server, mainly for
     # getting the CSS file and jquery file.

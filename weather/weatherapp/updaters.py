@@ -88,19 +88,20 @@ def check_low_bandwidth(email_list):
     for sub in subs:
         fingerprint = str(sub.subscriber.router.fingerprint)
         if sub.subscriber.confirmed:
-            if ctl_util.get_bandwidth(fingerprint) < sub.threshold: 
+            bandwidth = ctl_util.get_bandwidth(fingerprint)
+            if bandwidth < sub.threshold: 
                 if sub.emailed == False:
                     recipient = sub.subscriber.email
                     threshold = sub.threshold
                     unsubs_auth = sub.subscriber.unsubs_auth
                     pref_auth = sub.subscriber.pref_auth
                     email_list.append(emails.bandwidth_tuple(recipient, 
-                    fingerprint, threshold, unsubs_auth, pref_auth)) 
+                    fingerprint, bandwidth, threshold, unsubs_auth, pref_auth)) 
                     sub.emailed = True
             else:
                 sub.emailed = False
-            
             sub.save()
+
     return email_list
 
 def check_earn_tshirt(email_list):

@@ -7,8 +7,8 @@ page rendering/redirection.
 """
 import threading
 
-from weatherapp.models import Subscriber, NodeDownSub, Router, \
-                   GenericForm, SubscribeForm, PreferencesForm
+from weatherapp.models import Subscriber, Router, GenericForm, \
+        SubscribeForm, PreferencesForm
 import emails
 import error_messages
 from config import url_helper, templates
@@ -20,6 +20,8 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponseRedirect, HttpRequest, Http404
 from django.http import HttpResponse
 from weather.weatherapp import error_messages
+
+from django.utils import simplejson
 
 def home(request):
     """Displays a home page for Tor Weather with basic information about
@@ -38,10 +40,7 @@ def subscribe(request):
         # User hasn't submitted info, so just display empty subscribe form.
         form = SubscribeForm()
     else:
-        # Handle the submitted form, with the POST data cleaned by
-        # clean_post_data, which replaces 'Default value is ---' with the
-        # integer value so that to_python() methods don't get upset.
-        form = SubscribeForm(GenericForm.clean_post_data(request.POST))
+        form = SubscribeForm(request.POST)
 
         if form.is_valid():
             # Tries to save the new subscriber, but redirects if saving the
@@ -196,12 +195,7 @@ def preferences(request, pref_auth):
     if request.method != "POST":
         form = PreferencesForm(user)
     else:
-        # Handle the submitted form, with the POST data cleaned by 
-        # clean_post_data, which replaces 'Default value is ---' with the 
-        # integer value, so that to_python() methods don't get upset.
-        form = PreferencesForm(user, GenericForm.clean_post_data(request.POST))
-        print form.is_valid()
-        print form.errors
+        form = PreferencesForm(user, request.POST)
         if form.is_valid():
             # Creates/changes/deletes subscriptions and subscription info
             # based on form data
@@ -291,3 +285,20 @@ def error(request, error_type, key):
 
     # display the page
     return render_to_response(template, {'error_message' : message})
+
+def auto_fingerprint_lookup(request):
+    
+    # Default return list
+    results = []
+
+    if request.method == 'GET':
+        if u'query' in request.GET:
+            value = request.GET[u'query']
+
+            # Ignore queries shorter than length 3
+            if len(value) > 2:
+                nodes = Router.objects.filter(name__icontains=value)
+                results = [ (str(x.name) + ': ' + x.spaced_fingerprint()) for x in nodes ]
+
+        json = simplejson.dumps(results)
+        return HttpResponse(json, mimetype='application/json')

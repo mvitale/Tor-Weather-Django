@@ -15,6 +15,8 @@ from config import url_helper
 
 from django.db import models
 from django import forms
+from django.core import validators
+from django.core.exceptions import ValidationError
 
 class Router(models.Model):
     """A model that stores information about every router on the Tor network.
@@ -52,6 +54,22 @@ class Router(models.Model):
         @return: The router's fingerprint.
         """
         return self.fingerprint
+
+    def spaced_fingerprint(self):
+        """Returns the fingerprint for this router as a string with spaces
+        inserted every 4 characters.
+        
+        @rtype: str
+        @return: The router's fingerprint with spaces inserted.
+        """
+
+        return ' '.join(re.findall('.{4}', str(self.fingerprint)))
+
+        #fingerprint_text = str(self.user.router.fingerprint)
+        #fingerprint_list = re.findall('.{4}', fingerprint_text)
+        #fingerprint_text = ' '.join(fingerprint_list)
+        
+ 
 
     def printer(self):
         """Returns a description of this router. Meant to be used for testing
@@ -501,68 +519,57 @@ class TShirtSub(Subscription):
               '\nAverage Bandwidth: ' + str(self.avg_bandwidth) + \
               '\nLast Changed:' + str(self.last_changed)
 
+class PrefixedIntegerField(forms.IntegerField):
+    """An Integer Field that accepts input of the form "-prefix- -integer-"
+    and parses it as simply -integer- in its to_python method. Replaces the
+    previous process of overwriting post data, which was an ugly workaround.
+    A PrefixedIntegerField will not accept empty input, but will throw a
+    validationerror specifying that it was left empty, so that this error can
+    be intercepted and dealth with cleanly.
+    """
+
+    _PREFIX = 'Default value is '
+
+    default_error_messages = {
+        'invalid': 'Enter a whole number.',
+        'max_value': 'Ensure this value is less than or equal to \
+                %(limit_value)s.',
+        'min_value': 'Ensure this value is greater than or equal to \
+                %(limit_value)s.',
+        'empty': 'yo, dawg; I am empty and no user should see this error \
+                message.',
+    }
+
+    def __init__(self, max_value=None, min_value=None, *args, **kwargs):
+        super(forms.IntegerField, self).__init__(*args, **kwargs)
+
+        if max_value is not None:
+            self.validators.append(validators.MaxValueValidator(max_value))
+        if min_value is not None:
+            self.validators.append(validators.MinValueValidator(min_value))
+
+    def to_python(self, value):
+        prefix = PrefixedIntegerField._PREFIX
+
+        if value == '':
+            raise ValidationError(self.error_messages['empty'])
+
+        try:
+            if value.startswith(prefix):
+                value = int(super(forms.IntegerField, self).to_python(
+                                                value[len(prefix):]))
+            else:
+                value = int(super(forms.IntegerField, self).to_python(
+                                                value))
+        except (ValueError, TypeError):
+            raise ValidationError(self.error_messages['invalid'])
+
+        return value
 
 class GenericForm(forms.Form):
     """The basic form class that is inherited by the SubscribeForm class
     and the PreferencesForm class.
    
-    @type _GET_NODE_DOWN_INIT: Bool
-    @cvar _GET_NODE_DOWN_INIT: The initial value of the get_node_down checkbox
-        when the form is loaded.
-    @type _GET_VERSION_INIT: Bool
-    @cvar _GET_VERSION_INIT: The initial value of the get_version checkbox when
-        the form is loaded.
-    @type _GET_BANDLOW_INIT: Bool
-    @cvar _GET_BANDLOW_INIT: The initial value of the get_band_low checkbox
-        when the form is loaded.
-    @type _NODE_DOWN_GRACE_PD_INIT: int
-    @cvar _NODE_DOWN_GRACE_PD_INIT: The default initial node down grace pd (1 
-        hr)
-    @type _NODE_DOWN_GRACE_PD_MAX: int
-    @cvar _NODE_DOWN_GRACE_PD_MAX: The maximum node down grace period in hours
-    @type _NODE_DOWN_GRACE_PD_MIN: int
-    @cvar _NODE_DOWN_GRACE_PD_MIN: The minimum node down grace period in hours
-    @type _BAND_LOW_THRESHOLD_INIT: int
-    @cvar _BAND_LOW_THRESHOLD_INIT: The initial low bandwidth threshold (kb/s)
-    @type _BAND_LOW_THRESHOLD_MIN: int
-    @cvar _BAND_LOW_THRESHOLD_MIN: The minimum low bandwidth threshold (kb/s)
-    @type _BAND_LOW_THERSHOLD_MAX: int
-    @cvar _BAND_LOW_THERSHOLD_MAX: The maximum low bandwidth threshold (KB/s)
-    @type _INIT_PREFIX: str
-    @cvar _INIT_PREFIX: The prefix for strings that display before user has
-        entered data.
-    @type _VERSION_INFO: str
-    @cvar _VERSION_INFO: Help text for the version notification field.
-    @type get_node_down: BooleanField
-    @ivar get_node_down: C{True} if the user wants to subscribe to node down 
-        notifications, C{False} if not.
-    @type node_down_grace_pd: IntegerField, processed into int
-    @ivar node_down_grace_pd: Time before receiving a node down notification in 
-        hours. Default = 1. Range = 1-4500.
-    @type get_version: BooleanField, processed into Bool
-    @ivar get_version: C{True} if the user wants to receive version 
-        notifications about their router, C{False} if not.
-    @type version_type: ChoiceField, processed into str
-    @ivar version_type: The type of version notifications the user 
-        wants
-    @type version_text: BooleanField
-    @ivar version_text: Hidden field; used to display extra text in the form
-        template without having to hardcode the text into the template.
-    @type get_band_low: BooleanField, processed into Bool
-    @ivar get_band_low: C{True} if the user wants to receive low bandwidth 
-        notifications, C{False} if not.
-    @type band_low_threshold: IntegerField, processed into int
-    @ivar band_low_threshold: The user's threshold (in KB/s) for low bandwidth
-        notifications. Default = 20 KB/s.
-    @type get_t_shirt: BooleanField, processed into Bool
-    @ivar get_t_shirt: C{True} if the user wants to receive a t-shirt 
-        notification, C{False} if not.
-    @type t_shirt_text: BooleanField
-    @ivar t_shirt_text: Hidden field; used to display extra text in the form
-        template without having to hardcode the text into the template.
-    """
-   
-    """
     @type _GET_NODE_DOWN_INIT: Bool
     @cvar _GET_NODE_DOWN_INIT: Initial display value and default submission
         value of the L{get_node_down} checkbox.
@@ -607,12 +614,8 @@ class GenericForm(forms.Form):
     @type _GET_BAND_LOW_LABEL:
     @type _GET_BAND_LOW_ID:
     @type _BAND_LOW_THRESHOLD_INIT:
-    
-
     """
-    
-    
-    
+      
     # NOTE: Most places inherit the min, max, and default values for fields
     # from here, but one notable exception is in the javascript file when
     # checking if textboxes haven't been altered.
@@ -665,7 +668,7 @@ class GenericForm(forms.Form):
     get_node_down = forms.BooleanField(initial=_GET_NODE_DOWN_INIT,
             required=False,
             label=_GET_NODE_DOWN_LABEL)
-    node_down_grace_pd = forms.IntegerField(
+    node_down_grace_pd = PrefixedIntegerField(
             initial=_INIT_PREFIX + str(_NODE_DOWN_GRACE_PD_INIT),
             required=False,
             max_value=_NODE_DOWN_GRACE_PD_MAX,
@@ -687,7 +690,7 @@ class GenericForm(forms.Form):
     get_band_low = forms.BooleanField(initial=_GET_BAND_LOW_INIT,
             required=False,
             label=_GET_BAND_LOW_LABEL)
-    band_low_threshold = forms.IntegerField(
+    band_low_threshold = PrefixedIntegerField(
             initial=_INIT_PREFIX + str(_BAND_LOW_THRESHOLD_INIT),
             required=False, max_value=_BAND_LOW_THRESHOLD_MAX,
             min_value=_BAND_LOW_THRESHOLD_MIN, 
@@ -701,45 +704,6 @@ class GenericForm(forms.Form):
     t_shirt_text = forms.BooleanField(required=False,
             label=_T_SHIRT_INFO) 
 
-    @staticmethod
-    def clean_post_data(post_data):
-        """Checks if POST data contains fields that still say "Default value 
-        is C{-DEFAULT-VALUE-}" or are left blank and returns a POST dictionary
-        with those fields replaced with just C{-DEFAULT-VALUE-}. Also sets
-        the field_name_manipulated fields to C{on} or C{off} depending on
-        whether POST data has been manipulated at this stage (there is a
-        hidden form field that stores this value, and the template renders
-        a hidden input field, with val='true' if the hidden form field is true,
-        and val='false' if the hidden form field is false; the javascript then
-        will know to put 'Default value is _' for that field by referring to
-        the hidden input field). Has no side-effects on the original POST 
-        dictionary passed as an argument (which is immutable anyway). The 
-        output POST data is meant to be passed into the GenericForm being
-        created.
-        
-        @type post_data: QueryDict
-        @param post_data: POST request data.
-        @rtype: QueryDict
-        @return: POST request data with "Default value is C{-DEFAULT-VALUE-}
-            replaced with C{-DEFAULT-VALUE-}.
-        """
-
-        data = copy(post_data)
-
-        if data['node_down_grace_pd'] == GenericForm._INIT_PREFIX + \
-                str(GenericForm._NODE_DOWN_GRACE_PD_INIT) \
-           or data['node_down_grace_pd'] == '' \
-           or 'get_node_down' not in data:
-            data['node_down_grace_pd'] = GenericForm._NODE_DOWN_GRACE_PD_INIT
-
-        if data['band_low_threshold'] == GenericForm._INIT_PREFIX + \
-                str(GenericForm._BAND_LOW_THRESHOLD_INIT) \
-           or data['band_low_threshold'] == '' \
-           or 'get_band_low' not in data:
-            data['band_low_threshold'] = GenericForm._BAND_LOW_THRESHOLD_INIT  
-        
-        return data
- 
     def check_if_sub_checked(self, data):
         """Throws a validation error if no subscriptions are checked. 
         Abstracted out of clean() so that there isn't any redundancy in 
@@ -782,7 +746,7 @@ class SubscribeForm(GenericForm):
     _EMAIL_MAX_LEN = 75
     _EMAIL_2_LABEL = 'Re-enter Email:'
     _FINGERPRINT_LABEL = 'Node Fingerprint:'
-    _FINGERPRINT_MAX_LEN = 40
+    _FINGERPRINT_MAX_LEN = 80
     _CLASS_EMAIL = 'email-input'
     _CLASS_LONG = 'long-input'
 
@@ -793,7 +757,8 @@ class SubscribeForm(GenericForm):
             widget=forms.TextInput(attrs={'class':_CLASS_EMAIL}),
             max_length=_EMAIL_MAX_LEN)
     fingerprint = forms.CharField(label='Node Fingerprint:',
-            widget=forms.TextInput(attrs={'class':_CLASS_LONG}),
+            widget=forms.TextInput(attrs={'class':_CLASS_LONG, 
+                'id':'fingerprint', 'autocomplete':'off'}),
             max_length=_FINGERPRINT_MAX_LEN)
 
     def clean(self):
@@ -818,7 +783,21 @@ class SubscribeForm(GenericForm):
                 
                 del data['email_1']
                 del data['email_2']
-       
+
+        if 'node_down_grace_pd' in self._errors:
+            if PrefixedIntegerField.default_error_messages['empty'] in \
+                    str(self._errors['node_down_grace_pd']):
+               del self._errors['node_down_grace_pd']
+               data['node_down_grace_pd'] = \
+                       GenericForm._NODE_DOWN_GRACE_PD_INIT
+
+        if 'band_low_threshold' in self._errors:
+            if PrefixedIntegerField.default_error_messages['empty'] in \
+                    str(self._errors['band_low_threshold']):
+                del self._errors['band_low_threshold']
+                data['band_low_threshold'] = \
+                        GenericForm._BAND_LOW_THRESHOLD_INIT
+
         return data
 
     def clean_fingerprint(self):
@@ -828,14 +807,19 @@ class SubscribeForm(GenericForm):
         isn't (along with helpful information).
         """
         fingerprint = self.cleaned_data.get('fingerprint')
-        fingerprint.replace(' ', '')
+        
+        # Removes 'Name: ' from fingerprint field.
+        fingerprint = re.sub(r'.*: ', '', fingerprint)
+
+        # Removes spaces from fingerprint field.
+        fingerprint = re.sub(r' ', '', fingerprint)
 
         if self.is_valid_router(fingerprint):
             return fingerprint
         else:
             info_extension = url_helper.get_fingerprint_info_ext(fingerprint)
             msg = 'We could not locate a Tor node with that fingerprint. \
-                   (<a href=%s>More info</a>)' % info_extension
+                   (<a target=_BLANK href=%s>More info</a>)' % info_extension
             raise forms.ValidationError(msg)
 
     def is_valid_router(self, fingerprint):
@@ -918,11 +902,8 @@ class PreferencesForm(GenericForm):
  
         self.user = user
 
-        fingerprint_text = str(self.user.router.fingerprint)
-        fingerprint_list = re.findall('.{4}', fingerprint_text)
-        fingerprint_text = ' '.join(fingerprint_list)
         self.user_info = PreferencesForm._USER_INFO_STR % (self.user.email, \
-                self.user.router.name, fingerprint_text)
+                self.user.router.name, user.router.spaced_fingerprint())
 
     def change_subscriptions(self, old_data, new_data):
         """Change the subscriptions and options if they are specified.
