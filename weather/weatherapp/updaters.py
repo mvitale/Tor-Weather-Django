@@ -29,7 +29,7 @@ from django.core.mail import send_mass_mail
 
 #a CtlUtil instance module attribute
 ctl_util = CtlUtil()
-failed = open('log/failed_emails.txt', 'w')
+failed_email_file = 'log/failed_emails.txt'
 
 def check_node_down(email_list):
     """Check if all nodes with L{NodeDownSub} subs are up or down,
@@ -283,16 +283,21 @@ def update_all_routers(email_list):
     return email_list
 
 def run_all():
-    """Run all updaters/checkers in proper sequence, send emails."""
+    """Run all updaters/checkers in proper sequence, then send emails."""
     # the list of tuples of email info, gets updated w/ each call
     email_list = []
     email_list = update_all_routers(email_list)
+    logging.INFO('Finished updating routers. About to check all subscriptions.')
     email_list = check_all_subs(email_list)
+    logging.INFO('Finished checking subscriptions. About to send emails.')
     mails = tuple(email_list)
+    logging.INFO('Finished sending emails.')
 
     #-------commented out for safety!---------------
     #try:
-    send_mass_mail(mails, fail_silently=True)
-    #except SMTPException, e:
-        #logging.INFO(e)
-        #failed.write(e + '\n')
+    send_mass_mail(mails, fail_silently=false)
+    except SMTPException, e:
+        logging.INFO(e)
+        failed = open(failed_email_file, 'w')
+        failed.write(e + '\n')
+        failed.close()

@@ -13,8 +13,11 @@ import logging
 import re
 import string
 
+#for TorCtl
 debugfile = open('log/debug', 'w')
-unparsable = open('log/unparsable_emails.txt', 'w')
+
+#for unparsable emails
+unparsable_email_file = 'log/unparsable_emails.txt'
 
 class CtlUtil:
     """A class that handles communication with the local Tor process via
@@ -514,7 +517,9 @@ class CtlUtil:
                                                             re.IGNORECASE)
         if email == None:
             logging.info("Couldn't parse an email address from:\n%s" % contact)
+            unparsable = open(unparsable_email_file, 'w')
             unparsable.write(contact + '\n')
+            unparsable.close()
             email = ""
 
         else:
