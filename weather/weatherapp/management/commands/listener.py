@@ -17,7 +17,8 @@ logging.basicConfig(format = '%(asctime) - 15s (%(process)d) %(message)s',
 
 class MyEventHandler(TorCtl.EventHandler):
     def new_consensus_event(self, event):
-        print 'Here we go!'
+        logging.INFO('Got a new consensus. Updating router table and ' + \
+                     'checking all subscriptions.')
         updaters.run_all()
 
 def listen():
