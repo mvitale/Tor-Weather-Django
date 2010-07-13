@@ -29,7 +29,7 @@ from django.core.mail import send_mass_mail
 
 #a CtlUtil instance module attribute
 ctl_util = CtlUtil()
-failed = open('log/failed_emails.txt', 'w')
+failed_email_file = 'log/failed_emails.txt'
 
 def check_node_down(email_list):
     """Check if all nodes with L{NodeDownSub} subs are up or down,
@@ -86,7 +86,11 @@ def check_low_bandwidth(email_list):
     subs = BandwidthSub.objects.all()
 
     for sub in subs:
+
+        #TorCtl does type checking, so fingerprint needs to be converted from
+        #a unicode string to a python str
         fingerprint = str(sub.subscriber.router.fingerprint)
+
         if sub.subscriber.confirmed:
             bandwidth = ctl_util.get_bandwidth(fingerprint)
             if bandwidth < sub.threshold: 
@@ -201,7 +205,7 @@ def check_version(email_list):
                     sub.emailed = False
 
             else:
-                logging.INFO("Couldn't parse the version relay %s is running" \
+                logging.info("Couldn't parse the version relay %s is running" \
                               % fingerprint)
 
             sub.save()
@@ -217,10 +221,13 @@ def check_all_subs(email_list):
     @rtype: list
     @return: The updated list of tuples representing emails to send.
     """
-
+    logging.debug('Checking node down subscriptions.')
     email_list = check_node_down(email_list)
+    logging.debug('Checking version subscriptions.')
     check_version(email_list)
+    logging.debug('Checking bandwidth subscriptions.')
     check_low_bandwidth(email_list)
+    logging.debug('Checking shirt subscriptions.')
     email_list = check_earn_tshirt(email_list)
     return email_list
 
@@ -283,16 +290,21 @@ def update_all_routers(email_list):
     return email_list
 
 def run_all():
-    """Run all updaters/checkers in proper sequence, send emails."""
+    """Run all updaters/checkers in proper sequence, then send emails."""
     # the list of tuples of email info, gets updated w/ each call
     email_list = []
     email_list = update_all_routers(email_list)
+    logging.info('Finished updating routers. About to check all subscriptions.')
     email_list = check_all_subs(email_list)
+    logging.info('Finished checking subscriptions. About to send emails.')
     mails = tuple(email_list)
 
     #-------commented out for safety!---------------
-    #try:
-    send_mass_mail(mails, fail_silently=True)
-    #except SMTPException, e:
-        #logging.INFO(e)
-        #failed.write(e + '\n')
+    try:
+        send_mass_mail(mails, fail_silently = False)
+    except SMTPException, e:
+        logging.info(e)
+        failed = open(failed_email_file, 'w')
+        failed.write(e + '\n')
+        failed.close()
+    logging.info('Finished sending emails.')

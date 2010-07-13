@@ -3,7 +3,7 @@ $ python manage.py runlistener
 and automatically import the Django settings module for use
 by it."""
 
-import listener
+from weather.weatherapp import listener
 
 from django.core.management.base import BaseCommand, CommandError
 
