@@ -208,12 +208,12 @@ class CtlUtil:
                  '' if the version cannot be retrieved.
         """
         desc = self.get_single_descriptor(fingerprint)
-        
         search = re.search('\nplatform\sTor\s.*\s', desc)
-        #if search != None:
-        return search.group().split()[2].replace(' ', '')
-        #else:
-        #    return ''
+
+        if search != None:
+            return search.group().split()[2].replace(' ', '')
+        else:
+            return ''
         
     def get_version_type(self, fingerprint):
         """Get the type of version the relay with fingerprint C{fingerprint}
@@ -381,7 +381,7 @@ class CtlUtil:
     def get_new_avg_bandwidth(self, avg_bandwidth, hours_up, obs_bandwidth):
         """Calculates the new average bandwidth for a router. The average 
         is calculated by rounding rather than truncating.
-        
+         
         @type avg_bandwidth: int
         @param avg_bandwidth: The current average bandwidth for the router in
             KB/s.
