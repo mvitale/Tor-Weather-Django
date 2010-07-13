@@ -29,7 +29,7 @@ from django.core.mail import send_mass_mail
 
 #a CtlUtil instance module attribute
 ctl_util = CtlUtil()
-failed = open('log/failed_emails.txt', 'w')
+failed_email_file = 'log/failed_emails.txt'
 
 def check_node_down(email_list):
     """Check if all nodes with L{NodeDownSub} subs are up or down,
@@ -86,26 +86,26 @@ def check_low_bandwidth(email_list):
     subs = BandwidthSub.objects.all()
 
     for sub in subs:
-        fingerprint = sub.subscriber.router.fingerprint
+
+        #TorCtl does type checking, so fingerprint needs to be converted from
+        #a unicode string to a python str
+        fingerprint = str(sub.subscriber.router.fingerprint)
+
         if sub.subscriber.confirmed:
-            observed = self.ctlutil.get_bandwidth(fingerprint)
-            if observed < sub.threshold and\
-            sub.emailed == False:
-                recipient = sub.subscriber.email
-                threshold = sub.threshold
-                unsubs_auth = sub.subscriber.unsubs_auth
-                pref_auth = sub.subscriber.pref_auth
-
-                email_list.append(emails.bandwidth_tuple(recipient, 
-                                  fingerprint, observed, threshold,
-                                  unsubs_auth, pref_auth)) 
-
-                sub.emailed = True
-
+            bandwidth = ctl_util.get_bandwidth(fingerprint)
+            if bandwidth < sub.threshold: 
+                if sub.emailed == False:
+                    recipient = sub.subscriber.email
+                    threshold = sub.threshold
+                    unsubs_auth = sub.subscriber.unsubs_auth
+                    pref_auth = sub.subscriber.pref_auth
+                    email_list.append(emails.bandwidth_tuple(recipient, 
+                    fingerprint, bandwidth, threshold, unsubs_auth, pref_auth)) 
+                    sub.emailed = True
             else:
                 sub.emailed = False
-
             sub.save()
+
     return email_list
 
 def check_earn_tshirt(email_list):
@@ -128,7 +128,7 @@ def check_earn_tshirt(email_list):
             # first, update the database 
             router = sub.subscriber.router
             is_up = router.up
-            fingerprint = router.fingerprint
+            fingerprint = str(router.fingerprint)
             if not is_up and sub.triggered:
                 # reset the data if the node goes down
                 sub.triggered = False
@@ -184,18 +184,20 @@ def check_version(email_list):
                            str(sub.subscriber.router.fingerprint))
 
             if version_type != 'ERROR':
-                if version_type == sub.notify_type and sub.emailed == False:
+                if (version_type == 'OBSOLETE' or sub.notify_type == \
+                    version_type): 
+                    if sub.emailed == False:
                 
-                    fingerprint = sub.subscriber.router.fingerprint
-                    recipient = sub.subscriber.email
-                    unsubs_auth = sub.subscriber.unsubs_auth
-                    pref_auth = sub.subscriber.pref_auth
-                    email_list.append(emails.version_tuple(recipient,     
-                                                           fingerprint,
-                                                           version_type,
-                                                           unsubs_auth,
-                                                           pref_auth))
-                    sub.emailed = True
+                        fingerprint = sub.subscriber.router.fingerprint
+                        recipient = sub.subscriber.email
+                        unsubs_auth = sub.subscriber.unsubs_auth
+                        pref_auth = sub.subscriber.pref_auth
+                        email_list.append(emails.version_tuple(recipient,     
+                                                               fingerprint,
+                                                               version_type,
+                                                               unsubs_auth,
+                                                               pref_auth))
+                        sub.emailed = True
 
             #if the user has their desired version type, we need to set emailed
             #to False so that we can email them in the future if we need to
@@ -203,7 +205,7 @@ def check_version(email_list):
                     sub.emailed = False
 
             else:
-                logging.INFO("Couldn't parse the version relay %s is running" \
+                logging.info("Couldn't parse the version relay %s is running" \
                               % fingerprint)
 
             sub.save()
@@ -219,10 +221,13 @@ def check_all_subs(email_list):
     @rtype: list
     @return: The updated list of tuples representing emails to send.
     """
-
+    logging.debug('Checking node down subscriptions.')
     email_list = check_node_down(email_list)
+    logging.debug('Checking version subscriptions.')
     check_version(email_list)
+    logging.debug('Checking bandwidth subscriptions.')
     check_low_bandwidth(email_list)
+    logging.debug('Checking shirt subscriptions.')
     email_list = check_earn_tshirt(email_list)
     return email_list
 
@@ -237,21 +242,24 @@ def update_all_routers(email_list):
     @return: The updated list of tuples representing emails to send.
     """
 
-    #set the 'up' flag to False for every router in the DB
+    
     router_set = Router.objects.all()
     for router in router_set:
-        router.up = False
-        router.save()
+        #remove routers that we haven't seen for more than a year 
+        if (datetime.now() - router.last_seen).days > 365:
+            router.delete()
+        #Set the 'up' flag to False. 
+        else:
+            router.up = False
+            router.save()
 
     #Get a list of fingerprint/name tuples in the current descriptor file
     finger_name = ctl_util.get_finger_name_list()
-    print 'fingerprint/name list: %s' % finger_name
 
     for router in finger_name:
         finger = router[0]
         name = router[1]
         is_up_hiber = ctl_util.is_up_or_hibernating(finger)
-        print '%s is up or hibernating: %s' % (name, is_up_hiber)
 
 
         if is_up_hiber:
@@ -270,8 +278,6 @@ def update_all_routers(email_list):
             router_data.up = True
             router_data.exit = is_exit
             #send a welcome email if indicated
-            print 'router is welcomed: %s' % router_data.welcomed
-            print 'stable: %s' % ctl_util.is_stable(finger)
             if router_data.welcomed == False and ctl_util.is_stable(finger):
                 address = ctl_util.get_email(finger)
                 print address
@@ -284,23 +290,21 @@ def update_all_routers(email_list):
     return email_list
 
 def run_all():
-    """Run all updaters/checkers in proper sequence, send emails."""
+    """Run all updaters/checkers in proper sequence, then send emails."""
     # the list of tuples of email info, gets updated w/ each call
-    print 'starting updaters.run_all()'
     email_list = []
-    print 'about to update routers'
     email_list = update_all_routers(email_list)
-    print 'finished updating routers. email list: %s' % email_list
-    print 'about to check all subs'
+    logging.info('Finished updating routers. About to check all subscriptions.')
     email_list = check_all_subs(email_list)
-    print 'checked subs. email list: %s' % email_list
+    logging.info('Finished checking subscriptions. About to send emails.')
     mails = tuple(email_list)
 
     #-------commented out for safety!---------------
-    #try:
-    print 'sending emails'
-    send_mass_mail(mails, fail_silently=True)
-    print 'sent emails'
-    #except SMTPException, e:
-        #logging.INFO(e)
-        #failed.write(e + '\n')
+    try:
+        send_mass_mail(mails, fail_silently = False)
+    except SMTPException, e:
+        logging.info(e)
+        failed = open(failed_email_file, 'w')
+        failed.write(e + '\n')
+        failed.close()
+    logging.info('Finished sending emails.')

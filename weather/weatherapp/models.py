@@ -489,7 +489,7 @@ class TShirtSub(Subscription):
                 time_since_triggered.days * 24
         return hours
 
-    def should_email(hours_up):
+    def should_email(self, hours_up):
         """Returns true if the router being watched has been up for 1464 hours
         (61 days, or approx 2 months). If it's an exit node, the avg bandwidth
         must be at or above 100 KB/s. If not, it must be >= 500 KB/s.

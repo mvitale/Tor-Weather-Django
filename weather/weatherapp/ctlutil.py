@@ -13,8 +13,11 @@ import logging
 import re
 import string
 
+#for TorCtl
 debugfile = open('log/debug', 'w')
-unparsable = open('log/unparsable_emails.txt', 'w')
+
+#for unparsable emails
+unparsable_email_file = 'log/unparsable_emails.txt'
 
 class CtlUtil:
     """A class that handles communication with the local Tor process via
@@ -208,12 +211,12 @@ class CtlUtil:
                  '' if the version cannot be retrieved.
         """
         desc = self.get_single_descriptor(fingerprint)
-        
         search = re.search('\nplatform\sTor\s.*\s', desc)
-        #if search != None:
-        return search.group().split()[2].replace(' ', '')
-        #else:
-        #    return ''
+
+        if search != None:
+            return search.group().split()[2].replace(' ', '')
+        else:
+            return ''
         
     def get_version_type(self, fingerprint):
         """Get the type of version the relay with fingerprint C{fingerprint}
@@ -378,9 +381,10 @@ class CtlUtil:
         
         return finger_list
 
-    def get_new_avg_bandwidth(avg_bandwidth, hours_up, obs_bandwidth):
-        """Calculates the new average bandwidth for a router.
-        
+    def get_new_avg_bandwidth(self, avg_bandwidth, hours_up, obs_bandwidth):
+        """Calculates the new average bandwidth for a router. The average 
+        is calculated by rounding rather than truncating.
+         
         @type avg_bandwidth: int
         @param avg_bandwidth: The current average bandwidth for the router in
             KB/s.
@@ -392,7 +396,8 @@ class CtlUtil:
         @rtype: int
         @return: The average bandwidth for this router in KB/s
         """
-        new_avg = ((hours_up * avg_bandwidth) + obs_bandwidth) / (hours_up + 1)
+        new_avg = float((hours_up*avg_bandwidth) + obs_bandwidth)/(hours_up + 1)
+        new_avg = int(round(new_avg))
         return new_avg
 
     def get_email(self, fingerprint):
@@ -514,7 +519,9 @@ class CtlUtil:
                                                             re.IGNORECASE)
         if email == None:
             logging.info("Couldn't parse an email address from:\n%s" % contact)
+            unparsable = open(unparsable_email_file, 'w')
             unparsable.write(contact + '\n')
+            unparsable.close()
             email = ""
 
         else:
