@@ -311,18 +311,19 @@ class TestWeb(TestCase):
         self.assertEqual(len(mail.outbox), 0)
 
     def test_bandwidth_calc(self):
-        """Make sure bandwidth arithmetic works"""
+        """Make sure bandwidth arithmetic works. Averages should be calculated
+        by rounding, not truncating."""
         ctl_util = CtlUtil()
         avg_bandwidth = 100
         hours_up = 1400
         current_bandwidth = 0
         new_avg = ctl_util.get_new_avg_bandwidth(avg_bandwidth, hours_up, 
                                                  current_bandwidth)
-        self.assertEqual(new_avg, 99)
+        self.assertEqual(new_avg, 100)
         
         avg_bandwidth = 10
         hours_up = 5
         current_bandwidth = 500
         new_avg = ctl_util.get_new_avg_bandwidth(avg_bandwidth, hours_up,
                                                  current_bandwidth)
-        self.assertEqual(new_avg, 91)
+        self.assertEqual(new_avg, 92)

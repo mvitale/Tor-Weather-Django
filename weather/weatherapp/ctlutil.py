@@ -378,8 +378,9 @@ class CtlUtil:
         
         return finger_list
 
-    def get_new_avg_bandwidth(avg_bandwidth, hours_up, obs_bandwidth):
-        """Calculates the new average bandwidth for a router.
+    def get_new_avg_bandwidth(self, avg_bandwidth, hours_up, obs_bandwidth):
+        """Calculates the new average bandwidth for a router. The average 
+        is calculated by rounding rather than truncating.
         
         @type avg_bandwidth: int
         @param avg_bandwidth: The current average bandwidth for the router in
@@ -392,7 +393,8 @@ class CtlUtil:
         @rtype: int
         @return: The average bandwidth for this router in KB/s
         """
-        new_avg = ((hours_up * avg_bandwidth) + obs_bandwidth) / (hours_up + 1)
+        new_avg = float((hours_up*avg_bandwidth) + obs_bandwidth)/(hours_up + 1)
+        new_avg = int(round(new_avg))
         return new_avg
 
     def get_email(self, fingerprint):
