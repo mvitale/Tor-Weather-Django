@@ -76,6 +76,10 @@
 					display: none;
 				}
 
+				div#search-results {
+					display: none;
+				}
+
 					#search-container label {
 						padding: 0 0 0 36px;
 					}

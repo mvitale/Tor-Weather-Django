@@ -302,6 +302,13 @@ def router_lookup(request):
         json = simplejson.dumps(results)
         return HttpResponse(json, mimetype='application/json')
 
+def router_fingerprint_lookup(request):
+    if request.method == 'GET':
+        if u'query' in request.GET:
+            value = request.GET[u'query']
+            json = simplejson.dumps(Router.objects.get(name=value))
+            return HttpResponse(json, mimetype='application/json')
+
 def pref_shortcut(request):
     """FOR TESTING """
     # XXX

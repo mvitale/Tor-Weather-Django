@@ -51,10 +51,15 @@ $(document).ready(function() {
 		$("#more-info span").toggle();
 	});
 
+	$("div#search-container").show();
+	setAutoComplete("router_search", "search-results", "/router_lookup/?query=");
+	$("div#search-container").hide()
+
 	$("#fingerprint-container a").show();
 	$("#fingerprint-container a").click(function() {
 		$(this).hide(); 
-		$("div#search-container").show();
+		//$("div#search-container").css('visibility', 'visible');
+		$("div#search-container").show()
 	});
 });
 
