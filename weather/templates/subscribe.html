@@ -54,27 +54,15 @@ Tor Weather - Sign Up!
 		{{ form.fingerprint }}
 	</div>
 
-	<!--<div class="field-container" id="search-container">
+	<div class="field-container" id="search-container">
 		<script type="text/javascript">
 			$(function(){
-					setAutoComplete("router-search", "results", "/router_lookup/?query=");
+				setAutoComplete("router_search", "search-results", "/router_lookup/?query=");
 			});
 		</script>
-		<p>
-			<label for="router-search">Enter router name, then click the arrow:</label>
-		</p>
-		<button type="button" id="router-search-submit" name="router-search-submit" value="<">&lt;</button>
-		<input id="router-search" name="router-search" type="text" autocomplete="off" />
-	</div>-->
-
-	<div class="field-container" id="search-container">
-		<script type="text/javascript" >
-$(function(){
-	setAutoComplete("search-field", "search-results", "/router_lookup/?query=");
-});
-		</script>
-		<label for="search-field">Search: </label>
-		<input type="text" id="search-field" name="search-field">
+		<p>{{ form.router_search.label_tag }}</p>
+		<button type="button" id="router-search-submit" name="router-search-submit" value="&lt;">&lt;</button>
+		{{ form.router_search }}
 	</div>
 
 </div>

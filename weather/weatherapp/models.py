@@ -844,11 +844,15 @@ class SubscribeForm(GenericForm):
     @ivar fingerprint: The fingerprint of the router the user wants to 
         monitor.
     """
+
     _EMAIL_1_LABEL = 'Enter Email:'
     _EMAIL_MAX_LEN = 75
     _EMAIL_2_LABEL = 'Re-enter Email:'
     _FINGERPRINT_LABEL = 'Node Fingerprint:'
     _FINGERPRINT_MAX_LEN = 80
+    _SEARCH_LABEL = 'Enter router name, then click the arrow:'
+    _SEARCH_MAX_LEN = 80
+    _SEARCH_ID = 'router_search'
     _CLASS_EMAIL = 'email-input'
     _CLASS_LONG = 'long-input'
 
@@ -858,10 +862,13 @@ class SubscribeForm(GenericForm):
     email_2 = forms.EmailField(label='Re-enter Email:',
             widget=forms.TextInput(attrs={'class':_CLASS_EMAIL}),
             max_length=_EMAIL_MAX_LEN)
-    fingerprint = forms.CharField(label='Node Fingerprint:',
-            widget=forms.TextInput(attrs={'class':_CLASS_LONG, 
-                'id':'fingerprint', 'autocomplete':'off'}),
+    fingerprint = forms.CharField(label=_FINGERPRINT_LABEL,
+            widget=forms.TextInput(attrs={'class':_CLASS_LONG}),
             max_length=_FINGERPRINT_MAX_LEN)
+    router_search = forms.CharField(label=_SEARCH_LABEL,
+            max_length=_SEARCH_MAX_LEN,
+            widget=forms.TextInput(attrs={'id':_SEARCH_ID,                  
+                'autocomplete': 'off'}))
 
     def __init__(self, data = None, initial = None):
         if data == None:
