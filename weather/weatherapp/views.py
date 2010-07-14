@@ -286,19 +286,18 @@ def error(request, error_type, key):
     # display the page
     return render_to_response(template, {'error_message' : message})
 
-def auto_fingerprint_lookup(request):
-    
-    # Default return list
+def router_lookup(request):
+    # Default return lsit
     results = []
 
     if request.method == 'GET':
         if u'query' in request.GET:
             value = request.GET[u'query']
 
-            # Ignore queries shorter than length 3
+            # Ignore queries shorter than length 2
             if len(value) > 2:
                 nodes = Router.objects.filter(name__icontains=value)
-                results = [ (str(x.name) + ': ' + x.spaced_fingerprint()) for x in nodes ]
+                results = [ node.name for node in nodes ]
 
         json = simplejson.dumps(results)
         return HttpResponse(json, mimetype='application/json')

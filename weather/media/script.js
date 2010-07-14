@@ -50,5 +50,11 @@ $(document).ready(function() {
 	$("#more-info a").hover(function() {
 		$("#more-info span").toggle();
 	});
+
+	$("#fingerprint-container a").show();
+	$("#fingerprint-container a").click(function() {
+		$(this).hide(); 
+		$("#search-container").show();
+	});
 });
 
