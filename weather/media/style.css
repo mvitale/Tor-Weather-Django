@@ -72,7 +72,7 @@
 						text-decoration: underline
 					}
 
-				#search-container {
+				div#search-container {
 					display: none;
 				}
 
@@ -84,7 +84,7 @@
 				width: 185px;
 			}
 
-			#router-search {
+			#router_search {
 				width: 249px;
 			}
 

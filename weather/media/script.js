@@ -54,7 +54,7 @@ $(document).ready(function() {
 	$("#fingerprint-container a").show();
 	$("#fingerprint-container a").click(function() {
 		$(this).hide(); 
-		$("#search-container").show();
+		$("div#search-container").show();
 	});
 });
 

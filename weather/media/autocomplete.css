@@ -2,7 +2,7 @@
 	width: 200px;
 }
 
-#results {
+#search-results {
 	border: 1px solid #666;
 	border-bottom: 0px;
 	font-size: 10px;
@@ -10,17 +10,17 @@
 	padding: 0px;
 }
 
-#results div {
+#search-results div {
     border-bottom: 1px solid #666;
     padding: 3px;
 }
 
-#results .selected {
+#search-results .selected {
 	background-color: #666;
 	color: #fff;
 }
 
-#results .unselected {
+#search-results .unselected {
 	background-color: #fff;
 	color: #666;
 }
