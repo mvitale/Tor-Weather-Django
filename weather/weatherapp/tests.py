@@ -30,7 +30,6 @@ class TestWeb(TestCase):
 
     def test_subscribe_node_down(self):
         """Test a node down subscription (all other subscriptions off)"""
-        c = Client()
         response = self.client.post('/subscribe/', {'email_1':'name@place.com',
                                           'email_2' : 'name@place.com',
                                           'fingerprint' : '1234',
@@ -79,7 +78,6 @@ class TestWeb(TestCase):
     
     def test_subscribe_version(self):
         """Test a version subscription (all other subscriptions off)"""
-        c = Client()
         response = self.client.post('/subscribe/', {'email_1':'name@place.com',
                                           'email_2' : 'name@place.com',
                                           'fingerprint' : '1234',
@@ -128,7 +126,6 @@ class TestWeb(TestCase):
     
     def test_subscribe_bandwidth(self):
         """Test a bandwidth only subscription attempt"""
-        c = Client()
         response = self.client.post('/subscribe/', {'email_1':'name@place.com',
                                           'email_2': 'name@place.com',
                                           'fingerprint' : '1234', 
@@ -174,7 +171,6 @@ class TestWeb(TestCase):
 
     def test_subscribe_shirt(self):
         """Test a t-shirt only subscription attempt"""
-        c = Client()
         response = self.client.post('/subscribe/', {'email_1':'name@place.com',
                                           'email_2' : 'name@place.com',
                                           'fingerprint' : '1234',
@@ -226,7 +222,6 @@ class TestWeb(TestCase):
     def test_subscribe_all(self):
         """Test a subscribe attempt to all subscription types, relying
         on default values."""
-        c = Client()
         response = self.client.post('/subscribe/', {'email_1':'name@place.com',
                                           'email_2' : 'name@place.com',
                                           'fingerprint' : '1234',
@@ -289,7 +284,6 @@ class TestWeb(TestCase):
     def test_subscribe_bad(self):
         """Make sure the form does not submit if a fingerprint is entered
         that isn't in the database."""
-        c = Client()
         response = self.client.post('/subscribe/', {'email_1':'name@place.com',
                                           'email_2':'name@place.com',
                                           'fingerprint' : '12345',
