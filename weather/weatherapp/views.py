@@ -199,7 +199,7 @@ def preferences(request, pref_auth):
         if form.is_valid():
             # Creates/changes/deletes subscriptions and subscription info
             # based on form data
-            form.change_subscriptions(user.get_preferences(), form.cleaned_data)
+            form.change_subscriptions(form.cleaned_data)
             
             # Redirect the user to the pending page
             url_extension = url_helper.get_confirm_pref_ext(pref_auth)
@@ -302,3 +302,12 @@ def auto_fingerprint_lookup(request):
 
         json = simplejson.dumps(results)
         return HttpResponse(json, mimetype='application/json')
+
+def pref_shortcut(request):
+    """FOR TESTING """
+    # XXX
+    user = Subscriber.objects.all()[0]
+    if not user.confirmed:
+        user.confirmed = True
+        user.save()
+    return HttpResponseRedirect('/preferences/' + user.pref_auth)

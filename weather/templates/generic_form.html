@@ -24,11 +24,9 @@
 	{% endfor %}
 
 	{{ form.get_node_down }}
-	<label for="id_get_node_down">{{ form.get_node_down.label }}</label>
+	{{ form.get_node_down.label_tag }}
 	<div class="extra-options" id="node-down-section">
-		<label for="id_node_down_grace_pd">
-			{{ form.node_down_grace_pd.label }}
-		</label>
+		{{ form.node_down_grace_pd.label_tag }}
 		{% for error in form.node_down_grace_pd.errors %}
 		<p class="form-error">
 			{{ error }}
@@ -42,12 +40,9 @@
 	<div></div>
 
 	{{ form.get_version }}
-	<label for="id_get_version">{{ form.get_version.label }}</label>
+	{{ form.get_version.label_tag }}
 	<div class="extra-options" id="version-section">
-		<div>{{ form.version_text.label|safe }}</div>
-		<label for="id_version_type">
-			{{ form.version_type.label }}
-		</label>
+		<div>{{ form.version_section_text|safe }}</div>
 		{% for error in form.version_type.errors %}
 		<p class="form-error">
 			{{ error }}
@@ -58,12 +53,9 @@
 	<div></div>
 
 	{{ form.get_band_low }}
-	<label for="id_get_band_low">{{ form.get_band_low.label }}</label>
+	{{ form.get_band_low.label_tag }}
 	<div class="extra-options" id="band-low-section">
-		{{ form.band_low_text.label|safe }}
-		<label for="id_band_low_threshold">
-			{{ form.band_low_threshold.label }}
-		</label>
+		{{ form.band_low_threshold.label_tag }}
 		{% for error in form.band_low_threshold.errors %}
 		<p class="form-error">
 			{{ error }}
@@ -77,9 +69,9 @@
 	<div></div>
 
 	{{ form.get_t_shirt }}
-	<label for="id_get_t_shirt">{{ form.get_t_shirt.label|safe }}</label>
+	<label for="id_get_t_shirt">{{ form.get_t_shirt.label|safe}}</label>
 	<div class="extra-options" id="t-shirt-section">
-		<div>{{ form.t_shirt_text.label|safe }}</div>
+		<div>{{ form.t_shirt_section_text|safe }}</div>
 	</div>
 
 	{% endblock notification-info %}
