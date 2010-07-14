@@ -55,14 +55,9 @@ Tor Weather - Sign Up!
 	</div>
 
 	<div class="field-container" id="search-container">
-		<script type="text/javascript">
-			$(function(){
-				setAutoComplete("router_search", "search-results", "/router_lookup/?query=");
-			});
-		</script>
 		<p>{{ form.router_search.label_tag }}</p>
 		<button type="button" id="router-search-submit" name="router-search-submit" value="&lt;">&lt;</button>
-		{{ form.router_search }}
+		<span>{{ form.router_search }}</span>
 	</div>
 
 </div>
