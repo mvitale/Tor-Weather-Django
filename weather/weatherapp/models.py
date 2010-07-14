@@ -669,6 +669,8 @@ class GenericForm(forms.Form):
     @cvar _CLASS_SHORT: HTML/CSS class to use for integer input fields.
     @type _CLASS_RADIO: str
     @cvar _CLASS_RADIO: HTML/CSS class to use for Radio button lists.
+    @type _CLASS_CHECK: str
+    @cvar _CLASS_CHECK: HTML/CSS class to use for checkboxes.
 
 
     @type get_node_down: forms.BooleanField
@@ -746,7 +748,8 @@ class GenericForm(forms.Form):
 
     _INIT_PREFIX = 'Default value is '
     _CLASS_SHORT = 'short-input'
-    _CLASS_RADIO = 'radio-input'
+    _CLASS_RADIO = 'radio-list'
+    _CLASS_CHECK = 'checkbox-input'
     _INIT_MAPPING = {'get_node_down': _GET_NODE_DOWN_INIT,
                      'node_down_grace_pd': _INIT_PREFIX + \
                              str(_NODE_DOWN_GRACE_PD_INIT),
@@ -761,7 +764,8 @@ class GenericForm(forms.Form):
     # shorthand for instance variables. Upon __init__, these fields will
     # be generated in instance's list of fields.
     get_node_down = forms.BooleanField(required=False,
-            label=_GET_NODE_DOWN_LABEL)
+            label=_GET_NODE_DOWN_LABEL,
+            widget=forms.CheckboxInput(attrs={'class':_CLASS_CHECK}))
     node_down_grace_pd = PrefixedIntegerField(required=False,
             max_value=_NODE_DOWN_GRACE_PD_MAX,
             min_value=_NODE_DOWN_GRACE_PD_MIN,
@@ -770,13 +774,15 @@ class GenericForm(forms.Form):
             widget=forms.TextInput(attrs={'class':_CLASS_SHORT}))
     
     get_version = forms.BooleanField(required=False,
-            label=_GET_VERSION_LABEL)
+            label=_GET_VERSION_LABEL,
+            widget=forms.CheckboxInput(attrs={'class':_CLASS_CHECK}))
     version_type = forms.ChoiceField(required=False,
             choices=(_VERSION_TYPE_CHOICES),
             widget=forms.RadioSelect(attrs={'class':_CLASS_RADIO}))
     
     get_band_low = forms.BooleanField(required=False,
-            label=_GET_BAND_LOW_LABEL)
+            label=_GET_BAND_LOW_LABEL,
+            widget=forms.CheckboxInput(attrs={'class':_CLASS_CHECK}))
     band_low_threshold = PrefixedIntegerField(required=False, 
             max_value=_BAND_LOW_THRESHOLD_MAX,
             min_value=_BAND_LOW_THRESHOLD_MIN, 
@@ -785,7 +791,8 @@ class GenericForm(forms.Form):
             widget=forms.TextInput(attrs={'class':_CLASS_SHORT}))
     
     get_t_shirt = forms.BooleanField(required=False,
-            label=_GET_T_SHIRT_LABEL)
+            label=_GET_T_SHIRT_LABEL,
+            widget=forms.CheckboxInput(attrs={'class':_CLASS_CHECK}))
 
     def __init__(self, data = None, initial = None):
         if data == None:
@@ -1079,3 +1086,7 @@ class PreferencesForm(GenericForm):
         elif new_data['get_t_shirt']:
             t = TShirtSub(subscriber=self.user)
             t.save()
+
+class RouterLookupPageForm(forms.Form):
+    """Form displayed in a when user wants to search for router by name"""
+    pass

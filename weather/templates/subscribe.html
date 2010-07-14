@@ -26,34 +26,47 @@ Tor Weather - Sign Up!
 {% endblock form-tag %}
 
 {% block user-info %}
-<div>
-	<label for="id_email_1">{{form.email_1.label}}</label>
+<div class="field-container">
+	<p>{{ form.email_1.label_tag }}</p>
 	{% for error in form.email_1.errors %}
 	<p class="form-error">{{ error|safe }}</p>
 	{% endfor %}
 	{{ form.email_1 }}
 </div>
 
-<div>
-	<label for="id_email_2">{{ form.email_2.label }}</label>
+<div class="field-container">
+	<p>{{ form.email_2.label_tag }}</p>
 	{% for error in form.email_2.errors %}
 	<p class="form-error">{{ error|safe }}</p>
 	{% endfor %}
 	{{ form.email_2 }}
 </div>
 
-<div>
-	<script type="text/javascript"><!--
-		$(function(){
-			setAutoComplete("fingerprint", "results", "/auto_fingerprint_lookup/?query=");
-		});
-	--></script>
-	<label for="fingerprint">{{ form.fingerprint.label }}</label>
-	{% for error in form.fingerprint.errors %}
-	<p class="form-error">{{ error|safe}}</p>
-	{% endfor %}
-	{{ form.fingerprint }}
-	<div id="fingerprint_results"></div>
+<div id="fingerprint-row">
+	<div class="field-container" id="fingerprint-container">
+		<p>
+			{{ form.fingerprint.label_tag }}
+			<a href="Javascript:void()"><span>(search by router name)</span></a>
+		</p>
+		{% for error in form.fingerprint.errors %}
+		<p class="form-error">{{ error|safe}}</p>
+		{% endfor %}
+		{{ form.fingerprint }}
+	</div>
+
+	<div class="field-container" id="search-container">
+		<script type="text/javascript"><!--
+			$(function(){
+				setAutoComplete("router-search", "results", "/router_lookup/?query=");
+			});
+		--></script>
+		<p>
+			<label for="router-search">Enter router name, then click the arrow:</label>
+		</p>
+		<button type="button" id="router-search-submit" name="router-search-submit" value="<">&lt;</button>
+		<input id="router-search" name="router-search" type="text" autocomplete="off" />
+		<div id="router-results"></div>
+	</div>
 </div>
 {% endblock user-info %}
 
