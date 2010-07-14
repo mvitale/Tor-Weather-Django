@@ -15,6 +15,7 @@ place if they are ever modified in urls.py.
 @var _UNSUBSCRIBE: The url pattern for the page displayed when the user 
     unsubscribes.
 @var _DOWNLOAD: The url for the Tor download page.
+@var _T_SHIRT: The url for the Tor T-Shirt page.
 """
 
 base_url = 'http://localhost:8000'
@@ -34,6 +35,7 @@ _RESEND_CONF = '/resend_conf/%s/'
 _SUBSCRIBE = '/subscribe/'
 _UNSUBSCRIBE = '/unsubscribe/%s/'
 _DOWNLOAD = 'https://www.torproject.org/easy-download.html'
+_T_SHIRT = 'https://www.torproject.org/tshirt.html.en'
 
 def get_confirm_url(confirm_auth):
     """Returns a string representation of the full url for the confirmation 
@@ -184,3 +186,11 @@ def get_download_url():
     @return: The url for the Tor downloads page.
     """
     return _DOWNLOAD
+
+def get_t_shirt_url():
+    """Returns the Tor t-shirt url
+
+    @rtype: str
+    @return: The url for the Tor t-shirt page.
+    """
+    return _T_SHIRT

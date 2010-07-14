@@ -50,10 +50,10 @@ Tor Weather - Sign Up!
 	--></script>
 	<label for="fingerprint">{{ form.fingerprint.label }}</label>
 	{% for error in form.fingerprint.errors %}
-	<div id="fingerprint_results"></div>
 	<p class="form-error">{{ error|safe}}</p>
 	{% endfor %}
 	{{ form.fingerprint }}
+	<div id="fingerprint_results"></div>
 </div>
 {% endblock user-info %}
 
