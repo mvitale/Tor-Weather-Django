@@ -57,7 +57,7 @@ class TestWeb(TestCase):
         for i in range(0, 100, 1):
             if len(mail.outbox) == 1:
                 break
-            time.sleep(0.01)
+            time.sleep(0.1)
 
         self.assertEqual(len(mail.outbox), 1)
 
@@ -121,7 +121,7 @@ class TestWeb(TestCase):
         for i in range(0, 100, 1):
             if len(mail.outbox) == 1:
                 break
-            time.sleep(0.01)
+            time.sleep(0.1)
         self.assertEqual(len(mail.outbox), 1)
 
         #get the email message, make sure the confirm link works
@@ -174,7 +174,7 @@ class TestWeb(TestCase):
         for i in range(0, 100, 1):
             if len(mail.outbox) == 1:
                 break
-            time.sleep(0.01)
+            time.sleep(0.1)
         self.assertEqual(len(mail.outbox), 1)
 
         #Check if the correct subscriber info was stored
@@ -243,7 +243,7 @@ class TestWeb(TestCase):
         for i in range(0, 100, 1):
             if len(mail.outbox) == 1:
                 break
-            time.sleep(0.01)
+            time.sleep(0.1)
         self.assertEqual(len(mail.outbox), 1)
     
         #get the email message, make sure the confirm link works
@@ -315,7 +315,7 @@ class TestWeb(TestCase):
         for i in range(0, 100, 1):
             if len(mail.outbox) == 1:
                 break
-            time.sleep(0.01)
+            time.sleep(0.1)
         self.assertEqual(len(mail.outbox), 1)
     
         #get the email message, make sure the confirm link works
