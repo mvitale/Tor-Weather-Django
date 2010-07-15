@@ -50,5 +50,47 @@ $(document).ready(function() {
 	$("#more-info a").hover(function() {
 		$("#more-info span").toggle();
 	});
+
+	$("div#search-container").show();
+	setAutoComplete("router_search", "search-results", "/router_name_lookup/?query=");
+	$("div#search-container").hide();
+
+	$("#fingerprint-container a").show();
+	$("#fingerprint-container a").toggle(function() {
+		$(this).html('(hide fingerprint search)'); 
+		$("div#search-container").show();
+	}, function() {
+		$(this).html('(search by router name)');
+		$("div#search-container").hide();
+	});
+
+	$("#router-search-submit").click(function() {
+		var searchField = $("#search-container input");
+		var searchLabel = $("#search-container label");
+		var fingerprintField = $("#fingerprint-container input");
+		var nonuniqueError = "Please enter the fingerprint manually if the router has a non-unique name";
+		var noRouterError = "Please enter a valid router name:";
+		var defaultLabel = "Enter router name, then click the arrow:";
+		var t = setTimeout("searchLabel.css('font-weight', 'normal')", 500);
+
+		$.getJSON("/router_fingerprint_lookup/?query=" + searchField.val(), function(json){
+			if (json == "nonunique_name") {
+				searchLabel.html(nonuniqueError);
+				searchLabel.css("color", "red");
+			} else if (json == "no_router") {
+				searchLabel.html(noRouterError);
+				if (searchLabel.css("color") == "red") {
+					searchLabel.css("font-weight", "bold");
+					t;
+				} else {
+					searchLabel.css("color", "red");
+				}
+			} else {
+				fingerprintField.val(json);
+				searchLabel.html(defaultLabel);
+				searchLabel.css("color", "black");
+			}
+		});		
+	});
 });
 
