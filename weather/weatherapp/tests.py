@@ -67,7 +67,10 @@ class TestWeb(TestCase):
         for line in lines:
             if '/confirm' in line:
                 link = line.strip()
-                c.get(link)
+                self.client.get(link)
+
+                #reload subscriber
+                subscriber = Subscriber.objects.get(email = 'name@place.com')
                 self.assertEqual(subscriber.confirmed, True)
 
         #Verify that the subject of the message is correct.
@@ -98,27 +101,8 @@ class TestWeb(TestCase):
         #we want to be redirected to the pending page
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.template[0].name, 'pending.html')
-
-        #Test that one message has been sent
-        for i in range(0, 100, 1):
-            if len(mail.outbox) == 1:
-                break
-            time.sleep(0.01)
-        self.assertEqual(len(mail.outbox), 1)
-
-        #get the email message, make sure the confirm link works
-        body = mail.outbox[0].body
-        lines = body.split('\n')
-        for line in lines:
-            if '\confirm' in line:
-                link = line.strip()
-                c.get(link)
-                self.assertEqual(subscriber.confirmed, True)
-
-        #Verify that the subject of the message is correct.
-        self.assertEquals(mail.outbox[0].subject, 
-                          '[Tor Weather] Confirmation Needed')
-
+        
+        #test that the subscriber was stored correctly
         subscriber = Subscriber.objects.get(email = 'name@place.com')
         self.assertEqual(subscriber.email, 'name@place.com')
         self.assertEqual(subscriber.router.fingerprint, '1234')
@@ -132,7 +116,32 @@ class TestWeb(TestCase):
         version_sub = VersionSub.objects.get(subscriber = subscriber)
         self.assertEqual(version_sub.emailed, False)
         self.assertEqual(version_sub.notify_type, 'UNRECOMMENDED')
-    
+
+        #Test that one message has been sent
+        for i in range(0, 100, 1):
+            if len(mail.outbox) == 1:
+                break
+            time.sleep(0.01)
+        self.assertEqual(len(mail.outbox), 1)
+
+        #get the email message, make sure the confirm link works
+        body = mail.outbox[0].body
+        lines = body.split('\n')
+        for line in lines:
+            if '/confirm' in line:
+                link = line.strip()
+                self.client.get(link)
+
+                #reload subscriber
+                subscriber = Subscriber.objects.get(email = 'name@place.com')
+
+                self.assertEqual(subscriber.confirmed, True)
+
+        #Verify that the subject of the message is correct.
+        self.assertEquals(mail.outbox[0].subject, 
+                          '[Tor Weather] Confirmation Needed')
+
+            
     def test_subscribe_bandwidth(self):
         """Test a bandwidth only subscription attempt"""
         response = self.client.post('/subscribe/', {'email_1':'name@place.com',
@@ -149,26 +158,6 @@ class TestWeb(TestCase):
         #We want to be redirected to the pending page
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.template[0].name, 'pending.html')
-        
-        #Test that one message has been sent
-        for i in range(0, 100, 1):
-            if len(mail.outbox) == 1:
-                break
-            time.sleep(0.01)
-        self.assertEqual(len(mail.outbox), 1)
-
-        #get the email message, make sure the confirm link works
-        body = mail.outbox[0].body
-        lines = body.split('\n')
-        for line in lines:
-            if '\confirm' in line:
-                link = line.strip()
-                c.get(link)
-                self.assertEqual(subscriber.confirmed, True)
-
-        #Verify that the subject of the message is correct.
-        self.assertEqual(mail.outbox[0].subject, 
-                          '[Tor Weather] Confirmation Needed')
 
         #Check if the correct subscriber info was stored
         subscriber = Subscriber.objects.get(email = 'name@place.com')
@@ -180,6 +169,42 @@ class TestWeb(TestCase):
         bandwidth_sub = BandwidthSub.objects.get(subscriber = subscriber)
         self.assertEqual(bandwidth_sub.emailed, False)
         self.assertEqual(bandwidth_sub.threshold, 40)
+
+        #Test that one message has been sent
+        for i in range(0, 100, 1):
+            if len(mail.outbox) == 1:
+                break
+            time.sleep(0.01)
+        self.assertEqual(len(mail.outbox), 1)
+
+        #Check if the correct subscriber info was stored
+        subscriber = Subscriber.objects.get(email = 'name@place.com')
+        self.assertEqual(subscriber.email, 'name@place.com')
+        self.assertEqual(subscriber.router.fingerprint, '1234')
+        self.assertEqual(subscriber.confirmed, False)
+
+        #Verify that the subscription was stored correctly 
+        bandwidth_sub = BandwidthSub.objects.get(subscriber = subscriber)
+        self.assertEqual(bandwidth_sub.emailed, False)
+        
+        #get the email message, make sure the confirm link works
+        body = mail.outbox[0].body
+        lines = body.split('\n')
+        for line in lines:
+            if '/confirm' in line:
+                link = line.strip()
+                self.client.get(link)
+
+                #reload subscriber
+                subscriber = Subscriber.objects.get(email = 'name@place.com')
+
+                self.assertEqual(subscriber.confirmed, True)
+
+        #Verify that the subject of the message is correct.
+        self.assertEqual(mail.outbox[0].subject, 
+                          '[Tor Weather] Confirmation Needed')
+
+
 
     def test_subscribe_shirt(self):
         """Test a t-shirt only subscription attempt"""
@@ -198,26 +223,6 @@ class TestWeb(TestCase):
          #We want to be redirected to the pending page
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.template[0].name, 'pending.html')
-        
-        #Test that one message has been sent
-        for i in range(0, 100, 1):
-            if len(mail.outbox) == 1:
-                break
-            time.sleep(0.01)
-        self.assertEqual(len(mail.outbox), 1)
-    
-        #get the email message, make sure the confirm link works
-        body = mail.outbox[0].body
-        lines = body.split('\n')
-        for line in lines:
-            if '\confirm' in line:
-                link = line.strip()
-                c.get(link)
-                self.assertEqual(subscriber.confirmed, True)
-
-        #Verify that the subject of the message is correct.
-        self.assertEqual(mail.outbox[0].subject, 
-                          '[Tor Weather] Confirmation Needed')
 
         #Check if the correct subscriber info was stored
         subscriber = Subscriber.objects.get(email = 'name@place.com')
@@ -232,7 +237,33 @@ class TestWeb(TestCase):
         #Verify that the subscription was stored correctly
         shirt_sub = TShirtSub.objects.get(subscriber = subscriber)
         self.assertEqual(shirt_sub.emailed, False)
-        self.assertEqual(shirt_sub.avg_bandwidth, 0)
+        self.assertEqual(shirt_sub.avg_bandwidth, 0)       
+
+        #Test that one message has been sent
+        for i in range(0, 100, 1):
+            if len(mail.outbox) == 1:
+                break
+            time.sleep(0.01)
+        self.assertEqual(len(mail.outbox), 1)
+    
+        #get the email message, make sure the confirm link works
+        body = mail.outbox[0].body
+        lines = body.split('\n')
+        for line in lines:
+            if '/confirm' in line:
+                link = line.strip()
+                self.client.get(link)
+
+                #reload subscriber
+                subscriber = Subscriber.objects.get(email = 'name@place.com')
+
+                self.assertEqual(subscriber.confirmed, True)
+
+        #Verify that the subject of the message is correct.
+        self.assertEqual(mail.outbox[0].subject, 
+                          '[Tor Weather] Confirmation Needed')
+
+
 
     def test_subscribe_all(self):
         """Test a subscribe attempt to all subscription types, relying
@@ -253,25 +284,6 @@ class TestWeb(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.template[0].name, 'pending.html')
 
-        #Test that one message has been sent
-        for i in range(0, 100, 1):
-            if len(mail.outbox) == 1:
-                break
-            time.sleep(0.01)
-        self.assertEqual(len(mail.outbox), 1)
-    
-        #get the email message, make sure the confirm link works
-        body = mail.outbox[0].body
-        lines = body.split('\n')
-        for line in lines:
-            if '\confirm' in line:
-                link = line.strip()
-                c.get(link)
-                self.assertEqual(subscriber.confirmed, True)
-        #Verify that the subject of the message is correct.
-        self.assertEqual(mail.outbox[0].subject, 
-                          '[Tor Weather] Confirmation Needed')
-        
         # check that the subscriber was added correctly
         subscriber = Subscriber.objects.get(email = 'name@place.com')
         self.assertEqual(subscriber.email, 'name@place.com')
@@ -299,6 +311,30 @@ class TestWeb(TestCase):
         self.assertEqual(tshirt.avg_bandwidth, 0)
         self.assertEqual(tshirt.emailed, False)
 
+        #Test that one message has been sent
+        for i in range(0, 100, 1):
+            if len(mail.outbox) == 1:
+                break
+            time.sleep(0.01)
+        self.assertEqual(len(mail.outbox), 1)
+    
+        #get the email message, make sure the confirm link works
+        body = mail.outbox[0].body
+        lines = body.split('\n')
+        for line in lines:
+            if '/confirm' in line:
+                link = line.strip()
+                self.client.get(link)
+
+                #reload subscriber
+                subscriber = Subscriber.objects.get(email = 'name@place.com')
+
+                self.assertEqual(subscriber.confirmed, True)
+
+        #Verify that the subject of the message is correct.
+        self.assertEqual(mail.outbox[0].subject, 
+                          '[Tor Weather] Confirmation Needed')
+
     def test_subscribe_bad(self):
         """Make sure the form does not submit if a fingerprint is entered
         that isn't in the database."""
@@ -319,11 +355,8 @@ class TestWeb(TestCase):
         self.assertEqual(response.template[0].name, 'subscribe.html')
 
         #Test that no messages have been sent
-        for i in range(0, 100, 1):
-            if len(mail.outbox) == 1:
-                break
-            time.sleep(0.01)
-        self.assertEqual(len(mail.outbox), 1)
+        time.sleep(3)
+        self.assertEqual(len(mail.outbox), 0)
     
     def test_bandwidth_calc(self):
         """Make sure bandwidth arithmetic works. Averages should be calculated
