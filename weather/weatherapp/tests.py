@@ -5,8 +5,9 @@ test weatherapp'.
 import time
 from datetime import datetime, timedelta
 
-from models import Subscriber, Subscription, Router, NodeDownSub, TShirtSub,\
-                   VersionSub, BandwidthSub
+from weather.weatherapp.models import Subscriber, Subscription, Router,\
+                                      NodeDownSub, TShirtSub, VersionSub,\
+                                      BandwidthSub
 import emails
 from ctlutil import CtlUtil
 
@@ -53,14 +54,18 @@ class TestWeb(TestCase):
         self.assertEqual(subscriber.confirmed, False)
         
         #Test that one message has been sent
-        time.sleep(0.5)
+        for i in range(0, 100, 1):
+            if len(mail.outbox) == 1:
+                break
+            time.sleep(0.01)
+
         self.assertEqual(len(mail.outbox), 1)
 
         #get the email message, make sure the confirm link works
         body = mail.outbox[0].body
         lines = body.split('\n')
         for line in lines:
-            if '\confirm' in line:
+            if '/confirm' in line:
                 link = line.strip()
                 c.get(link)
                 self.assertEqual(subscriber.confirmed, True)
@@ -95,7 +100,10 @@ class TestWeb(TestCase):
         self.assertEqual(response.template[0].name, 'pending.html')
 
         #Test that one message has been sent
-        time.sleep(0.5)
+        for i in range(0, 100, 1):
+            if len(mail.outbox) == 1:
+                break
+            time.sleep(0.01)
         self.assertEqual(len(mail.outbox), 1)
 
         #get the email message, make sure the confirm link works
@@ -143,7 +151,10 @@ class TestWeb(TestCase):
         self.assertEqual(response.template[0].name, 'pending.html')
         
         #Test that one message has been sent
-        time.sleep(0.5)
+        for i in range(0, 100, 1):
+            if len(mail.outbox) == 1:
+                break
+            time.sleep(0.01)
         self.assertEqual(len(mail.outbox), 1)
 
         #get the email message, make sure the confirm link works
@@ -189,9 +200,12 @@ class TestWeb(TestCase):
         self.assertEqual(response.template[0].name, 'pending.html')
         
         #Test that one message has been sent
-        time.sleep(0.5)
+        for i in range(0, 100, 1):
+            if len(mail.outbox) == 1:
+                break
+            time.sleep(0.01)
         self.assertEqual(len(mail.outbox), 1)
-
+    
         #get the email message, make sure the confirm link works
         body = mail.outbox[0].body
         lines = body.split('\n')
@@ -240,9 +254,12 @@ class TestWeb(TestCase):
         self.assertEqual(response.template[0].name, 'pending.html')
 
         #Test that one message has been sent
-        time.sleep(0.5)
-        self.assertEquals(len(mail.outbox), 1)
-
+        for i in range(0, 100, 1):
+            if len(mail.outbox) == 1:
+                break
+            time.sleep(0.01)
+        self.assertEqual(len(mail.outbox), 1)
+    
         #get the email message, make sure the confirm link works
         body = mail.outbox[0].body
         lines = body.split('\n')
@@ -302,9 +319,12 @@ class TestWeb(TestCase):
         self.assertEqual(response.template[0].name, 'subscribe.html')
 
         #Test that no messages have been sent
-        time.sleep(0.5)
-        self.assertEqual(len(mail.outbox), 0)
-
+        for i in range(0, 100, 1):
+            if len(mail.outbox) == 1:
+                break
+            time.sleep(0.01)
+        self.assertEqual(len(mail.outbox), 1)
+    
     def test_bandwidth_calc(self):
         """Make sure bandwidth arithmetic works. Averages should be calculated
         by rounding, not truncating."""
