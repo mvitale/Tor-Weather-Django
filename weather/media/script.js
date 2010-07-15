@@ -53,13 +53,15 @@ $(document).ready(function() {
 
 	$("div#search-container").show();
 	setAutoComplete("router_search", "search-results", "/router_lookup/?query=");
-	$("div#search-container").hide()
+	$("div#search-container").hide();
 
 	$("#fingerprint-container a").show();
-	$("#fingerprint-container a").click(function() {
-		$(this).hide(); 
-		//$("div#search-container").css('visibility', 'visible');
-		$("div#search-container").show()
+	$("#fingerprint-container a").toggle(function() {
+		$(this).html('(hide fingerprint search)'); 
+		$("div#search-container").show();
+	}, function() {
+		$(this).html('(search by router name)');
+		$("div#search-container").hide();
 	});
 });
 
