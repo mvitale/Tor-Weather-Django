@@ -79,7 +79,6 @@ Version Notifications
         (non-alpha/beta) version in the list, the user will receive an email
         notification.
 
-.. _welcome notifications:
 Welcome Email
 ...................
     The database backing Tor Weather stores information about every router seen
@@ -117,18 +116,17 @@ Router
     The Router table stores information about every router in the Tor network 
     that a)posts its fingerprint to the directory authorities and b)has been 
     seen up either within the past year or since the new Tor Weather has been 
-    running (whichever is more recent). That way, Tor Weather can send `welcome 
-    notifications`_ to all new relay operators once their node is flagged 
+    running (whichever is more recent). That way, Tor Weather can send welcome 
+    notifications to all new relay operators once their node is flagged 
     stable, assuming the email parser successfully gleaned their email address.
 
 Subscriber
 ,,,,,,,,,,,,
-    The Subscriber maps to a single router by a many-to-one foreign key 
-    relation (multiple users can subscribe to a single router, but if a user 
-    wants to subscribe to more than one router they will be represented by 
-    multiple Subscriber objects in the table). Each object stores unique 
-    authorization keys that are used to access user-specific pages (i.e. 
-    preferences, unsubscribe, etc).
+    The Subscriber model stores information about the user, specifically their
+    email address, authorization keys (used to access user-specific pages for
+    confirming their subscription, changing preferences, and unsubscribing), 
+    and the router to which they are subscribed (represented by a many-to-one 
+    foreign key relationship to the corresponding Router object).
 
 Subscription
 ,,,,,,,,,,,,,
