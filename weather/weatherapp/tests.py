@@ -15,12 +15,6 @@ from django.test import TestCase
 from django.test.client import Client
 from django.core import mail
 
-#run doctests
-__test__={
-    "emails": emails
-}
-
-
 class TestWeb(TestCase):
     """Tests the Tor Weather application via post requests"""
 
@@ -43,6 +37,7 @@ class TestWeb(TestCase):
                                           'band_low_threshold' : '',
                                           'get_t_shirt' : False},
                                           follow = True)
+
         #we want to be redirected to the pending page
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.template[0].name, 'pending.html')
