@@ -286,7 +286,7 @@ def error(request, error_type, key):
     # display the page
     return render_to_response(template, {'error_message' : message})
 
-def router_lookup(request):
+def router_name_lookup(request):
     # Default return lsit
     results = []
 
@@ -303,12 +303,24 @@ def router_lookup(request):
         return HttpResponse(json, mimetype='application/json')
 
 def router_fingerprint_lookup(request):
+    print request.method == 'GET'
     if request.method == 'GET':
+        print u'query' in request.GET
         if u'query' in request.GET:
-            value = request.GET[u'query']
-            json = simplejson.dumps(Router.objects.get(name=value))
+            router_name = request.GET[u'query']
+            try:
+                router = Router.objects.get(name = router_name)
+            except Router.MultipleObjectsReturned:
+                print 'got multiple routers'
+                json = simplejson.dumps('nonunique_name')
+            except Router.DoesNotExist:
+                print 'got no router'
+                json = simplejson.dumps('no_router')
+            else:
+                print 'got single router'
+                json = simplejson.dumps(router.fingerprint)
             return HttpResponse(json, mimetype='application/json')
-
+            
 def pref_shortcut(request):
     """FOR TESTING """
     # XXX

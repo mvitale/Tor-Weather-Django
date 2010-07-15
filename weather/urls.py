@@ -25,8 +25,10 @@ urlpatterns = patterns('',
     (r'^resend_conf/(?P<confirm_auth>.+)/$', 
                         'weatherapp.views.resend_conf'),
     (r'^notification_info/$', 'weatherapp.views.notification_info'),
-    (r'^router_lookup/$', 
-                        'weatherapp.views.router_lookup'),
+    (r'^router_name_lookup/$', 
+                        'weatherapp.views.router_name_lookup'),
+    (r'^router_fingerprint_lookup/$',
+                        'weatherapp.views.router_fingerprint_lookup'),
     
     # XXX FOR TESTING ONLY!
     (r'^jeff/$', 'weatherapp.views.pref_shortcut'),
