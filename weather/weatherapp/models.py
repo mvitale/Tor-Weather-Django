@@ -67,7 +67,7 @@ class Router(models.Model):
 
     def display_string(self):
         """Returns a string representation of the name and fingerprint of
-        this router. Example form:    WesCSTor (id: 409480348...)
+        this router. Example form:    WesCSTor (id: 4094 8034...)
 
         @rtype: str
         @return: name/fingerprint display.
