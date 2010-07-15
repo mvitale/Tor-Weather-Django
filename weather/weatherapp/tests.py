@@ -162,23 +162,6 @@ class TestWeb(TestCase):
         #We want to be redirected to the pending page
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.template[0].name, 'pending.html')
-        
-        #Test that one message has been sent
-        time.sleep(0.5)
-        self.assertEqual(len(mail.outbox), 1)
-
-        #get the email message, make sure the confirm link works
-        body = mail.outbox[0].body
-        lines = body.split('\n')
-        for line in lines:
-            if '\confirm' in line:
-                link = line.strip()
-                self.client.get(link)
-                self.assertEqual(subscriber.confirmed, True)
-
-        #Verify that the subject of the message is correct.
-        self.assertEqual(mail.outbox[0].subject, 
-                          '[Tor Weather] Confirmation Needed')
 
         #Check if the correct subscriber info was stored
         subscriber = Subscriber.objects.get(email = 'name@place.com')
@@ -190,7 +173,33 @@ class TestWeb(TestCase):
         bandwidth_sub = BandwidthSub.objects.get(subscriber = subscriber)
         self.assertEqual(bandwidth_sub.emailed, False)
         self.assertEqual(bandwidth_sub.threshold, 40)
+        
+        #Test that one message has been sent
+        time.sleep(0.5)
+        self.assertEqual(len(mail.outbox), 1)
 
+        #Verify that the subject of the message is correct.
+        self.assertEqual(mail.outbox[0].subject, 
+                          '[Tor Weather] Confirmation Needed')
+
+        #get the email message, make sure the confirm link works
+        body = mail.outbox[0].body
+        lines = body.split('\n')
+        for line in lines:
+            if '\confirm' in line:
+                link = line.strip()
+                self.client.get(link)
+                self.assertEqual(subscriber.confirmed, True)
+
+        #verify that the "confirmation successful" email was sent
+        for i in range(0, 500, 1):
+            if len(mail.outbox) == 2:
+                break
+            time.sleep(0.1)
+        self.assertEqual(len(mail.outbox), 2)
+        self.assertEqual(mail.outbox[1].subject, 
+                '[Tor Weather] Confirmation Successful')
+        
     def test_subscribe_shirt(self):
         """Test a t-shirt only subscription attempt"""
         response = self.client.post('/subscribe/', {'email_1':'name@place.com',
@@ -205,7 +214,7 @@ class TestWeb(TestCase):
                                           'get_t_shirt' : True},
                                           follow = True)
 
-         #We want to be redirected to the pending page
+        #We want to be redirected to the pending page
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.template[0].name, 'pending.html')
         
