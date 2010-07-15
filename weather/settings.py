@@ -110,3 +110,4 @@ EMAIL_HOST_USER = 'torweathertester@gmail.com'
 EMAIL_PORT = '587'
 EMAIL_USE_TLS = True
 
+TEST_DATABASE_NAME = 'weather_test_db'

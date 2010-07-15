@@ -149,7 +149,8 @@ _LEGAL_INFO = "Additionally, since you are running as an exit node, you " +\
 def _get_router_name(fingerprint):
     """"""
     # TODO add error handling?
-    return Router.objects.get(fingerprint = fingerprint).display_string()
+    r = Router.objects.get(fingerprint = fingerprint)
+    return r.display_string()
 
 def send_confirmation(recipient,
                       fingerprint,
