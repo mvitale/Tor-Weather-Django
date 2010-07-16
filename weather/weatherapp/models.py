@@ -218,6 +218,7 @@ class Subscriber(models.Model):
                  C{sub_type}, C{False} otherwise. If C{sub_type} is not a 
                  valid subscription type name, returns C{False}.
         """
+
         if sub_type == 'NodeDownSub':
             sub = NodeDownSub
         elif sub_type == 'VersionSub':
@@ -379,7 +380,8 @@ class NodeDownSub(Subscription):
         
         @rtype: bool
         @return: C{True} if C{triggered} and 
-        C{SubscriptionManager.hours_since_changed()}, otherwise C{False}.
+        C{SubscriptionManager.hours_since_changed()} >= C{grace_pd}, otherwise
+        C{False}.
         """
 
         if self.triggered and SubscriptionManager.hours_since_changed() >= \
