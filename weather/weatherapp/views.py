@@ -318,7 +318,7 @@ def router_fingerprint_lookup(request):
                 json = simplejson.dumps('no_router')
             else:
                 print 'got single router'
-                json = simplejson.dumps(router.fingerprint)
+                json = simplejson.dumps(router.spaced_fingerprint())
             return HttpResponse(json, mimetype='application/json')
             
 def pref_shortcut(request):
