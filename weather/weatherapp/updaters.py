@@ -11,7 +11,7 @@ parameter.
 @type ctl_util: CtlUtil
 @var ctl_util: A CtlUtil object for the module to handle the connection to and
     communication with TorCtl.
-@var failed: A log file for parsed email addresses that were non-functional. 
+@var failed_email_file: A log file for parsed email addresses that were non-functional. 
 """
 import socket, sys, os
 import threading
@@ -27,8 +27,6 @@ import emails
 
 from django.core.mail import send_mass_mail
 
-#a CtlUtil instance module attribute
-ctl_util = CtlUtil()
 failed_email_file = 'log/failed_emails.txt'
 
 def check_node_down(email_list):
@@ -74,10 +72,12 @@ def check_node_down(email_list):
             sub.save()
     return email_list
 
-def check_low_bandwidth(email_list):
+def check_low_bandwidth(ctl_util, email_list):
     """Checks all L{BandwidthSub} subscriptions, updates the information,
     determines if an email should be sent, and updates email_list.
 
+    @type ctl_util: CtlUtil
+    @param: A valid CtlUtil instance.
     @type email_list: list
     @param email_list: The list of tuples representing emails to send.
     @rtype: list
@@ -108,12 +108,14 @@ def check_low_bandwidth(email_list):
 
     return email_list
 
-def check_earn_tshirt(email_list):
+def check_earn_tshirt(ctl_util, email_list):
     """Check all L{TShirtSub} subscriptions and send an email if necessary. 
     If the node is down, the trigger flag set to False. The average 
     bandwidth is calculated if triggered is True. This method uses the 
     should_email method in the TShirtSub class.
-    
+
+    @type ctl_util: CtlUtil
+    @param: A valid CtlUtil instance.
     @type email_list: list
     @param email_list: The list of tuples representing emails to send.
     @rtype: list
@@ -167,10 +169,12 @@ def check_earn_tshirt(email_list):
             sub.save()
     return email_list
 
-def check_version(email_list):
+def check_version(ctl_util, email_list):
     """Check/update all C{VersionSub} subscriptions and send emails as
     necessary.
-    
+
+    @type ctl_util: CtlUtil
+    @param: A valid CtlUtil instance.
     @type email_list: list
     @param email_list: The list of tuples representing emails to send.
     @rtype: list
@@ -213,9 +217,11 @@ def check_version(email_list):
     return email_list
         
                 
-def check_all_subs(email_list):
+def check_all_subs(ctl_util, email_list):
     """Check/update all subscriptions
-    
+   
+    @type ctl_util: CtlUtil
+    @param: A valid CtlUtil instance.
     @type email_list: list
     @param email_list: The list of tuples representing emails to send.
     @rtype: list
@@ -231,11 +237,13 @@ def check_all_subs(email_list):
     email_list = check_earn_tshirt(email_list)
     return email_list
 
-def update_all_routers(email_list):
+def update_all_routers(ctl_util, email_list):
     """Add ORs we haven't seen before to the database and update the
     information of ORs that are already in the database. Check if a welcome
     email should be sent and add the email tuples to the list.
-    
+
+    @type ctl_util: CtlUtil
+    @param: A valid CtlUtil instance.
     @type email_list: list
     @param email_list: The list of tuples representing emails to send.
     @rtype: list
@@ -291,11 +299,15 @@ def update_all_routers(email_list):
 
 def run_all():
     """Run all updaters/checkers in proper sequence, then send emails."""
+
+    #The CtlUtil for all methods to use
+    ctl_util = CtlUtil()
+
     # the list of tuples of email info, gets updated w/ each call
     email_list = []
-    email_list = update_all_routers(email_list)
+    email_list = update_all_routers(ctl_util, email_list)
     logging.info('Finished updating routers. About to check all subscriptions.')
-    email_list = check_all_subs(email_list)
+    email_list = check_all_subs(ctl_util, email_list)
     logging.info('Finished checking subscriptions. About to send emails.')
     mails = tuple(email_list)
 
