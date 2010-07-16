@@ -8,4 +8,5 @@ URLbase = "127.0.0.1:8000"
 # XXX: Make bulletproof
 authenticator = open("config/auth_token", "r").read().strip()
 
-mailFrom = "tor-ops@torproject.org"
+#The Tor control port for listener to use. Must be configured in your torrc file
+listener_port = '9055'

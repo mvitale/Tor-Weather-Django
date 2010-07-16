@@ -162,8 +162,8 @@ class Subscriber(models.Model):
     objects = SubscriberManager()
 
     def __unicode__(self):
-        """Returns the Subscriber's email as the string representation for this 
-        object.
+        """Returns the Subscriber's email as the string representation for 
+        this object.
         
         @rtype: str
         @return: The subscriber's email.
@@ -176,13 +176,8 @@ class Subscriber(models.Model):
         @rtype: bool
         @return: Whether a node down subscription exists for this subscriber.
         """
-
-        try:
-            NodeDownSub.objects.get(subscriber = self)
-        except NodeDownSub.DoesNotExist:
-            return False
-        else:
-            return True
+        
+        return self._has_sub_type('NodeDownSub')
 
     def has_version_sub(self):
         """Checks if this subscriber object has a version subscription.
@@ -191,12 +186,7 @@ class Subscriber(models.Model):
         @return: Whether a version subscription exists for this subscriber.
         """
 
-        try:
-            VersionSub.objects.get(subscriber = self)
-        except VersionSub.DoesNotExist:
-            return False
-        else:
-            return True
+        return self._has_sub_type('VersionSub')
 
     def has_bandwidth_sub(self):
         """Checks if this subscriber object has a bandwidth subscription.
@@ -205,12 +195,7 @@ class Subscriber(models.Model):
         @return: Whether a bandwidth subscription exists for this subscriber.
         """
 
-        try:
-            BandwidthSub.objects.get(subscriber = self)
-        except BandwidthSub.DoesNotExist:
-            return False
-        else:
-            return True
+        return self._has_sub_type('BandwidthSub')
 
     def has_t_shirt_sub(self):
         """Checks if this subscriber object has a t-shirt subscription.
@@ -219,9 +204,34 @@ class Subscriber(models.Model):
         @return: Whether a t-shirt subscription exists for this subscriber.
         """
 
+        return self._has_sub_type('TShirtSub')
+
+    def _has_sub_type(self, sub_type):
+        """Checks if this subscriber object has a subscription of C{sub_type}.
+
+        @type sub_type: str
+        @param sub_type: The type of subscription to check. This must   
+                         be the exact name of a valid subscription type.
+
+        @rtype: bool
+        @return: C{True} if this subscriber object has a subscription of 
+                 C{sub_type}, C{False} otherwise. If C{sub_type} is not a 
+                 valid subscription type name, returns C{False}.
+        """
+        if sub_type == 'NodeDownSub':
+            sub = NodeDownSub
+        elif sub_type == 'VersionSub':
+            sub = VersionSub
+        elif sub_type == 'BandwidthSub':
+            sub = BandwidthSub
+        elif sub_type == 'TShirtSub':
+            sub = TShirtSub
+        else:
+            return False
+   
         try:
-            TShirtSub.objects.get(subscriber = self)
-        except TShirtSub.DoesNotExist:
+            sub.objects.get(subscriber = self)
+        except sub.DoesNotExist:
             return False
         else:
             return True
@@ -355,10 +365,10 @@ class NodeDownSub(Subscription):
     @ivar triggered: C{True} if the node is down, C{False} if it is up.
     @type grace_pd: int
     @ivar grace_pd: The amount of time (hours) before a notification is sent
-        after a node is seen down.
+                    after a node is seen down.
     @type last_changed: datetime
     @ivar last_changed: The datetime object representing the time the triggered
-        flag was last changed.
+                        flag was last changed.
     """
     triggered = models.BooleanField(default=False)
     grace_pd = models.IntegerField()
@@ -400,17 +410,18 @@ class VersionSub(Subscription):
     between two notification types: OBSOLETE or UNRECOMMENDED. For OBSOLETE
     notifications, the user is sent an email if their router's version of Tor
     does not appear in the list of recommended versions (obtained via TorCtl).
-    For UNRECOMMENDED notifications, the user is sent an email if their router's
-    version of Tor is not the most recent stable (non-alpha/beta) version of
-    Tor in the list of recommended versions.
+    For UNRECOMMENDED notifications, the user is sent an email if their  
+    router's version of Tor is not the most recent stable (non-alpha/beta)   
+    version of Tor in the list of recommended versions.
 
     @type notify_type: str
     @ivar notify_type: Either UNRECOMMENDED (notify users if the router isn't 
-        running the most recent stable version of Tor) or OBSOLETE (notify users
+        running the most recent stable version of Tor) or OBSOLETE (notify 
+        users
         if their router is running a version of Tor that doesn't appear on the
         list of recommended versions).
     """
-    #only send notifications if the version is of type notify_type
+    #only send notifications if the version is of type notify_type 
     notify_type = models.CharField(max_length=250)
 
     def printer(self):
@@ -429,15 +440,16 @@ class VersionSub(Subscription):
               '\nNotify Type: ' + self.notify_type
 
 class BandwidthSub(Subscription):    
-    """Subscription class for low bandwidth notifications. Subscribers determine
-    a threshold bandwidth in KB/s (default is 20KB/s). If the observed bandwidth
-    field in the descriptor file for their router is ever below that threshold, 
-    the user is sent a notification. According to the directory specifications,
-    the observed bandwidth field "is an estimate of the capacity this server  
-    can handle. The server remembers the max bandwidth sustained output over 
-    any ten second period in the past day, and another sustained input. The 
-    'observed' value is the lesser of these two numbers." An email is sent 
-    as soon as we this observed bandwidth crosses the threshold (no grace pd).
+    """Subscription class for low bandwidth notifications. Subscribers 
+    determine a threshold bandwidth in KB/s (default is 20KB/s). If the 
+    observed bandwidth field in the descriptor file for their router is ever   
+    below that threshold, the user is sent a notification. According to the 
+    directory specifications, the observed bandwidth field "is an estimate of 
+    the capacity this server can handle. The server remembers the max 
+    bandwidth sustained output over any ten second period in the past day, and 
+    another sustained input. The 'observed' value is the lesser of these two 
+    numbers." An email is sent as soon as we this observed bandwidth crosses 
+    the threshold (no grace pd).
 
     @type threshold: int
     @ivar threshold: The threshold for the bandwidth (in KB/s) that the user 
@@ -723,10 +735,10 @@ class GenericForm(forms.Form):
     _VERSION_TYPE_CHOICES = [(_VERSION_TYPE_CHOICE_1, _VERSION_TYPE_CHOICE_1_H),
                              (_VERSION_TYPE_CHOICE_2, _VERSION_TYPE_CHOICE_2_H)]
     _VERSION_TYPE_INIT = _VERSION_TYPE_CHOICE_1
-    _VERSION_SECTION_INFO = '<p><em>Recommended Updates:</em>  Emails when the router \
-            is not running the most up-to-date stable version of Tor.</p> \
-            <p><em>Required Updates:</em>  Emails when the router is running \
-            an obsolete version of Tor.</p>'
+    _VERSION_SECTION_INFO = '<p><em>Recommended Updates:</em>  Emails when\
+    the router is not running the most up-to-date stable version of Tor.</p> \
+    <p><em>Required Updates:</em>  Emails when the router is running \
+    an obsolete version of Tor.</p>'
 
     _GET_BAND_LOW_INIT = False
     _GET_BAND_LOW_LABEL = 'Email me when the router has low bandwidth capacity'
@@ -743,8 +755,8 @@ class GenericForm(forms.Form):
     _GET_T_SHIRT_LABEL = 'Email me when my router has earned me a \
             <a target=_BLANK href="' + url_helper.get_t_shirt_url() + \
             '">Tor t-shirt</a>'
-    _T_SHIRT_SECTION_INFO = '<em>Note:</em> You must be the router\'s operator to \
-            claim your T-shirt.'
+    _T_SHIRT_SECTION_INFO = '<em>Note:</em> You must be the router\'s \
+    operator to claim your T-shirt.'
 
     _INIT_PREFIX = 'Default value is '
     _CLASS_SHORT = 'short-input'
@@ -822,7 +834,8 @@ class GenericForm(forms.Form):
     def clean(self):
         """Calls the check_if_sub_checked to ensure that at least one 
         subscription type has been selected. (This is a Django thing, called
-        every time the is_valid method is called on a GenericForm POST request).
+        every time the is_valid method is called on a GenericForm POST 
+        request).
                 
         @return: The 'cleaned' data from the POST request.
         """
@@ -1002,10 +1015,10 @@ class SubscribeForm(GenericForm):
             t_shirt_sub.save()
          
 class PreferencesForm(GenericForm):
-    """The form for changing preferences, as displayed on the preferences page. 
-    The form displays the user's current settings for all subscription types 
-    (i.e. if they haven't selected a subscription type, the box for that field 
-    is unchecked). The PreferencesForm form inherits L{GenericForm}.
+    """The form for changing preferences, as displayed on the preferences 
+    page. The form displays the user's current settings for all subscription 
+    types (i.e. if they haven't selected a subscription type, the box for that 
+    field is unchecked). The PreferencesForm form inherits L{GenericForm}.
     """
     
     _USER_INFO_STR = '<p><span>Email:</span> %s</p> \
