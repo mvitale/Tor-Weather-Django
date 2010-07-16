@@ -75,6 +75,45 @@ def subscribe(request):
 
     return render_to_response(templates.subscribe, c)
 
+def preferences(request, pref_auth):
+    """The preferences page, which contains the preferences form initially
+    populated by user-specific data
+    
+    @type pref_auth: str
+    @param pref_auth: The user's preferences authorization key.
+    """
+
+    user = get_object_or_404(Subscriber, pref_auth = pref_auth)                
+
+    if not user.confirmed:
+        # the user hasn't confirmed, send them to an error page
+        error_extension = url_helper.get_error_ext('need_confirmation', 
+                                             user.confirm_auth)
+        return HttpResponseRedirect(error_extension)
+
+    if request.method != "POST":
+        form = PreferencesForm(user)
+    else:
+        form = PreferencesForm(user, request.POST)
+        if form.is_valid():
+            # Creates/changes/deletes subscriptions and subscription info
+            # based on form data
+            form.change_subscriptions(form.cleaned_data)
+            
+            # Redirect the user to the pending page
+            url_extension = url_helper.get_confirm_pref_ext(pref_auth)
+            return HttpResponseRedirect(url_extension) 
+
+    fields = {'pref_auth': pref_auth, 'fingerprint': user.router.fingerprint,
+         'form': form}
+    fields.update(csrf(request))
+
+    # get the template
+    template = templates.preferences
+
+    # display the page
+    return render_to_response(template, fields)
+
 def notification_info(request):
     """Displays detailed technical information about how the different
     notification types are triggered.
@@ -176,45 +215,6 @@ def unsubscribe(request, unsubscribe_auth):
                                          'fingerprint' :fingerprint, 
                                          'subURL': url_extension})
 
-def preferences(request, pref_auth):
-    """The preferences page, which contains the preferences form initially
-    populated by user-specific data
-    
-    @type pref_auth: str
-    @param pref_auth: The user's preferences authorization key.
-    """
-
-    user = get_object_or_404(Subscriber, pref_auth = pref_auth)                
-
-    if not user.confirmed:
-        # the user hasn't confirmed, send them to an error page
-        error_extension = url_helper.get_error_ext('need_confirmation', 
-                                             user.confirm_auth)
-        return HttpResponseRedirect(error_extension)
-
-    if request.method != "POST":
-        form = PreferencesForm(user)
-    else:
-        form = PreferencesForm(user, request.POST)
-        if form.is_valid():
-            # Creates/changes/deletes subscriptions and subscription info
-            # based on form data
-            form.change_subscriptions(form.cleaned_data)
-            
-            # Redirect the user to the pending page
-            url_extension = url_helper.get_confirm_pref_ext(pref_auth)
-            return HttpResponseRedirect(url_extension) 
-
-    fields = {'pref_auth': pref_auth, 'fingerprint': user.router.fingerprint,
-         'form': form}
-    fields.update(csrf(request))
-
-    # get the template
-    template = templates.preferences
-
-    # display the page
-    return render_to_response(template, fields)
-
 def confirm_pref(request, pref_auth):
     """The page confirming that preferences have been changed.
     
@@ -251,7 +251,6 @@ def resend_conf(request, confirm_auth):
 
     return render_to_response(template, {'email' : user.email})
 
-
 def fingerprint_not_found(request, fingerprint):
     """Displays the fingerprint not found page when a user follows a link for 
     more info in the 'fingerprint not found' validation error. This error is 
@@ -275,7 +274,8 @@ def error(request, error_type, key):
     @param error_type: A description of the type of error encountered.
     @type key: str
     @param key: A key interpreted by the get_error_message function in the 
-        error_messages module to render a user-specific error message."""
+        error_messages module to render a user-specific error message.
+    """
     
     # get the appropriate error message
     message = error_messages.get_error_message(error_type, key)
@@ -287,7 +287,21 @@ def error(request, error_type, key):
     return render_to_response(template, {'error_message' : message})
 
 def router_name_lookup(request):
-    # Default return lsit
+    """Action called by the L{router_search} search field to perform
+    autocomplete. Looks for the router name entered by looking at GET data, 
+    and then returns an HTTP response with json data for the list of 
+    L{Router}s with names that contain the current value of the name search
+    field. This json data in the HTTP response is received by javascript in
+    autocomplete.js, an external autocomplete library.
+
+    @type request: HttpRequest
+    @var request: an HTTP request object.
+    @rtype: HttpResponse
+    @return: An HTTP response object with json data for filtered L{Router}
+        names.
+    """
+
+    # Default return list
     results = []
 
     if request.method == 'GET':
@@ -299,25 +313,35 @@ def router_name_lookup(request):
                 nodes = Router.objects.filter(name__icontains=value)
                 results = [ node.name for node in nodes ]
 
+        # Creates a json object
         json = simplejson.dumps(results)
         return HttpResponse(json, mimetype='application/json')
 
 def router_fingerprint_lookup(request):
-    print request.method == 'GET'
+    """Action called by the router name enter button to use the entered
+    L{Router} name to look up the L{Router}'s fingerprint. Looks at the 
+    entered name by looking at GET data, and then returns an HTTP response 
+    with json data for the L{Router}'s fingerprint. Using json is probably
+    over the top, but this was the method used by the autocomplete library, 
+    which is what I based this on.
+
+    @type request: HttpRequest
+    @var request: an HTTP request object.
+    @rtype: HttpResponse
+    @return: An HTTP response object with json data for the L{Router}'s
+        fingerprint.
+    """
+
     if request.method == 'GET':
-        print u'query' in request.GET
         if u'query' in request.GET:
             router_name = request.GET[u'query']
             try:
                 router = Router.objects.get(name = router_name)
             except Router.MultipleObjectsReturned:
-                print 'got multiple routers'
                 json = simplejson.dumps('nonunique_name')
             except Router.DoesNotExist:
-                print 'got no router'
                 json = simplejson.dumps('no_router')
             else:
-                print 'got single router'
                 json = simplejson.dumps(router.spaced_fingerprint())
             return HttpResponse(json, mimetype='application/json')
             

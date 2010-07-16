@@ -19,9 +19,12 @@ from django.core import validators
 from django.core.exceptions import ValidationError
 
 class Router(models.Model):
-    """A model that stores information about every router on the Tor network.
-    If a router hasn't been seen on the network for at least one year, it is
-    removed from the database.  
+    """Model for Tor network routers. Django uses class variables to specify
+    model fields, but these fields are practically used and thought of as
+    instance variables, so this documentation will refer to them as such.
+    
+    document this
+
     @type fingerprint: str
     @ivar fingerprint: The router's fingerprint.
     @type name: str
@@ -39,21 +42,28 @@ class Router(models.Model):
     @ivar exit: C{True} if this router accepts exits to port 80, C{False} if
         not.
     """
+    
+    _FINGERPRINT_MAX_LEN = 40
+    _NAME_MAX_LEN = 100
+    _NAME_DEFAULT = "Unnamed"
+    _WELCOMED_DEFAULT = False
+    _LAST_SEEN_DEFAULT = datetime.now
+    _UP_DEFAULT = True
 
-    fingerprint = models.CharField(max_length=40, unique=True)
-    name = models.CharField(max_length=100, default = "Unnamed")
-    welcomed = models.BooleanField(default=False)
-    last_seen = models.DateTimeField(default=datetime.now)
-    up = models.BooleanField(default=True)
+    fingerprint = models.CharField(_FINGERPRINT_MAX_LEN, unique=True)
+    name = models.CharField(max_length=_NAME_MAX_LEN, default=_NAME_DEFAULT)
+    welcomed = models.BooleanField(default=_WELCOMED_DEFAULT)
+    last_seen = models.DateTimeField(default=_LAST_SEEN_DEFAULT)
+    up = models.BooleanField(default=_UP_DEFAULT)
     exit = models.BooleanField()
 
     def __unicode__(self):
-        """Returns the fingerprint for this router as it's string representation
+        """Returns a simple description of this L{Router}.
         
         @rtype: str
-        @return: The router's fingerprint.
+        @return: Simple description of L{Router} object.
         """
-        return self.fingerprint
+        return self.name + ": " + self.spaced_fingerprint()
 
     def spaced_fingerprint(self):
         """Returns the fingerprint for this router as a string with spaces
@@ -78,12 +88,22 @@ class Router(models.Model):
         else:
             return self.name + '(id: ' + self.spaced_fingerprint() + ')'
 
-    def printer(self):
-        """Returns a description of this router. Meant to be used for testing
-        purposes in the shell
+    def __repr__(self):
+        return 'Fingerprint: ' + self.fingerprint + \
+                '\nName: ' + self.name + \
+                '\nWelcomed: ' + str(self.welcomed) + \
+                '\nLast Seen: ' + str(self.last_seen) + \
+                '\nUp: ' + str(self.up) + \
+                '\nExit: ' + str(self.exit)
+
+    def more_info(self):
+        """Returns a string description of this L{Router}. Meant to be 
+        used for testing purposes in the shell, and is used to display
+        more info than the basic string representation returned by
+        __unicode__.
 
         @rtype: str
-        @return: A representation of this router's fields.
+        @return: A representation of this L{Router}'s fields.
         """
 
         print 'Fingerprint: ' + self.fingerprint + \
@@ -271,12 +291,14 @@ class Subscriber(models.Model):
 
         return data
 
-    def printer(self):
-        """Returns a description of this subscriber. Meant to be used for
-        testing purposes in the shell
+    def more_info(self):
+         """Returns a string description of this L{Subscriber}. Meant to be 
+        used for testing purposes in the shell, and is used to display
+        more info than the basic string representation returned by
+        __unicode__.
 
         @rtype: str
-        @return: A representation of this subscriber's fields.
+        @return: A representation of this L{Subscriber}'s fields.
         """
 
         print 'Email: ' + self.email + \
@@ -333,15 +355,17 @@ class Subscription(models.Model):
     # In Django, Manager objects handle table-wide methods (i.e filtering)
     objects = SubscriptionManager()
 
-    def printer(self):
-        """Returns a description of this subscription. Meant to be used for
-        testing purposes in the shell
+    def more_info(self):
+        """Returns a string description of this subscription. Meant to be 
+        used for testing purposes in the shell, and is used to display
+        more info than the basic string representation returned by
+        __unicode__.
 
         @rtype: str
-        @return: A representation of this subscription's fields.
+        @return: A representation of this L{Subscription}'s fields.
         """
 
-        print 'Subscriber: ' + self.subscriber.email + ' ' + \
+        return 'Subscriber: ' + self.subscriber.email + ' ' + \
                              self.subscriber.router.name + ' ' + \
                              self.subscriber.router.fingerprint + \
               '\nEmailed: ' + str(self.emailed)
@@ -378,12 +402,14 @@ class NodeDownSub(Subscription):
         else:
             return False
 
-    def printer(self):
-        """Returns a description of this subscription. Meant to be used for
-        testing purposes in the shell
+    def more_info(self):
+        """Returns a string description of this L{NodeDownSub}. Meant to be 
+        used for testing purposes in the shell, and is used to display
+        more info than the basic string representation returned by
+        __unicode__.
 
         @rtype: str
-        @return: A representation of this subscription's fields.
+        @return: A representation of this L{NodeDownSub}'s fields.
         """
         
         print 'Node Down Subscription' + \
@@ -413,12 +439,14 @@ class VersionSub(Subscription):
     #only send notifications if the version is of type notify_type
     notify_type = models.CharField(max_length=250)
 
-    def printer(self):
-        """Returns a description of this subscription. Meant to be used for
-        testing purposes in the shell
+    def more_info(self):
+        """Returns a string description of this L{VersionSub}. Meant to be 
+        used for testing purposes in the shell, and is used to display
+        more info than the basic string representation returned by
+        __unicode__.
 
         @rtype: str
-        @return: A representation of this subscription's fields.
+        @return: A representation of this L{VersionSub}'s fields.
         """
         
         print 'Version Subscription' + \
@@ -445,7 +473,7 @@ class BandwidthSub(Subscription):
     """
     threshold = models.IntegerField(default = 20)
     
-    def printer(self):
+    def more_ino(self):
         """Returns a description of this subscription. Meant to be used for
         testing purposes in the shell
 
@@ -509,12 +537,14 @@ class TShirtSub(Subscription):
                     return True
         return False
 
-    def printer(self):
-        """Returns a description of this subscription. Meant to be used for   
-        testing purposes in the shell
+    def more_info(self):
+        """Returns a string description of this L{TShirtSub}. Meant to be 
+        used for testing purposes in the shell, and is used to display
+        more info than the basic string representation returned by
+        __unicode__.
 
         @rtype: str
-        @return: A representation of this subscription's fields.
+        @return: A representation of this L{TShirtSub}'s fields.
         """
         
         print 'T-Shirt Subscription' + \
@@ -671,7 +701,9 @@ class GenericForm(forms.Form):
     @cvar _CLASS_RADIO: HTML/CSS class to use for Radio button lists.
     @type _CLASS_CHECK: str
     @cvar _CLASS_CHECK: HTML/CSS class to use for checkboxes.
-
+    @type _INIT_MAPPING: dict {string: various}
+    @cvar _INIT_MAPPING: Dictionary of initial values for fields in 
+        L{GenericForm}. Points to each of the fields' _XXX_INIT fields.
 
     @type get_node_down: forms.BooleanField
     @ivar get_node_down: Checkbox letting users choose to subscribe to a
@@ -836,6 +868,24 @@ class SubscribeForm(GenericForm):
     the user's email and the fingerprint of the router the user wants to
     monitor.
     
+    @type _EMAIL_1_LABEL: str
+    @cvar _EMAIL_1_LABEL: Text displayed above L{email_1} field.
+    @type _EMAIL_MAX_LEN: str
+    @cvar _EMAIL_MAX_LEN: Maximum length of L{email_1} field.
+    @type _EMAIL_2_LABEL: str
+    @type _FINGERPRINT_LABEL: Text displayed above L{email_2} field.
+    @type _FINGERPRINT_MAX_LEN:
+    @type _SEARCH_LABEL:
+    @type _SEARCH_MAX_LEN:
+    @type _SEARCH_ID:
+    @type _CLASS_EMAIL:
+    @type _CLASS_LONG:
+
+    @type email_1:
+    @type email_2:
+    @type fingerprint:
+    @type router_search:
+
     @type email_1: EmailField
     @ivar email_1: A field for the user's email 
     @type email_2: EmailField
@@ -868,7 +918,8 @@ class SubscribeForm(GenericForm):
     router_search = forms.CharField(label=_SEARCH_LABEL,
             max_length=_SEARCH_MAX_LEN,
             widget=forms.TextInput(attrs={'id':_SEARCH_ID,                  
-                'autocomplete': 'off'}))
+                'autocomplete': 'off'}),
+            required=False)
 
     def __init__(self, data = None, initial = None):
         if data == None:
@@ -923,12 +974,14 @@ class SubscribeForm(GenericForm):
         test whether the fingerprint entered is a router we have in the
         current database, and presents an appropriate error message if it
         isn't (along with helpful information).
+
+        @rtype: str
+        @return: String representation of the entered fingerprint, if it
+            is a valid router fingerprint.
+        @raise ValidationError: Raises a validation error if no valid 
         """
         fingerprint = self.cleaned_data.get('fingerprint')
         
-        # Removes 'Name: ' from fingerprint field.
-        fingerprint = re.sub(r'.*: ', '', fingerprint)
-
         # Removes spaces from fingerprint field.
         fingerprint = re.sub(r' ', '', fingerprint)
 
@@ -942,10 +995,19 @@ class SubscribeForm(GenericForm):
 
     def is_valid_router(self, fingerprint):
         """Helper function to check if a router exists in the database.
-        """
-        router_query_set = Router.objects.filter(fingerprint=fingerprint)
 
-        if router_query_set.count() == 0:
+        @type fingerprint: str
+        @param fingerprint: String representation of a router's fingerprint.
+        @rtype: bool
+        @return: Whether a router with the specified fingerprint exists in
+            the database.
+        """
+
+        # The router fingerprint field is unique, so we only need to worry
+        # about the router not existing, not there being two routers.
+        try:
+            Router.objects.get(fingerprint=fingerprint)
+        except Router.DoesNotExist:
             return False
         else:
             return True
@@ -1093,7 +1155,3 @@ class PreferencesForm(GenericForm):
         elif new_data['get_t_shirt']:
             t = TShirtSub(subscriber=self.user)
             t.save()
-
-class RouterLookupPageForm(forms.Form):
-    """Form displayed in a when user wants to search for router by name"""
-    pass
