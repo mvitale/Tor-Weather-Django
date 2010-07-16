@@ -11,7 +11,7 @@ parameter.
 @type ctl_util: CtlUtil
 @var ctl_util: A CtlUtil object for the module to handle the connection to and
     communication with TorCtl.
-@var failed: A log file for parsed email addresses that were non-functional. 
+@var failed_email_file: A log file for parsed email addresses that were non-functional. 
 """
 import socket, sys, os
 import threading

@@ -14,7 +14,7 @@ the user via the web pages and the method to access the correct message.
     is not recognized by the get_error_message method.
 """
     
-from weather.weatherapp.models import Subscriber
+from models import Subscriber
 from weather.config import url_helper
 
 _ALREADY_CONFIRMED = "<p>You have already confirmed your Tor Weather " +\
