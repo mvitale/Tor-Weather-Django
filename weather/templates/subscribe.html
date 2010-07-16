@@ -15,6 +15,7 @@ Tor Weather - Sign Up!
 {% block extra_script %}
 <script type="text/javascript" src="/media/dimensions.js"></script>
 <script type="text/javascript" src="/media/autocomplete.js"></script>
+<script type="text/javascript" src="/medida/jquery-ui-1.8.2.custom-min.js"></script>
 {% endblock extra_script %}
 
 {% block extra_css %}
@@ -26,35 +27,42 @@ Tor Weather - Sign Up!
 {% endblock form-tag %}
 
 {% block user-info %}
-<div>
-	<label for="id_email_1">{{form.email_1.label}}</label>
+<div class="field-container">
+	<p>{{ form.email_1.label_tag }}</p>
 	{% for error in form.email_1.errors %}
 	<p class="form-error">{{ error|safe }}</p>
 	{% endfor %}
 	{{ form.email_1 }}
 </div>
 
-<div>
-	<label for="id_email_2">{{ form.email_2.label }}</label>
+<div class="field-container">
+	<p>{{ form.email_2.label_tag }}</p>
 	{% for error in form.email_2.errors %}
 	<p class="form-error">{{ error|safe }}</p>
 	{% endfor %}
 	{{ form.email_2 }}
 </div>
 
-<div>
-	<script type="text/javascript"><!--
-		$(function(){
-			setAutoComplete("fingerprint", "results", "/auto_fingerprint_lookup/?query=");
-		});
-	--></script>
-	<label for="fingerprint">{{ form.fingerprint.label }}</label>
-	{% for error in form.fingerprint.errors %}
-	<p class="form-error">{{ error|safe}}</p>
-	{% endfor %}
-	{{ form.fingerprint }}
-	<div id="fingerprint_results"></div>
+<div id="fingerprint-row">
+	<div class="field-container" id="fingerprint-container">
+		<p>
+			{{ form.fingerprint.label_tag }}
+			<a href="Javascript:void()"><span>(search by router name)</span></a>
+		</p>
+		{% for error in form.fingerprint.errors %}
+		<p class="form-error">{{ error|safe}}</p>
+		{% endfor %}
+		{{ form.fingerprint }}
+	</div>
+
+	<div class="field-container" id="search-container">
+		<p>{{ form.router_search.label_tag }}</p>
+		<button type="button" id="router-search-submit" name="router-search-submit" value="&lt;">&lt;</button>
+		<span>{{ form.router_search }}</span>
+	</div>
+
 </div>
+
 {% endblock user-info %}
 
 {% block submit-button %}

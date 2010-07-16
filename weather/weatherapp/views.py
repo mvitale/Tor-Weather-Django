@@ -286,23 +286,41 @@ def error(request, error_type, key):
     # display the page
     return render_to_response(template, {'error_message' : message})
 
-def auto_fingerprint_lookup(request):
-    
-    # Default return list
+def router_name_lookup(request):
+    # Default return lsit
     results = []
 
     if request.method == 'GET':
         if u'query' in request.GET:
             value = request.GET[u'query']
 
-            # Ignore queries shorter than length 3
+            # Ignore queries shorter than length 2
             if len(value) > 2:
                 nodes = Router.objects.filter(name__icontains=value)
-                results = [ (str(x.name) + ': ' + x.spaced_fingerprint()) for x in nodes ]
+                results = [ node.name for node in nodes ]
 
         json = simplejson.dumps(results)
         return HttpResponse(json, mimetype='application/json')
 
+def router_fingerprint_lookup(request):
+    print request.method == 'GET'
+    if request.method == 'GET':
+        print u'query' in request.GET
+        if u'query' in request.GET:
+            router_name = request.GET[u'query']
+            try:
+                router = Router.objects.get(name = router_name)
+            except Router.MultipleObjectsReturned:
+                print 'got multiple routers'
+                json = simplejson.dumps('nonunique_name')
+            except Router.DoesNotExist:
+                print 'got no router'
+                json = simplejson.dumps('no_router')
+            else:
+                print 'got single router'
+                json = simplejson.dumps(router.spaced_fingerprint())
+            return HttpResponse(json, mimetype='application/json')
+            
 def pref_shortcut(request):
     """FOR TESTING """
     # XXX
