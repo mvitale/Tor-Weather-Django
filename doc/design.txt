@@ -4,7 +4,7 @@ Tor Weather Design Documentation
 
 Django
 ------------
-Tor Weather was ported to 'Django (v1.2)'_ to take advantage of the framework's object relational mapper for database access. Data can be directly accessed by way of Django's models, each of which maps to a table in the database and can be utilized as an object. Django's adaptation of the model-view-controller schema is a bit confusing: controllers are stored in a module named views.py and views are called templates (but models are still, thankfully, called models).
+Tor Weather was ported to `Django (v1.2)`_ to take advantage of the framework's object relational mapper for database access. Data can be directly accessed by way of Django's models, each of which maps to a table in the database and can be utilized as an object. Django's adaptation of the model-view-controller schema is a bit confusing: controllers are stored in a module named views.py and views are called templates (but models are still, thankfully, called models). Still, Django greatly simplified design and development of the Tor Weather web application, which is why it was chosen.
 
 Directory Structure
 -------------------------
@@ -21,31 +21,35 @@ The original Tor Weather implementation handled only node-down notifications. Yo
 for these notifications in order to receive the corresponding emails; by 
 default, they will only receive the standard node down notifications.
 
+Each subscription is checked when a consensus document is received on the server running Tor Weather, which are received hourly (although not necessarily at the same time every hour).
+
 Node Down Notifications
 .........................
     This is the default notification type. A router is considered "down" if it
     does not appear in the consensus documents *and* does not have a hibernating
-    flag set to True in its descriptor file. These subscriptions are checked 
-    hourly, and an email is sent if a node has been down for at least as long
-    as the user's specified grace period.
+    flag set to True in its descriptor file. An email is sent if a node has 
+    been down for at least as long as the user's specified grace period and if 
+    the user has not yet received a node-down email since the node was last 
+    seen up.
 
 
 T-Shirt Notifications
 .......................
-    According to the 'Tor T-shirt page'_, running a relay can earn the 
+    According to the `Tor T-shirt page`_, running a relay can earn the 
     operator a T-shirt in two cases: the router must either allow exits to port 
-    80 and average 100 KB/s of traffic for two months of uptime, or average 500
-    KB/s traffic for two months of uptime (no exit requirement). If the user 
-    signs up for T-Shirt notifications, we send the notification if their router
-    has been seen up for at least 1464 hours (61 days, or roughly 2 months)
-    with an average bandwidth of 500 KB/s or 100 KB/s if the router allows 
-    exits to port 80. The observed bandwidth listed in the descriptor file. 
-    According to the 'directory specifications'_, the listed observed bandwidth
-    "is an estimate of the capacity this server can handle. The server 
-    remembers the max bandwidth sustained output over any ten second period in 
-    the past day, and another sustained input. The 'observed' value is the 
-    lesser of these two numbers." Each hour, this observed bandwidth is 
-    used to recalculate the average bandwidth for the router being watched. 
+    80 and average 100 KB/s of traffic for two months of uptime, or the router 
+    must average 500 KB/s traffic for two months of uptime (no exit 
+    requirement). If the user signs up for T-Shirt notifications, a 
+    notification is sent if their router has been seen up for at least 1464 
+    hours (61 days, or roughly 2 months) with an average bandwidth of 500 KB/s 
+    or 100 KB/s if the router allows exits to port 80. The observed bandwidth 
+    is listed in the descriptor file. According to the `directory 
+    specifications`_, the listed observed bandwidth "is an estimate of the 
+    capacity this server can handle. The server remembers the max bandwidth 
+    sustained output over any ten second period in the past day, and another 
+    sustained input. The 'observed' value is the lesser of these two numbers." 
+    When a new consensus document is received, this observed bandwidth is used 
+    to recalculate the average bandwidth for the router being watched. 
 
 Low Bandwidth Notifications
 .............................
@@ -66,15 +70,34 @@ Version Notifications
     A list of "recommended" Tor versions can be obtained via communication with
     TorCtl. The list contains all stable versions of Tor that are not considered
     obsolete and includes some alpha versions. There are two version 
-    notification types to choose from: unrecommended and obsolete.
+    notification types to choose from: required and recommended.
         
-        -Unrecommended: If the router's version does not appear in the list of
+        -Required: If the router's version does not appear in the list of
         recommended versions, the user will receive an email notification. 
 
         -Recommended: If the router's version is not the most recent stable
         (non-alpha/beta) version in the list, the user will receive an email
-        notification. 
+        notification.
 
+Welcome Email
+...................
+    The database backing Tor Weather stores information about every router seen
+    in consensus within the past year (or for as long as Tor Weather has been
+    running, whichever is shorter). If a router in the database is flagged as 
+    stable and has not yet been sent a welcome email, the router operator's 
+    email is parsed from the contact field in the descriptor file for that 
+    node. A welcome email containing information about Tor Weather is sent to 
+    these node operators if an email address was successfully parsed. 
+
+    The welcome email thanks the operator for his/her contribution and 
+    encourages the operator to subscribe to Tor Weather. If the router allows
+    exits to port 80, information is appended to the email containing links
+    to legal help for exit relay operators. 
+
+    The welcome emails are *not* a subscribable notification type and are sent
+    to *all* stable relay operators who provide a parsable (by our standards) 
+    email address in the contact field of their configuration file. The email 
+    is sent regardless of whether the operator has subscribed to Tor Weather. 
 
 ------------------------------------------------------------------------
 
@@ -82,8 +105,11 @@ Modules in weatherapp
 --------------------------
 models.py
 ..........
-To add flexibility, the Tor Weather model structure was expanded to include
-three main models: Router, Subscriber, and Subscription. 
+Tor Weather uses three main models: Router, Subscriber, and Subscription. 
+To allow flexibility in terms of adding new notification types to Tor Weather, 
+each notification type contains its own subclass that inherits from 
+Subscription. That way, if a new notification type is added to Tor Weather, it 
+won't cause problems with the existing database.
 
 Router
 ,,,,,,,
@@ -91,17 +117,16 @@ Router
     that a)posts its fingerprint to the directory authorities and b)has been 
     seen up either within the past year or since the new Tor Weather has been 
     running (whichever is more recent). That way, Tor Weather can send welcome 
-    notifications to all new relay operators once their node is flagged stable, 
-    assuming we can parse their email.
+    notifications to all new relay operators once their node is flagged 
+    stable, assuming the email parser successfully gleaned their email address.
 
 Subscriber
 ,,,,,,,,,,,,
-    The Subscriber maps to a single router by a many-to-one foreign key 
-    relation (multiple users can subscribe to a single router, but if a user 
-    wants to subscribe to more than one router they will be represented by 
-    multiple Subscriber objects in the table). Each object stores unique 
-    authorization keys that are used to access user-specific pages (i.e. 
-    preferences, unsubscribe, etc).
+    The Subscriber model stores information about the user, specifically their
+    email address, authorization keys (used to access user-specific pages for
+    confirming their subscription, changing preferences, and unsubscribing), 
+    and the router to which they are subscribed (represented by a many-to-one 
+    foreign key relationship to the corresponding Router object).
 
 Subscription
 ,,,,,,,,,,,,,
@@ -161,6 +186,6 @@ Updating the database and sending email notifications is handled by the updaters
 
 Each Subscription in the database is updated, and emails are sent to the Subscriber's email if the conditions indicate a notification should be sent. 
 
-.. _Django: http://docs.djangoproject.com/en/1.2/intro/overview/
+.. _Django (v1.2): http://docs.djangoproject.com/en/1.2/intro/overview/
 .. _Tor T-Shirt page: http://www.torproject.org/tshirt.html.en
 .. _directory specifications: https://svn.torproject.org/svn/tor/trunk/doc/spec/dir-spec.txt

@@ -45,6 +45,9 @@ send_mass_mail() method. Emails are sent after all database checks/updates.
 @type _LEGAL_INFO: str
 @var _LEGAL_INFO: Legal information to assist exit node operators. This is 
     appended to the welcome email if the recipient runs an exit node.
+@type _GENERIC_FOOTER: str
+@var _GENTERIC_FOOTER: A footer containing unsubscribe and preferences page
+    links.
 """
 import re
 
@@ -69,36 +72,26 @@ _CONFIRMATION_MAIL = "Dear human,\n\n" +\
 _CONFIRMED_SUBJ = 'Confirmation Successful'
 _CONFIRMED_MAIL="Dear human,\n\nThis is the Tor Weather Report "+\
     "system.You successfully subscribed for Weather Reports about a Tor "+\
-    "node %s.\n\nYou can unsubscribe from these reports at any time "+\
-    "by visiting the following url:\n\n%s\n\nor change your Tor Weather "+\
-    "notification preferences here: \n\n%s\n"
+    "node %s.\n\n"
 
 _NODE_DOWN_SUBJ = 'Node Down!'
 _NODE_DOWN_MAIL = "This is a Tor Weather Report.\n\n" +\
     "It appears that the node %s you've been observing" +\
     "has been uncontactable through the Tor network for at least %s. "+\
-    "You may wish to look at it to see why.\n\nYou can "+\
-    "unsubscribe from these reports at any time by visiting the "+\
-    "following url:\n\n%s\n\nor change your Tor Weather notification "+\
-    "preferences here:\n\n%s\n"
+    "You may wish to look at it to see why."
 
 _VERSION_SUBJ = 'Node Out of Date!'
 _VERSION_MAIL = "This is a Tor Weather Report.\n\n"+\
     "It appears that the Tor node %s you've been observing "+\
     "is running an %s version of Tor. You can download the "+\
-    "latest version of Tor at %s.\n\nYou can unsubscribe from these "+\
-    "reports at any time by visiting the following url:\n\n%s\n\n"+\
-    "or change your Tor Weather notification preferences here:\n\n%s\n"
+    "latest version of Tor at %s."
 
 _LOW_BANDWIDTH_SUBJ = 'Low bandwidth!'
 _LOW_BANDWIDTH_MAIL = "The is a Tor Weather Report.\n\n"+\
     "It appears that the tor node %s you've been observing "+\
     "has an observed bandwidth capacity of %s kB/s. You elected to receive "+\
     "notifications if this node's bandwidth capacity passed a threshold of "+\
-    "%s kB/s. You may wish to look at your router to see why.\n\nYou can "+\
-    "unsubscribe from these reports at any time by visiting the "+\
-    "following url:\n\n%s\n\nor change your Tor Weather notification "\
-    "preferences here:\n\n%s\n"
+    "%s kB/s. You may wish to look at your router to see why."
 
 _T_SHIRT_SUBJ = 'Congratulations! Have a T-shirt!'
 _T_SHIRT_MAIL = "This is a Tor Weather Report.\n\n"+\
@@ -109,11 +102,8 @@ _T_SHIRT_MAIL = "This is a Tor Weather Report.\n\n"+\
     "the following link for more information.\n\n"+\
     "http://www.torproject.org/tshirt.html"+\
     "\n\nYou might want to include this message in your email. "+\
-    "\n\nThank you for your contribution to the Tor network!"+\
-    "You can unsubscribe from these reports at any time by visiting the "+\
-    "following url:\n\n%s\n\nor change your Tor Weather notification "+\
-    "preferences here:\n\n%s\n"
-
+    "Thank you for your contribution to the Tor network!"+\
+    
 _WELCOME_SUBJ = 'Welcome to Tor!'
 _WELCOME_MAIL = "Hello and welcome to Tor!\n\n" +\
     "We've noticed that your Tor node %s has been running long "+\
@@ -146,15 +136,42 @@ _LEGAL_INFO = "Additionally, since you are running as an exit node, you " +\
     "(http://blog.torproject.org/blog/tips-running-exit-node-minimal-"+\
     "harassment).\n\n"
 
+_GENERIC_FOOTER = "\n\nYou can unsubscribe from these reports at any time "+\
+    "by visiting the following url:\n\n%s\n\nor change your Tor Weather "+\
+    "notification preferences here: \n\n%s\n"
+
+
 def _get_router_name(fingerprint):
     """"""
     # TODO add error handling?
     try:
         r = Router.objects.get(fingerprint = fingerprint)
     except:
-        pass
+        return fingerprint
     else:
-        return r.display_string()
+        return r.get_string()
+
+def _add_generic_footer(msg, unsubs_auth, pref_auth):
+    """
+    Appends C{_GENERIC_FOOTER} to C{msg} with unsubscribe and preferences
+    links created from C{unsubs_auth} and C{pref_auth}.
+
+    @type msg: str
+    @param msg: The message to append the footer to.
+    @type unsubs_auth: str
+    @param msg: The user's unique unsubscribe auth key.
+    @type pref_auth: str
+    @param pref_auth: The user's unique unsubscribe auth key.
+
+    @rtype: str
+    @return: C{msg} with the footer appended.
+    """
+
+    unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
+    prefURL = url_helper.get_preferences_url(pref_auth)
+    footer = _GENERIC_FOOTER % (unsubURL, prefURL)
+    
+    return msg + footer
 
 def send_confirmation(recipient,
                       fingerprint,
@@ -203,7 +220,8 @@ def send_confirmed(recipient,
     sender = _SENDER
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
-    msg = _CONFIRMED_MAIL % (name, unsubURL, prefURL) 
+    msg = _CONFIRMED_MAIL % name
+    msg = self._add_generic_footer(msg, unsubURL, prefURL)
     send_mail(subj, msg, sender, [recipient], fail_silently=False)
 
 def bandwidth_tuple(recipient, fingerprint, observed, threshold, unsubs_auth,
@@ -228,7 +246,9 @@ def bandwidth_tuple(recipient, fingerprint, observed, threshold, unsubs_auth,
     sender = _SENDER
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
-    msg = _LOW_BANDWIDTH_MAIL % (name, observed, threshold, unsubURL, prefURL)
+
+    msg = _LOW_BANDWIDTH_MAIL % (name, observed, threshold)
+    msg = self._add_generic_footer(msg, unsubURL, prefURL)
 
     return (subj, msg, sender, [recipient])
 
@@ -257,7 +277,8 @@ def node_down_tuple(recipient, fingerprint, grace_pd, unsubs_auth, pref_auth):
         num_hours += "s"
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
-    msg = _NODE_DOWN_MAIL % (name, num_hours, unsubURL, prefURL)
+    msg = _NODE_DOWN_MAIL % (name, num_hours)
+    msg = self._add_generic_footer(msg, unsubURL, prefURL)
     return (subj, msg, sender, [recipient])
 
 def t_shirt_tuple(recipient,
@@ -299,7 +320,8 @@ def t_shirt_tuple(recipient,
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
     msg = _T_SHIRT_MAIL % (name, stable_message, days_running, 
-                                   avg_bandwidth, unsubURL, prefURL)
+                                                 avg_bandwidth)
+    msg = self._add_generic_footer(msg, unsubURL, prefURL)
     return (subj, msg, sender, [recipient])
 
 def welcome_tuple(recipient, fingerprint, exit):
@@ -351,8 +373,9 @@ def version_tuple(recipient, fingerprint, version_type, unsubs_auth, pref_auth):
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
     downloadURL = url_helper.get_download_url()
-    msg = _VERSION_MAIL % (name, version_type, downloadURL, unsubURL,
-                           prefURL)
+    msg = _VERSION_MAIL % (name, version_type, downloadURL)
+    msg = self._add_generic_footer(msg, unsubURL, prefURL)
+                           
     return (subj, msg, sender, [recipient])
 
 def _insert_fingerprint_spaces(fingerprint):
