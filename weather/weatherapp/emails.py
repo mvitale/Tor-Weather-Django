@@ -150,11 +150,11 @@ def _get_router_name(fingerprint):
     """"""
     # TODO add error handling?
     try:
-        router = Router.objects.get(fingerprint = fingerprint)
+        r = Router.objects.get(fingerprint = fingerprint)
     except:
         return fingerprint
     else:
-        return router.get_string()
+        return r.get_string()
 
 def send_confirmation(recipient,
                       fingerprint,
