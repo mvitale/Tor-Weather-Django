@@ -51,17 +51,22 @@ $(document).ready(function() {
 		$("#more-info span").toggle();
 	});
 
-	$("div#search-container").show();
-	setAutoComplete("router_search", "search-results", "/router_name_lookup/?query=");
-	$("div#search-container").hide();
+	var fingerprintLink = $("#fingerprint-container a");
+	var searchContainer = $("div#search-container");
+	var showLink = "(search by router name)";
+	var hideLink = "(hide fingerprint search)";
 
-	$("#fingerprint-container a").show();
-	$("#fingerprint-container a").toggle(function() {
-		$(this).html('(hide fingerprint search)'); 
-		$("div#search-container").show();
+	searchContainer.show();
+	setAutoComplete("router_search", "search-results", "/router_name_lookup/?query=");
+	searchContainer.hide();
+
+	fingerprintLink.show();
+	fingerprintLink.toggle(function() {
+		$(this).html(hideLink); 
+		searchContainer.show();
 	}, function() {
-		$(this).html('(search by router name)');
-		$("div#search-container").hide();
+		$(this).html(showLink);
+		searchContainer.hide();
 	});
 
 	$("#router-search-submit").click(function() {
@@ -71,26 +76,23 @@ $(document).ready(function() {
 		var nonuniqueError = "Please enter the fingerprint manually if the router has a non-unique name";
 		var noRouterError = "Please enter a valid router name:";
 		var defaultLabel = "Enter router name, then click the arrow:";
-		var t = setTimeout("searchLabel.css('font-weight', 'normal')", 500);
 
 		$.getJSON("/router_fingerprint_lookup/?query=" + searchField.val(), function(json){
 			if (json == "nonunique_name") {
+				fingerprintField.val("");
 				searchLabel.html(nonuniqueError);
 				searchLabel.css("color", "red");
 			} else if (json == "no_router") {
 				searchLabel.html(noRouterError);
-				if (searchLabel.css("color") == "red") {
-					searchLabel.css("font-weight", "bold");
-					t;
-				} else {
-					searchLabel.css("color", "red");
-				}
+				fingerprintField.val("");
+				searchLabel.css("color", "red");
 			} else {
 				fingerprintField.val(json);
 				searchLabel.html(defaultLabel);
 				searchLabel.css("color", "black");
+				fingerprintLink.click();
 			}
-		});		
+		});
 	});
 });
 
