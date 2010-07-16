@@ -3,7 +3,7 @@ to TorCtl and handle communication concerning consensus documents and
 descriptor files.
 
 @var debugfile: The debug file used by TorCtl .
-@var unparsable: A log file for contacts with unparsable emails.
+@var unparsable_email_file: A log file for contacts with unparsable emails.
 """
 
 import socket

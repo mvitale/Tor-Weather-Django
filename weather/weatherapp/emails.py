@@ -147,9 +147,9 @@ def _get_router_name(fingerprint):
     try:
         r = Router.objects.get(fingerprint = fingerprint)
     except:
-        pass
+        return fingerprint
     else:
-        return r.display_string()
+        return r.get_string()
 
 def _add_generic_footer(msg, unsubs_auth, pref_auth):
     """
