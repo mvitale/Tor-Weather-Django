@@ -26,10 +26,14 @@
 		a {
 			text-decoration: none;
 		}
+
+			a#sign-up-link {
+				font-size: 25px;
+			}
 		 
-		a:hover {
-			text-decoration: underline;
-		}
+			a:hover {
+				text-decoration: underline;
+			}	
 
 		form {
 			font-size: 14px;
@@ -71,25 +75,27 @@
 						margin-right: 0;
 					}
 
-					#fingerprint-container a {
+					div#fingerprint-row {
+						overflow: hidden;
+						clear: both;
+						position: relative;
+					}
+
+					div#search-container {
+						display: none;
+						width: 290px;
+						position: absolute;
+						bottom: 0px;
+						left: 394px;
+					}
+
+					div#search-results {
 						display: none;
 					}
 
-					#user-info a:hover {
-					}
-
-				div#search-container {
-					display: none;
-					width: 290px;
-				}
-
-				div#search-results {
-					display: none;
-				}
-
-					#search-container label {
-						padding: 0 0 0 36px;
-					}
+						#search-container label {
+							padding: 0 0 0 36px;
+						}
 
 			.email-input {
 				width: 185px;
@@ -114,6 +120,11 @@
 			
 			.long-input {
 				width: 390px;
+			}
+
+			select {
+				margin: 2px 4px 0 0;
+				float: left;
 			}
 
 			.form-error {

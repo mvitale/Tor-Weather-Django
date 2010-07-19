@@ -18,6 +18,50 @@ from django import forms
 from django.core import validators
 from django.core.exceptions import ValidationError
 
+def insert_fingerprint_spaces(fingerprint):
+    """Insert a space into C{fingerprint} every four spaces.
+
+    @type fingerprint: str
+    @param fingerprint: A router L{fingerprint}
+
+    @rtype: str
+    @return: C{fingerprint} with spaces inserted every four characters.
+    """
+
+    return ' '.join(re.findall('.{4}', str(fingerprint)))
+
+def get_rand_string():
+    """Returns a random, url-safe string of 24 characters (no '+' or '/'
+    characters). The generated string does not end in '-'.
+        
+    @rtype: str
+    @return: A randomly generated, 24 character string (url-safe).
+    """
+
+    r = base64.urlsafe_b64encode(os.urandom(18))
+
+    # some email clients don't like URLs ending in -
+    if r.endswith("-"):
+        r = r.replace("-", "x")
+    return r  
+
+def hours_since_changed(last_changed):
+    """Returns the time that has passed since the datetime parameter
+    last_changed in hours.
+
+    @type last_changed: datetime.datetime
+    @param last_changed: The date and time of the most recent change
+        for some flag.
+    @rtype: int
+    @return: The number of hours since last_changed.
+    """
+    time_since_changed = datetime.now() - last_changed
+    hours_since_changed = (time_since_changed.hours * 24) + \
+                              (time_since_changed.seconds / 3600)
+    return hours_since_changed
+
+
+
 class Router(models.Model):
     """Model for Tor network routers. Django uses class variables to specify
     model fields, but these fields are practically used and thought of as
@@ -118,18 +162,6 @@ class Router(models.Model):
 
         return insert_fingerprint_spaces(self.fingerprint)
 
-    @staticmethod
-    def insert_fingerprint_spaces(fingerprint):
-        """Insert a space into C{fingerprint} every four spaces.
-
-        @type fingerprint: str
-        @param fingerprint: A router L{fingerprint}
-
-        @rtype: str
-        @return: C{fingerprint} with spaces inserted every four characters.
-        """
-
-        return ' '.join(re.findall('.{4}', str(fingerprint)))
 
 class Subscriber(models.Model):
     """
@@ -157,15 +189,17 @@ class Subscriber(models.Model):
     @ivar sub_date: The date this user subscribed to Tor Weather. Default value
                     upon creation is datetime.now().
     """
+
+
     email = models.EmailField(max_length=75)
     router = models.ForeignKey(Router)
     confirmed = models.BooleanField(default = False)
     confirm_auth = models.CharField(max_length=250, 
-                    default=Subscriber.get_rand_string) 
+                    default=get_rand_string) 
     unsubs_auth = models.CharField(max_length=250, 
-                    default=Subscriber.get_rand_string)
+                    default=get_rand_string)
     pref_auth = models.CharField(max_length=250, 
-                    default=Subscriber.get_rand_string)
+                    default=get_rand_string)
 
     sub_date = models.DateTimeField(default=datetime.now)
 
@@ -309,21 +343,8 @@ class Subscriber(models.Model):
                '\nPreferences Auth: ' + self.pref_auth + \
                '\nSubscription Date: ' + str(self.sub_date)
                
-    @staticmethod
-    def get_rand_string():
-        """Returns a random, url-safe string of 24 characters (no '+' or '/'
-        characters). The generated string does not end in '-'.
-        
-        @rtype: str
-        @return: A randomly generated, 24 character string (url-safe).
-        """
 
-        r = base64.urlsafe_b64encode(os.urandom(18))
-
-        # some email clients don't like URLs ending in -
-        if r.endswith("-"):
-            r = r.replace("-", "x")
-        return r
+ 
 
 class Subscription(models.Model):
     """The model storing information about a specific subscription. Each type
@@ -356,22 +377,6 @@ class Subscription(models.Model):
                              self.subscriber.router.fingerprint + \
               '\nEmailed: ' + str(self.emailed)
 
-    @staticmethod
-    def hours_since_changed(last_changed):
-        """Returns the time that has passed since the datetime parameter
-        last_changed in hours.
-
-        @type last_changed: datetime.datetime
-        @param last_changed: The date and time of the most recent change
-            for some flag.
-        @rtype: int
-        @return: The number of hours since last_changed.
-        """
-        time_since_changed = datetime.now() - last_changed
-        hours_since_changed = (time_since_changed.hours * 24) + \
-                              (time_since_changed.seconds / 3600)
-        return hours_since_changed
-
 class NodeDownSub(Subscription):
     """A subscription class for node-down subscriptions, which send 
     notifications to the user if their node is down for the downtime grace
@@ -395,11 +400,11 @@ class NodeDownSub(Subscription):
         
         @rtype: bool
         @return: C{True} if C{triggered} and 
-        C{Subscription.hours_since_changed()} >= C{grace_pd}, otherwise
+        C{hours_since_changed()} >= C{grace_pd}, otherwise
         C{False}.
         """
 
-        if self.triggered and Subscription.hours_since_changed() >= \
+        if self.triggered and hours_since_changed() >= \
                 grace_pd:
             return True
         else:
@@ -743,23 +748,29 @@ class GenericForm(forms.Form):
     _GET_NODE_DOWN_LABEL = 'Email me when the node is down'
     _NODE_DOWN_GRACE_PD_INIT = 1
     _NODE_DOWN_GRACE_PD_MAX = 4500
-    _NODE_DOWN_GRACE_PD_MAX_DESC = ' (roughly six months)'
     _NODE_DOWN_GRACE_PD_MIN = 1
-    _NODE_DOWN_GRACE_PD_LABEL = 'How many hours of downtime before we send a \
-            notifcation?'
-    _NODE_DOWN_GRACE_PD_HELP_TEXT = 'Enter a value between ' + \
-            str(_NODE_DOWN_GRACE_PD_MIN) + ' and ' + \
-            str(_NODE_DOWN_GRACE_PD_MAX) + _NODE_DOWN_GRACE_PD_MAX_DESC
-
+    _NODE_DOWN_GRACE_PD_LABEL = 'How long before we send a notifcation?'
+    _NODE_DOWN_GRACE_PD_HELP_TEXT = 'Enter a value between one hour and six \
+            months'
+    _NODE_DOWN_GRACE_PD_UNIT_CHOICE_1 = 'hours'
+    _NODE_DOWN_GRACE_PD_UNIT_CHOICE_2 = 'days'
+    _NODE_DOWN_GRACE_PD_UNIT_CHOICE_3 = 'weeks'
+    _NODE_DOWN_GRACE_PD_UNIT_CHOICE_4 = 'months'
+    _NODE_DOWN_GRACE_PD_UNIT_CHOICES = [ ('H', 'hours'),
+                                         ('D', 'days'),
+                                         ('W', 'weeks'),
+                                         ('M', 'months') ]
+    _NODE_DOWN_GRACE_PD_UNIT_INIT = ('H', 'hours')
+    
     _GET_VERSION_INIT = False
     _GET_VERSION_LABEL = 'Email me when the node\'s Tor version is out of date'
     _VERSION_TYPE_CHOICE_1 = 'UNRECOMMENDED'
     _VERSION_TYPE_CHOICE_1_H = 'Recommended Updates'
     _VERSION_TYPE_CHOICE_2 = 'OBSOLETE'
     _VERSION_TYPE_CHOICE_2_H = 'Required Updates'
-    _VERSION_TYPE_CHOICES = [(_VERSION_TYPE_CHOICE_1, _VERSION_TYPE_CHOICE_1_H),
-                             (_VERSION_TYPE_CHOICE_2, _VERSION_TYPE_CHOICE_2_H)]
-    _VERSION_TYPE_INIT = _VERSION_TYPE_CHOICE_1
+    _VERSION_TYPE_CHOICES = [ ('UNRECOMMENDED', 'Recommended Updates'),
+                              ('OBSOLETE', 'Required Updates') ]
+    _VERSION_TYPE_INIT = ('RECOMMENDED', 'Recommended Updates')
     _VERSION_SECTION_INFO = '<p><em>Recommended Updates:</em>  Emails when\
     the router is not running the most up-to-date stable version of Tor.</p> \
     <p><em>Required Updates:</em>  Emails when the router is running \
@@ -790,6 +801,7 @@ class GenericForm(forms.Form):
     _INIT_MAPPING = {'get_node_down': _GET_NODE_DOWN_INIT,
                      'node_down_grace_pd': _INIT_PREFIX + \
                              str(_NODE_DOWN_GRACE_PD_INIT),
+                     'node_down_grace_pd_unit': _NODE_DOWN_GRACE_PD_UNIT_INIT,
                      'get_version': _GET_VERSION_INIT,
                      'version_type': _VERSION_TYPE_INIT,
                      'get_band_low': _GET_BAND_LOW_INIT,
@@ -804,16 +816,17 @@ class GenericForm(forms.Form):
             label=_GET_NODE_DOWN_LABEL,
             widget=forms.CheckboxInput(attrs={'class':_CLASS_CHECK}))
     node_down_grace_pd = PrefixedIntegerField(required=False,
-            max_value=_NODE_DOWN_GRACE_PD_MAX,
             min_value=_NODE_DOWN_GRACE_PD_MIN,
             label=_NODE_DOWN_GRACE_PD_LABEL,
             help_text=_NODE_DOWN_GRACE_PD_HELP_TEXT,
             widget=forms.TextInput(attrs={'class':_CLASS_SHORT}))
-    
+    node_down_grace_pd_unit = forms.ChoiceField(required=False,
+            choices=(_NODE_DOWN_GRACE_PD_UNIT_CHOICES))
+
     get_version = forms.BooleanField(required=False,
             label=_GET_VERSION_LABEL,
             widget=forms.CheckboxInput(attrs={'class':_CLASS_CHECK}))
-    version_type = forms.ChoiceField(required=False,
+    version_type = forms.ChoiceField(required=True,
             choices=(_VERSION_TYPE_CHOICES),
             widget=forms.RadioSelect(attrs={'class':_CLASS_RADIO}))
     
@@ -843,10 +856,11 @@ class GenericForm(forms.Form):
         self.version_section_text = GenericForm._VERSION_SECTION_INFO
         self.t_shirt_section_text = GenericForm._T_SHIRT_SECTION_INFO
 
-    def check_if_sub_checked(self, data):
+    def check_if_sub_checked(self):
         """Throws a validation error if no subscriptions are checked. 
         Abstracted out of clean() so that there isn't any redundancy in 
         subclass clean() methods."""
+        data = self.cleaned_data
 
         # Ensures that at least one subscription must be checked.
         if not (data['get_node_down'] or
@@ -856,6 +870,41 @@ class GenericForm(forms.Form):
             raise forms.ValidationError('You must choose at least one \
                                          type of subscription!')
 
+    def delete_hidden_errors(self):
+        data = self.cleaned_data
+        errors = self._errors
+
+        if 'node_down_grace_pd' in errors and not data['get_node_down']:
+            del errors['node_down_grace_pd']
+            data['node_down_grace_pd'] = GenericForm._NODE_DOWN_GRACE_PD_INIT
+        if 'version_type' in errors and not data['get_version']:
+            del errors['version_type']
+            data['version_type'] = GenericForm._VERSION_TYPE_INIT
+        if 'band_low_threshold' in errors and not data['get_band_low']:
+            del errors['band_low_threshold']
+            data['band_low_threshold'] = GenericForm._BAND_LOW_THRESHOLD_INIT
+
+    def convert_node_down_grace_pd_unit(self):
+        data = self.cleaned_data
+        unit = data['node_down_grace_pd_unit']
+
+        if 'node_down_grace_pd' in data:
+            grace_pd = data['node_down_grace_pd']
+
+            if unit == 'D':
+                grace_pd = grace_pd * 24
+            elif unit == 'W':
+                grace_pd = grace_pd * 24 * 7
+            elif unit == 'M':
+                grace_pd = grace_pd * 24 * 30
+
+            if grace_pd > GenericForm._NODE_DOWN_GRACE_PD_MAX:
+                del data['node_down_grace_pd']
+                del data['node_down_grace_pd_unit']
+                self._errors['node_down_grace_pd'] = \
+                        self.error_class(['Ensure this time period is \
+                        at most six months (4500 hours).'])
+
     def clean(self):
         """Calls the check_if_sub_checked to ensure that at least one 
         subscription type has been selected. (This is a Django thing, called
@@ -864,7 +913,11 @@ class GenericForm(forms.Form):
                 
         @return: The 'cleaned' data from the POST request.
         """
-        self.check_if_sub_checked(self.cleaned_data)
+        self.check_if_sub_checked()
+
+        self.convert_node_down_grace_pd_unit()
+
+        self.delete_hidden_errors()
 
         return self.cleaned_data
 
@@ -942,7 +995,9 @@ class SubscribeForm(GenericForm):
         
         # Calls the same helper methods used in the GenericForm clean() method.
         data = self.cleaned_data
-        GenericForm.check_if_sub_checked(self, data)
+        GenericForm.check_if_sub_checked(self)
+        GenericForm.convert_node_down_grace_pd_unit(self)
+        GenericForm.delete_hidden_errors(self)
 
         # Makes sure email_1 and email_2 match and creates error messages
         # if they don't as well as deleting the cleaned data so that it isn't
@@ -959,6 +1014,8 @@ class SubscribeForm(GenericForm):
                 del data['email_1']
                 del data['email_2']
 
+        # If the field is empty, then deletes the empty validation error and 
+        # inserts the default value into the cleaned data.
         if 'node_down_grace_pd' in self._errors:
             if PrefixedIntegerField.default_error_messages['empty'] in \
                     str(self._errors['node_down_grace_pd']):
@@ -966,6 +1023,8 @@ class SubscribeForm(GenericForm):
                data['node_down_grace_pd'] = \
                        GenericForm._NODE_DOWN_GRACE_PD_INIT
 
+        # If the field is empty, then deletes the empty validation error and
+        # inserts the default value into the cleaned data.
         if 'band_low_threshold' in self._errors:
             if PrefixedIntegerField.default_error_messages['empty'] in \
                     str(self._errors['band_low_threshold']):
