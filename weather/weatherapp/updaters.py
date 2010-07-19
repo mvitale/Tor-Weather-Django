@@ -56,13 +56,14 @@ def check_node_down(email_list):
                     #if sub.is_grace_passed() and sub.emailed == False:------enable after debugging---
                         recipient = sub.subscriber.email
                         fingerprint = sub.subscriber.router.fingerprint
+                        name = sub.subscriber.router.name
                         grace_pd = sub.grace_pd
                         unsubs_auth = sub.subscriber.unsubs_auth
                         pref_auth = sub.subscriber.pref_auth
                         
                         email = emails.node_down_tuple(recipient, fingerprint, 
-                                                       grace_pd, unsubs_auth,
-                                                       pref_auth)
+                                                       name, grace_pd,          
+                                                       unsubs_auth, pref_auth)
                         email_list.append(email)
                         sub.emailed = True 
                 else:
@@ -96,11 +97,13 @@ def check_low_bandwidth(ctl_util, email_list):
             if bandwidth < sub.threshold: 
                 if sub.emailed == False:
                     recipient = sub.subscriber.email
+                    name = sub.subscriber.router.name
                     threshold = sub.threshold
                     unsubs_auth = sub.subscriber.unsubs_auth
                     pref_auth = sub.subscriber.pref_auth
                     email_list.append(emails.bandwidth_tuple(recipient, 
-                    fingerprint, bandwidth, threshold, unsubs_auth, pref_auth)) 
+                    fingerprint, name, bandwidth, threshold, unsubs_auth,
+                    pref_auth)) 
                     sub.emailed = True
             else:
                 sub.emailed = False
@@ -155,14 +158,18 @@ def check_earn_tshirt(ctl_util, email_list):
                     #send email if needed
                     if sub.should_email(hours_up):
                         recipient = sub.subscriber.email
+                        fingerprint = sub.subscriber.router.fingerprint
+                        name = sub.subscriber.router.name
                         avg_band = sub.avg_bandwidth
                         time = sub.hours_since_triggered
                         exit = sub.subscriber.router.exit
                         unsubs_auth = sub.subscriber.unsubs_auth
                         pref_auth = sub.subscriber.pref_auth
                         
-                        email = emails.t_shirt_tuple(recipient, avg_band, time,
-                                        exit, unsubs_auth, pref_auth)
+                        email = emails.t_shirt_tuple(recipient, fingerprint,
+                                                     name, avg_band, time,
+                                                     exit, unsubs_auth, 
+                                                     pref_auth)
                         email_list.append(email)
                         sub.emailed = True
 
@@ -193,11 +200,13 @@ def check_version(ctl_util, email_list):
                     if sub.emailed == False:
                 
                         fingerprint = sub.subscriber.router.fingerprint
+                        name = sub.subscriber.router.name
                         recipient = sub.subscriber.email
                         unsubs_auth = sub.subscriber.unsubs_auth
                         pref_auth = sub.subscriber.pref_auth
                         email_list.append(emails.version_tuple(recipient,     
                                                                fingerprint,
+                                                               name,
                                                                version_type,
                                                                unsubs_auth,
                                                                pref_auth))
@@ -290,7 +299,7 @@ def update_all_routers(ctl_util, email_list):
                 address = ctl_util.get_email(finger)
                 print address
                 if not address == "":
-                    email = emails.welcome_tuple(address, finger, is_exit)
+                    email = emails.welcome_tuple(address, finger, name, is_exit)
                     email_list.append(email)
                 router_data.welcomed = True
             router_data.save()
