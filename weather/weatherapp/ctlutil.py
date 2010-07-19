@@ -42,7 +42,7 @@ class CtlUtil:
     @ivar control: Connection to TorCtl.
     """
     _CONTROL_HOST = '127.0.0.1'
-    _CONTROL_PORT = 9055 #for testing only. This should really be 9051
+    _CONTROL_PORT = 9051 
     _AUTHENTICATOR = config.authenticator
     
     def __init__(self, control_host = _CONTROL_HOST, 
