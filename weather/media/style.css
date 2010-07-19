@@ -1,5 +1,6 @@
 .center {
 	max-width: 760px;
+	overflow: auto;
 }
 
 	.main-column {
@@ -83,7 +84,7 @@
 
 					div#search-container {
 						display: none;
-						width: 290px;
+						width: 4000px;
 						position: absolute;
 						bottom: 0px;
 						left: 394px;
@@ -102,7 +103,7 @@
 			}
 
 			#router_search {
-				width: 249px;
+				width: 300px;
 			}
 
 			.short-input {

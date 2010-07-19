@@ -4,6 +4,8 @@ module contains three models that correspond to database tables (L{Subscriber},
 L{Subscription}, and L{Router}) as well as two form classes (L{SubscribeForm} 
 and L{PreferencesForm}), which specify the fields to appear on the sign-up 
 and change preferences pages.
+
+@group Helper Functions: insert_fingerprint_spaces, get_rand_string, hours_since_changed
 """
 from datetime import datetime
 import base64
@@ -19,7 +21,7 @@ from django.core import validators
 from django.core.exceptions import ValidationError
 
 def insert_fingerprint_spaces(fingerprint):
-    """Insert a space into C{fingerprint} every four spaces.
+    """Insert a space into C{fingerprint} every four characters.
 
     @type fingerprint: str
     @param fingerprint: A router L{fingerprint}
@@ -46,24 +48,21 @@ def get_rand_string():
     return r  
 
 def hours_since_changed(last_changed):
-    """Returns the time that has passed since the datetime parameter
-    last_changed in hours.
+    """Returns the number of hours passed since C{last_changed}.
 
-    @type last_changed: datetime.datetime
-    @param last_changed: The date and time of the most recent change
+    @type last_changed: datetime
+    @param last_changed: The datetime of the most recent change
         for some flag.
     @rtype: int
-    @return: The number of hours since last_changed.
+    @return: The number of hours since C{last_changed}.
     """
     time_since_changed = datetime.now() - last_changed
     hours_since_changed = (time_since_changed.hours * 24) + \
                               (time_since_changed.seconds / 3600)
     return hours_since_changed
 
-
-
 class Router(models.Model):
-    """Model for Tor network routers. Django uses class variables to specify
+    """Model for Tor network routers. Django uses class variables to specify   
     model fields, but these fields are practically used and thought of as
     instance variables, so this documentation will refer to them as such.
     Fields are specified as their django field classes, with parentheses 
@@ -75,22 +74,11 @@ class Router(models.Model):
         fields.
     @type _NAME_MAX_LEN: int
     @cvar _NAME_MAX_LEN: Maximum valid length for L{name} fields.
-    @type _NAME_DEFAULT: str
-    @cvar _NAME_DEFAULT: Default value for unspecified L{name} fields.
-    @type _WELCOMED_DEFAULT: bool
-    @cvar _WELCOMED_DEFAULT: Default value for unspecified L{welcomed} fields.
-    @type _LAST_SEEN_DEFAULT: datetime.datetime
-    @cvar _LAST_SEEN_DEFAULT: Default value for unspecified L{last_seen}
-        fields.
-    @type _UP_DEFAULT: bool
-    @cvar _UP_DEFAULT: Default value for unspecified L{up} fields.
+    @type _DEFAULTS: dict {str: various}
+    @cvar _DEFAULTS: Dictionary mapping field names to their default
+        parameters. These are the values that fields will be instantiated with
+        if they are not specified in the field's construction.
 
-    @group fingerprint: _FINGERPRINT_MAX_LEN
-    @group name: _NAME_MAX_LEN, _NAME_DEFAULT
-    @group welcomed: _WELCOMED_DEFAULT
-    @group last seen: _LAST_SEEN_DEFAULT
-    @group up: _UP_DEFAULT
-    
     @type fingerprint: CharField (str)
     @ivar fingerprint: The L{Router}'s fingerprint.
     @type name: CharField (str)
@@ -109,48 +97,30 @@ class Router(models.Model):
     """
     
     _FINGERPRINT_MAX_LEN = 40
-    
     _NAME_MAX_LEN = 100
-    _NAME_DEFAULT = "Unnamed"
-    
-    _WELCOMED_DEFAULT = False
-    
-    _LAST_SEEN_DEFAULT = datetime.now
-    
-    _UP_DEFAULT = True
+    _DEFAULTS = { 'name': "Unnamed",
+                  'welcomed': False,
+                  'last_seen': datetime.now,
+                  'up': True }
 
     fingerprint = models.CharField(max_length=_FINGERPRINT_MAX_LEN,
             unique=True)
-    name = models.CharField(max_length=_NAME_MAX_LEN, default=_NAME_DEFAULT)
-    welcomed = models.BooleanField(default=_WELCOMED_DEFAULT)
-    last_seen = models.DateTimeField(default=_LAST_SEEN_DEFAULT)
-    up = models.BooleanField(default=_UP_DEFAULT)
+    name = models.CharField(max_length=_NAME_MAX_LEN,
+            default=_DEFAULTS['name'])
+    welcomed = models.BooleanField(default=_DEFAULTS['welcomed'])
+    last_seen = models.DateTimeField(default=_DEFAULTS['last_seen'])
+    up = models.BooleanField(default=_DEFAULTS['up'])
     exit = models.BooleanField()
 
     def __unicode__(self):
-        """Returns a simple description of this L{Router}.
+        """Returns a simple description of this L{Router}, namely its L{name}
+        and L{fingerprint}.
         
         @rtype: str
         @return: Simple description of L{Router} object.
         """
+
         return self.name + ": " + self.spaced_fingerprint()
-
-    def more_info(self):
-        """Returns a detailed description of this L{Router}. Meant to be 
-        used for testing purposes in the shell, and is used to display
-        more info than the basic string representation returned by
-        L{__unicode__}.
-
-        @rtype: str
-        @return: A representation of this L{Router}'s fields.
-        """
-
-        return 'Fingerprint: ' + self.fingerprint + \
-               '\nName: ' + self.name + \
-               '\nWelcomed: ' + str(self.welcomed) + \
-               '\nLast Seen: ' + str(self.last_seen) + \
-               '\nUp: ' + str(self.up) + \
-               '\nExit: ' + str(self.exit)
 
     def spaced_fingerprint(self):
         """Returns the L{fingerprint} for this L{Router} as a string with
@@ -164,54 +134,67 @@ class Router(models.Model):
 
 
 class Subscriber(models.Model):
+    """Model for Tor Weather subscribers. Django users class variables to 
+    specify model fields, but these fields are practically used and thought of
+    as instance varaibles, so this documentation will refer to them as such.
+    Fields are specified as their django field classes, with parentheses
+    indicating the python type they are validated against and treated as 
+    practically.
+
+    @type _EMAIL_MAX_LEN: int
+    @cvar _EMAIL_MAX_LEN: Maximum length for L{email} field.
+    @type _AUTH_MAX_LEN: int
+    @cvar _AUTH_MAX_LEN: Maximum length for L{confirm_auth}, L{unsubs_auth},
+        L{pref_auth}
+    @type _DEFAULTS: Dictionary mapping field names to their default
+        parameters. These are the values that fields will be instantiated with
+        if they are not specified in the field's construction.
+
+    @type email: EmailField (str)
+    @ivar email: The L{Subscriber}'s email address.
+    @type router: L{Router}
+    @ivar router: The L{Router} the L{Subscriber} is subscribed to.
+    @type confirmed: BooleanField (bool)
+    @ivar confirmed: Whether the user has confirmed their subscription through
+        an email confirmation link.
+    @type confirm_auth: CharField (str)
+    @ivar confirm_auth: Confirmation authorization code.
+    @type unsubs_auth: CharField (str)
+    @ivar unsubs_auth: Unsubscription authorization code.
+    @type pref_auth: CharField (str)
+    @ivar pref_auth: Preferences access authorization code.
+    @type sub_date: DateTimeField (datetime)
+    @ivar sub_date: Datetime at which the L{Subscriber} subscribed.
     """
-    A model to store information about Tor Weather subscribers, including their
-    authorization keys.
 
-    @type email: str
-    @ivar email: The subscriber's email.
-    @type router: Router
-    @ivar router: A foreign key link to the router model corresponding to the
-        node this subscriber is watching.
-    @type confirmed: bool
-    @ivar confirmed: True if the subscriber has confirmed the subscription by
-        following the link in their confirmation email and False otherwise. 
-        Default value upon creation is C{False}.
-    @type confirm_auth: str
-    @ivar confirm_auth: This user's confirmation key, which is incorporated into
-        the confirmation url.
-    @type unsubs_auth: str
-    @ivar unsubs_auth: This user's unsubscribe key, which is incorporated into 
-        the unsubscribe url.
-    @type pref_auth: str
-    @ivar pref_auth: The key for this user's Tor Weather preferences page.
-    @type sub_date: datetime.datetime
-    @ivar sub_date: The date this user subscribed to Tor Weather. Default value
-                    upon creation is datetime.now().
-    """
+    _EMAIL_MAX_LEN = 75
+    _AUTH_MAX_LEN = 25
+    _DEFAULTS = { 'confirmed': False,
+                  'confirm_auth': get_rand_string,
+                  'unsubs_auth': get_rand_string,
+                  'pref_auth': get_rand_string,
+                  'sub_date': datetime.now }
 
-
-    email = models.EmailField(max_length=75)
+    email = models.EmailField(max_length=_EMAIL_MAX_LEN)
     router = models.ForeignKey(Router)
-    confirmed = models.BooleanField(default = False)
-    confirm_auth = models.CharField(max_length=250, 
-                    default=get_rand_string) 
-    unsubs_auth = models.CharField(max_length=250, 
-                    default=get_rand_string)
-    pref_auth = models.CharField(max_length=250, 
-                    default=get_rand_string)
-
-    sub_date = models.DateTimeField(default=datetime.now)
+    confirmed = models.BooleanField(default=_DEFAULTS['confirmed'])
+    confirm_auth = models.CharField(max_length=_AUTH_MAX_LEN,
+            default=_DEFAULTS['confirm_auth'])
+    unsubs_auth = models.CharField(max_length=_AUTH_MAX_LEN,
+            default=_DEFAULTS['unsubs_auth'])
+    pref_auth = models.CharField(max_length=_AUTH_MAX_LEN,
+            default=_DEFAULTS['pref_auth'])
+    sub_date = models.DateTimeField(default=_DEFAULTS['sub_date'])
 
     def __unicode__(self):
-        """Returns the Subscriber's email as the string representation for 
-        this object.
+        """Returns a simple description of this L{Subscriber}, namely
+        its L{email}.
         
         @rtype: str
-        @return: The subscriber's email.
+        @return: Simple description of L{Subscriber}.
         """
         return self.email
-
+    
     def has_node_down_sub(self):
         """Checks if this subscriber object has a node down subscription.
 
@@ -324,24 +307,7 @@ class Subscriber(models.Model):
 
         return data
 
-    def more_info(self):
-        """Returns a string description of this L{Subscriber}. Meant to be 
-        used for testing purposes in the shell, and is used to display
-        more info than the basic string representation returned by
-        __unicode__.
 
-        @rtype: str
-        @return: A representation of this L{Subscriber}'s fields.
-        """
-
-        return 'Email: ' + self.email + \
-               '\nRouter: ' + self.router.name + ' ' + \
-                             self.router.fingerprint + \
-               '\nConfirmed: ' + str(self.confirmed) + \
-               '\nConfirm Auth: ' + self.confirm_auth + \
-               '\nUnsubscribe Auth: ' + self.unsubs_auth + \
-               '\nPreferences Auth: ' + self.pref_auth + \
-               '\nSubscription Date: ' + str(self.sub_date)
                
 
  
@@ -361,21 +327,6 @@ class Subscription(models.Model):
     """
     subscriber = models.ForeignKey(Subscriber)
     emailed = models.BooleanField(default=False)
-
-    def more_info(self):
-        """Returns a string description of this subscription. Meant to be 
-        used for testing purposes in the shell, and is used to display
-        more info than the basic string representation returned by
-        __unicode__.
-
-        @rtype: str
-        @return: A representation of this L{Subscription}'s fields.
-        """
-
-        return 'Subscriber: ' + self.subscriber.email + ' ' + \
-                             self.subscriber.router.name + ' ' + \
-                             self.subscriber.router.fingerprint + \
-              '\nEmailed: ' + str(self.emailed)
 
 class NodeDownSub(Subscription):
     """A subscription class for node-down subscriptions, which send 
@@ -410,25 +361,6 @@ class NodeDownSub(Subscription):
         else:
             return False
 
-    def more_info(self):
-        """Returns a string description of this L{NodeDownSub}. Meant to be 
-        used for testing purposes in the shell, and is used to display
-        more info than the basic string representation returned by
-        __unicode__.
-
-        @rtype: str
-        @return: A representation of this L{NodeDownSub}'s fields.
-        """
-        
-        return 'Node Down Subscription' + \
-               '\nSubscriber: ' + self.subscriber.email + ' ' + \
-                   self.subscriber.router.name + ' ' + \
-                   self.subscriber.router.fingerprint + \
-               '\nEmailed: ' + str(self.emailed) + \
-               '\nTriggered: ' + str(self.triggered) + \
-               '\nGrace Period: ' + str(self.grace_pd) + \
-               '\nLast Changed: ' + str(self.last_changed)
-
 class VersionSub(Subscription):
     """Subscription class for version notifications. Subscribers can choose
     between two notification types: OBSOLETE or UNRECOMMENDED. For OBSOLETE
@@ -447,23 +379,6 @@ class VersionSub(Subscription):
     """
     #only send notifications if the version is of type notify_type 
     notify_type = models.CharField(max_length=250)
-
-    def more_info(self):
-        """Returns a string description of this L{VersionSub}. Meant to be 
-        used for testing purposes in the shell, and is used to display
-        more info than the basic string representation returned by
-        __unicode__.
-
-        @rtype: str
-        @return: A representation of this L{VersionSub}'s fields.
-        """
-        
-        return 'Version Subscription' + \
-               '\nSubscriber: ' + self.subscriber.email + ' ' + \
-                   self.subscriber.router.name + ' ' + \
-                   self.subscriber.router.fingerprint + \
-               '\nEmailed: ' + str(self.emailed) + \
-               '\nNotify Type: ' + self.notify_type
 
 class BandwidthSub(Subscription):    
     """Subscription class for low bandwidth notifications. Subscribers 
@@ -546,25 +461,6 @@ class TShirtSub(Subscription):
                 if self.avg_bandwidth >= 500:
                     return True
         return False
-
-    def more_info(self):
-        """Returns a string description of this L{TShirtSub}. Meant to be 
-        used for testing purposes in the shell, and is used to display
-        more info than the basic string representation returned by
-        __unicode__.
-
-        @rtype: str
-        @return: A representation of this L{TShirtSub}'s fields.
-        """
-        
-        return 'T-Shirt Subscription' + \
-               '\nSubscriber: ' + self.subscriber.email + ' ' + \
-                   self.subscriber.router.name + ' ' + \
-                   self.subscriber.router.fingerprint + \
-               '\nEmailed: ' + str(self.emailed) + \
-               '\nTriggered: ' + str(self.triggered) + \
-               '\nAverage Bandwidth: ' + str(self.avg_bandwidth) + \
-               '\nLast Changed:' + str(self.last_changed)
 
 class PrefixedIntegerField(forms.IntegerField):
     """An Integer Field that accepts input of the form "-prefix- -integer-"
