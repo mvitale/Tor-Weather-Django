@@ -102,7 +102,7 @@ _T_SHIRT_MAIL = "This is a Tor Weather Report.\n\n"+\
     "the following link for more information.\n\n"+\
     "http://www.torproject.org/tshirt.html"+\
     "\n\nYou might want to include this message in your email. "+\
-    "Thank you for your contribution to the Tor network!"+\
+    "Thank you for your contribution to the Tor network!"
     
 _WELCOME_SUBJ = 'Welcome to Tor!'
 _WELCOME_MAIL = "Hello and welcome to Tor!\n\n" +\
