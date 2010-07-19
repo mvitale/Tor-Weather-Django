@@ -49,7 +49,6 @@ class CtlUtil:
                 control_port = _CONTROL_PORT, sock = None, 
                 authenticator = _AUTHENTICATOR):
         """Initialize the CtlUtil object, connect to TorCtl."""
-                
 
         self.sock = sock
 
