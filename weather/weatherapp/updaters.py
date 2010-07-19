@@ -20,10 +20,11 @@ import time
 import logging
 from smtplib import SMTPException
 
-from ctlutil import CtlUtil
-from models import Subscriber, Router, NodeDownSub, BandwidthSub, TShirtSub, \
-                   VersionSub
-import emails
+from config import config
+from weatherapp.ctlutil import CtlUtil
+from weatherapp.models import Subscriber, Router, NodeDownSub, BandwidthSub, \
+                              TShirtSub, VersionSub
+from weatherapp import emails
 
 from django.core.mail import send_mass_mail
 
@@ -310,7 +311,8 @@ def run_all():
     """Run all updaters/checkers in proper sequence, then send emails."""
 
     #The CtlUtil for all methods to use
-    ctl_util = CtlUtil()
+    updater_port = config.updater_port
+    ctl_util = CtlUtil(control_port = updater_port)
 
     # the list of tuples of email info, gets updated w/ each call
     email_list = []

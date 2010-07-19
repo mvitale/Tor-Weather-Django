@@ -52,7 +52,7 @@ send_mass_mail() method. Emails are sent after all database checks/updates.
 import re
 
 from config import url_helper
-from models import Router
+from weatherapp.models import Router
 
 from django.core.mail import send_mail
 
