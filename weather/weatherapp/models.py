@@ -73,20 +73,20 @@ class Router(models.Model):
         @return: The router's fingerprint with spaces inserted.
         """
 
-        return ' '.join(re.findall('.{4}', str(self.fingerprint)))
+        return insert_fingerprint_spaces(self.fingerprint)
 
-    def get_string(self):
-        """Returns a string representation of the name and fingerprint of
-        this router. Ex: 'WesCSTor (id: 4094 8034 ...)'
+    @staticmethod
+    def insert_fingerprint_spaces(fingerprint):
+        """Insert a space into C{fingerprint} every four spaces
+
+        @type fingerprint: str
+        @param fingerprint: A router fingerprint
 
         @rtype: str
-        @return: name/fingerprint display.
+        @return: C{fingerprint} with spaces inserted every four characters.
         """
 
-        if self.name == 'Unnamed':
-            return '(id: ' + self.spaced_fingerprint() + ')'
-        else:
-            return self.name + '(id: ' + self.spaced_fingerprint() + ')'
+        return ' '.join(re.findall('.{4}', str(fingerprint)))
 
     def __repr__(self):
         return 'Fingerprint: ' + self.fingerprint + \
@@ -238,6 +238,7 @@ class Subscriber(models.Model):
                  C{sub_type}, C{False} otherwise. If C{sub_type} is not a 
                  valid subscription type name, returns C{False}.
         """
+
         if sub_type == 'NodeDownSub':
             sub = NodeDownSub
         elif sub_type == 'VersionSub':
@@ -403,7 +404,8 @@ class NodeDownSub(Subscription):
         
         @rtype: bool
         @return: C{True} if C{triggered} and 
-        C{SubscriptionManager.hours_since_changed()}, otherwise C{False}.
+        C{SubscriptionManager.hours_since_changed()} >= C{grace_pd}, otherwise
+        C{False}.
         """
 
         if self.triggered and SubscriptionManager.hours_since_changed() >= \
