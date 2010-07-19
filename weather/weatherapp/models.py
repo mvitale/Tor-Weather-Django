@@ -132,11 +132,10 @@ class Router(models.Model):
 
         return insert_fingerprint_spaces(self.fingerprint)
 
-
 class Subscriber(models.Model):
-    """Model for Tor Weather subscribers. Django users class variables to 
+    """Model for Tor Weather subscribers. Django uses class variables to 
     specify model fields, but these fields are practically used and thought of
-    as instance varaibles, so this documentation will refer to them as such.
+    as instance variables, so this documentation will refer to them as such.
     Fields are specified as their django field classes, with parentheses
     indicating the python type they are validated against and treated as 
     practically.
@@ -194,54 +193,22 @@ class Subscriber(models.Model):
         @return: Simple description of L{Subscriber}.
         """
         return self.email
-    
-    def has_node_down_sub(self):
-        """Checks if this subscriber object has a node down subscription.
-
-        @rtype: bool
-        @return: Whether a node down subscription exists for this subscriber.
-        """
-        
-        return self._has_sub_type('NodeDownSub')
-
-    def has_version_sub(self):
-        """Checks if this subscriber object has a version subscription.
-        
-        @rtype: bool
-        @return: Whether a version subscription exists for this subscriber.
-        """
-
-        return self._has_sub_type('VersionSub')
-
-    def has_bandwidth_sub(self):
-        """Checks if this subscriber object has a bandwidth subscription.
-
-        @rtype: bool
-        @return: Whether a bandwidth subscription exists for this subscriber.
-        """
-
-        return self._has_sub_type('BandwidthSub')
-
-    def has_t_shirt_sub(self):
-        """Checks if this subscriber object has a t-shirt subscription.
-        
-        @rtype: bool
-        @return: Whether a t-shirt subscription exists for this subscriber.
-        """
-
-        return self._has_sub_type('TShirtSub')
-
+ 
     def _has_sub_type(self, sub_type):
-        """Checks if this subscriber object has a subscription of C{sub_type}.
+        """Checks if this L{Subscriber} has a L{Subscription} of type
+        C{sub_type}.
 
         @type sub_type: str
-        @param sub_type: The type of subscription to check. This must   
-                         be the exact name of a valid subscription type.
-
+        @param sub_type: The type of L{Subscription} to check. This must be the 
+            exact name of a subclass of L{Subscription} (L{NodeDownSub},
+            L{VersionSub}, L{BandwidthSub}, or L{TShirtSub}).
         @rtype: bool
-        @return: C{True} if this subscriber object has a subscription of 
-                 C{sub_type}, C{False} otherwise. If C{sub_type} is not a 
-                 valid subscription type name, returns C{False}.
+        @return: Whether this L{Subscriber} has a L{Subscription} of type
+            C{sub_type}. Also returns C{False} if C{sub_type} is not a valid
+            name of a 
+        @return: C{True} if this subscriber object has a L{Subscription} of 
+                 C{sub_type}, C{False} otherwise. Also returns C{False} if 
+                 C{sub_type} is not a valid name of a L{Subscription} subclass.
         """
 
         if sub_type == 'NodeDownSub':
@@ -259,23 +226,62 @@ class Subscriber(models.Model):
             sub.objects.get(subscriber = self)
         except sub.DoesNotExist:
             return False
+        except Exception, e:
+            raise e
         else:
             return True
 
-    def get_preferences(self):
-        """Returns a dictionary of preferences for the subscriber object.
-        Key names are those used in the GenericForm, SubscribeForm, and
-        PreferencesForm. This is mainly to be used to determine a user's
-        current preferences in order to generate an initial preferences page.
-        Checks the database for subscriptions corresponding to the subscriebr,
-        and returns a dictionary of the settings of those subscriptions. The
-        dictionary contains entries for all fields of all subscriptions
-        subscribed to by the subscriber, but will not contain entries for
-        fields of subscriptions not subscribed to (except for the "get_xxx"
-        fields, which will always be defined for every subscription type).
+    def has_node_down_sub(self):
+        """Checks if this L{Subscriber} has a L{NodeDownSub}.
 
-        @rtype: Dict {str: str}
-        @return: Dictionary of current preferences for this subscriber.
+        @rtype: bool
+        @return: Whether a L{NodeDownSub} exists for this L{Subscriber}.
+        """
+        
+        return self._has_sub_type('NodeDownSub')
+
+    def has_version_sub(self):
+        """Checks if this L{Subscriber} has a L{VersionSub}.
+        
+        @rtype: bool
+        @return: Whether a L{VersionSub} exists for this L{Subscriber}.
+        """
+
+        return self._has_sub_type('VersionSub')
+
+    def has_bandwidth_sub(self):
+        """Checks if this L{Subscriber} has a L{BandwidthSub}.
+
+        @rtype: bool
+        @return: Whether a L{BandwidthSub} exists for this L{Subscriber}.
+        """
+
+        return self._has_sub_type('BandwidthSub')
+
+    def has_t_shirt_sub(self):
+        """Checks if this L{Subscriber} has a L{TShirtSub}.
+        
+        @rtype: bool
+        @return: Whether a L{TShirtSub} exists for this L{Subscriber}.
+        """
+
+        return self._has_sub_type('TShirtSub')
+
+    def get_preferences(self):
+        """Compiles a dictionary of preferences for this L{Subscriber}.
+        Key names are the names of fields in L{GenericForm}, L{SubscribeForm},
+        and L{PreferencesForm}. This is mainly to be used to determine a user's
+        current preferences in order to generate an initial preferences page.
+        Checks the database for L{Subscription}s corresponding to the
+        L{Subscriber}, and returns a dictionary with the settings of all
+        L{Subscription}s found. The dictionary does not contain entries for 
+        fields of L{Subscription}s not subscribed to (except for the
+        L{GenericForm.get_node_down}, C{GenericForm.get_version}, 
+        C{GenericForm.get_band_low}, and C{GenericForm.get_t_shirt}
+        fields, which will be C{False} if a L{Subscription} doesn't exist).
+
+        @rtype: Dict {str: various}
+        @return: Dictionary of current preferences for this L{Subscriber}.
         """
         
         data = {}
@@ -306,25 +312,31 @@ class Subscriber(models.Model):
         data['get_t_shirt'] = self.has_t_shirt_sub()
 
         return data
-
-
-               
-
- 
-
+         
 class Subscription(models.Model):
-    """The model storing information about a specific subscription. Each type
-    of email notification that a user selects generates a new subscription. 
-    For instance, each subscriber who elects to be notified about low bandwidth
-    will have a low_bandwidth subscription.
-    
-    @ivar subscriber: A link to the subscriber model representing the owner
-        of this subscription.
-    @type emailed: bool
-    @ivar emailed: True if the user has been emailed about the subscription
-        (trigger must also be True), False if the user has not been emailed. 
-        Default upon creation is C{False}.
+    """Generic (abstract) mdoel for Tor Weather subscriptions. Only contains
+    fields which are used by all types of Tor Weather subscriptions. Django
+    uses class variables to specify model fields, but these fields are
+    practically used and thought as instance variables, so this documentation
+    will refer to them as such. Fields are specified as their django field 
+    classes, with parantheses indicating the python type they are validated
+    against and treated as practically.
+
+    @type _DEFAULTS: dict {str: various}
+    @cvar _DEFAULTS: Dictionary mapping field names to their default
+        parameters. These are the values that fields will be instantiated
+        with if they are not specified in the field's construction.
+
+    @type subscriber: L{Subscriber}
+    @ivar subscriber: The L{Subscriber} who is subscribed to this
+        L{Subscription}.
+    @type emailed: BooleanField (bool)
+    @ivar emailed: Whether the user has already been emailed about this
+        L{Subscription} since it has been triggered.
     """
+
+    _DEFAULTS = { 'emailed': False }
+
     subscriber = models.ForeignKey(Subscriber)
     emailed = models.BooleanField(default=False)
 
