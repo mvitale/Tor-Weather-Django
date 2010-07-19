@@ -9,9 +9,9 @@ import threading
 
 from weatherapp.models import Subscriber, Router, GenericForm, \
         SubscribeForm, PreferencesForm
-import emails
-import error_messages
+from weatherapp import emails
 from config import url_helper, templates
+from weatherapp import error_messages
 
 import django.views.static
 from django.db import models
@@ -19,8 +19,6 @@ from django.core.context_processors import csrf
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponseRedirect, HttpRequest, Http404
 from django.http import HttpResponse
-from weather.weatherapp import error_messages
-
 from django.utils import simplejson
 
 def home(request):
@@ -57,9 +55,9 @@ def subscribe(request):
                 confirm_auth = subscriber.confirm_auth
                 addr = subscriber.email
                 fingerprint = subscriber.router.fingerprint
-                email_thread = threading.Thread(
-                        target=emails.send_confirmation,
-                        args=[addr, fingerprint, confirm_auth])
+                name = subscriber.router.name
+                email_thread = threading.Thread(target=emails.send_confirmation,
+                               args=[addr, fingerprint, name, confirm_auth])
                 email_thread.setDaemon(True)
                 email_thread.start()
         
@@ -166,7 +164,7 @@ def confirm(request, confirm_auth):
     # spawn a daemon to send an email confirming subscription and 
     #providing the links
     email_thread=threading.Thread(target=emails.send_confirmed,
-                            args=[user.email, router.fingerprint, 
+                            args=[user.email, router.fingerprint, router.name,
                                   user.unsubs_auth, user.pref_auth])
     email_thread.setDaemon(True)
     email_thread.start()

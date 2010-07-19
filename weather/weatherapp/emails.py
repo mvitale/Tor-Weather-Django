@@ -52,7 +52,7 @@ send_mass_mail() method. Emails are sent after all database checks/updates.
 import re
 
 from config import url_helper
-from models import Router
+from weatherapp.models import Router
 
 from django.core.mail import send_mail
 
@@ -141,15 +141,26 @@ _GENERIC_FOOTER = "\n\nYou can unsubscribe from these reports at any time "+\
     "notification preferences here: \n\n%s\n"
 
 
-def _get_router_name(fingerprint):
-    """"""
-    # TODO add error handling?
-    try:
-        r = Router.objects.get(fingerprint = fingerprint)
-    except:
-        return fingerprint
+def _get_router_name(fingerprint, name):
+    """Returns a string representation of the name and fingerprint of
+    this router. Ex: 'WesCSTor (id: 4094 8034 ...)'
+    
+    @type fingerprint: str
+    @param fingerprint: A router fingerprint
+    @type name: str
+    @param name: A router name
+
+    @rtype: str
+    @return: An email-friendly string representation of the name and
+    fingerprint. Only returns a representation of the fingerprint 
+    C{if name == 'Unnamed'}.
+    """
+
+    spaced_fingerprint = Router.insert_fingerprint_spaces(fingerprint) 
+    if name == 'Unnamed':
+        return "(id: %s)" % spaced_fingerprint
     else:
-        return r.get_string()
+        return "%s (id: %s)" % (name, spaced_fingerprint)
 
 def _add_generic_footer(msg, unsubs_auth, pref_auth):
     """
@@ -173,9 +184,7 @@ def _add_generic_footer(msg, unsubs_auth, pref_auth):
     
     return msg + footer
 
-def send_confirmation(recipient,
-                      fingerprint,
-                      confirm_auth):
+def send_confirmation(recipient, fingerprint, name, confirm_auth):
     """This method sends a confirmation email to the user. The email 
     contains a complete link to the confirmation page, which the user 
     must follow in order to subscribe. The Django method send_mail is
@@ -190,17 +199,14 @@ def send_confirmation(recipient,
     @type confirm_auth: str
     @param confirm_auth: The user's unique confirmation authorization key.
     """
-    name = _get_router_name(fingerprint)
+    router = _get_router_name(fingerprint, name)
     confirm_url = url_helper.get_confirm_url(confirm_auth)
-    msg = _CONFIRMATION_MAIL % (name, confirm_url)
+    msg = _CONFIRMATION_MAIL % (router, confirm_url)
     sender = _SENDER
     subj = _SUBJECT_HEADER + _CONFIRMATION_SUBJ
     send_mail(subj, msg, sender, [recipient], fail_silently=True)
 
-def send_confirmed(recipient,
-                   fingerprint,
-                   unsubs_auth,
-                   pref_auth):
+def send_confirmed(recipient, fingerprint, name, unsubs_auth, pref_auth):
     """Sends an email to the user after their subscription is successfully
     confirmed. The email contains links to change preferences and 
     unsubscribe.
@@ -215,17 +221,17 @@ def send_confirmed(recipient,
     @type pref_auth: str
     @param pref_auth: The user's unique preferences auth key
     """
-    name = _get_router_name(fingerprint)
+    router = _get_router_name(fingerprint, name)
     subj = _SUBJECT_HEADER + _CONFIRMED_SUBJ
     sender = _SENDER
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
-    msg = _CONFIRMED_MAIL % name
-    msg = self._add_generic_footer(msg, unsubURL, prefURL)
+    msg = _CONFIRMED_MAIL % router
+    msg = _add_generic_footer(msg, unsubURL, prefURL)
     send_mail(subj, msg, sender, [recipient], fail_silently=False)
 
-def bandwidth_tuple(recipient, fingerprint, observed, threshold, unsubs_auth,
-                    pref_auth):
+def bandwidth_tuple(recipient, fingerprint, name,  observed, threshold,
+                    unsubs_auth, pref_auth):
     """Returns the tuple for a low bandwidth email.
     @type recipient: str
     @param recipient: The user's email address
@@ -241,18 +247,19 @@ def bandwidth_tuple(recipient, fingerprint, observed, threshold, unsubs_auth,
     @type pref_auth: str
     @param pref_auth: The user's unique preferences auth key
     """
-    name = _get_router_name(fingerprint)
+    router = _get_router_name(fingerprint, name)
     subj = _SUBJECT_HEADER + _LOW_BANDWIDTH_SUBJ
     sender = _SENDER
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
 
-    msg = _LOW_BANDWIDTH_MAIL % (name, observed, threshold)
-    msg = self._add_generic_footer(msg, unsubURL, prefURL)
+    msg = _LOW_BANDWIDTH_MAIL % (router, observed, threshold)
+    msg = _add_generic_footer(msg, unsubURL, prefURL)
 
     return (subj, msg, sender, [recipient])
 
-def node_down_tuple(recipient, fingerprint, grace_pd, unsubs_auth, pref_auth):
+def node_down_tuple(recipient, fingerprint, name, grace_pd, unsubs_auth, 
+                    pref_auth):
     """Returns the tuple for a node down email.
     @type recipient: str
     @param recipient: The user's email address
@@ -269,7 +276,7 @@ def node_down_tuple(recipient, fingerprint, grace_pd, unsubs_auth, pref_auth):
     @return: A tuple listing information about the email to be sent, which is
         used by the send_mass_mail method in updaters.
     """
-    name = _get_router_name(fingerprint)
+    router = _get_router_name(fingerprint, name)
     subj = _SUBJECT_HEADER + _NODE_DOWN_SUBJ
     sender = _SENDER
     num_hours = grace_pd + " hour"
@@ -277,17 +284,12 @@ def node_down_tuple(recipient, fingerprint, grace_pd, unsubs_auth, pref_auth):
         num_hours += "s"
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
-    msg = _NODE_DOWN_MAIL % (name, num_hours)
-    msg = self._add_generic_footer(msg, unsubURL, prefURL)
+    msg = _NODE_DOWN_MAIL % (router, num_hours)
+    msg = _add_generic_footer(msg, unsubURL, prefURL)
     return (subj, msg, sender, [recipient])
 
-def t_shirt_tuple(recipient,
-                  fingerprint,
-                  avg_bandwidth,
-                  hours_since_triggered,
-                  is_exit,
-                  unsubs_auth,
-                  pref_auth):
+def t_shirt_tuple(recipient, fingerprint, name, avg_bandwidth, 
+                  hours_since_triggered, is_exit, unsubs_auth, pref_auth):
     """Returns a tuple for a t-shirt earned email.  
     @type recipient: str
     @param recipient: The user's email address
@@ -309,7 +311,7 @@ def t_shirt_tuple(recipient,
     @return: A tuple listing information about the email to be sent, which is
         used by the send_mass_mail method in updaters.
     """
-    name = _get_router_name(fingerprint)
+    router = _get_router_name(fingerprint, name)
     stable_message = 'running'
     if is_exit:
         node_type += ' as an exit node'
@@ -319,12 +321,12 @@ def t_shirt_tuple(recipient,
     sender = _SENDER
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
-    msg = _T_SHIRT_MAIL % (name, stable_message, days_running, 
-                                                 avg_bandwidth)
-    msg = self._add_generic_footer(msg, unsubURL, prefURL)
+    msg = _T_SHIRT_MAIL % (router, stable_message, days_running, 
+                           avg_bandwidth)
+    msg = _add_generic_footer(msg, unsubURL, prefURL)
     return (subj, msg, sender, [recipient])
 
-def welcome_tuple(recipient, fingerprint, exit):
+def welcome_tuple(recipient, fingerprint, name, exit):
     """Returns a tuple for the welcome email. If the operator runs an exit
     node, legal information is appended to the welcome mail.
 
@@ -339,17 +341,18 @@ def welcome_tuple(recipient, fingerprint, exit):
     @return: A tuple listing information about the email to be sent, which is
         used by the send_mass_mail method in updaters.
     """
-    name = _get_router_name(fingerprint)
+    router = _get_router_name(fingerprint, name)
     subj = _SUBJECT_HEADER + _WELCOME_SUBJ
     sender = _SENDER
     append = ''
     # if the router is an exit node, append legal info 
     if exit:
         append = _LEGAL_INFO
-    msg = _WELCOME_MAIL % (name, append)
+    msg = _WELCOME_MAIL % (router, append)
     return (subj, msg, sender, [recipient])
 
-def version_tuple(recipient, fingerprint, version_type, unsubs_auth, pref_auth):
+def version_tuple(recipient, fingerprint, name, version_type, unsubs_auth, 
+                  pref_auth):
     """Returns a tuple for a version notification email.
 
     @type recipient: str
@@ -366,15 +369,15 @@ def version_tuple(recipient, fingerprint, version_type, unsubs_auth, pref_auth):
              an appropriate format for the C{send_mass_mail()} function in
              C{updaters}.
     """
-    name = _get_router_name(fingerprint)
+    router = _get_router_name(fingerprint, name)
     subj = _SUBJECT_HEADER + _VERSION_SUBJ
     sender = _SENDER
     version_type = version_type.lower()
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
     downloadURL = url_helper.get_download_url()
-    msg = _VERSION_MAIL % (name, version_type, downloadURL)
-    msg = self._add_generic_footer(msg, unsubURL, prefURL)
+    msg = _VERSION_MAIL % (router, version_type, downloadURL)
+    msg = _add_generic_footer(msg, unsubURL, prefURL)
                            
     return (subj, msg, sender, [recipient])
 
