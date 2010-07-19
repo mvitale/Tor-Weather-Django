@@ -454,3 +454,4 @@ class TestWeb(TestCase):
         shirt_sub.avg_bandwidth = 100
         hours_up = 1463
         self.assertEqual(shirt_sub.should_email(hours_up), False)
+
