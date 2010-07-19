@@ -24,7 +24,7 @@ def listen():
     new consensus events.
     """
     ctrl_host = "127.0.0.1"
-    ctrl_port = 9055
+    ctrl_port = 9051
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((ctrl_host, ctrl_port))
     ctrl = TorCtl.Connection(sock)
