@@ -295,7 +295,7 @@ def router_name_lookup(request):
     autocomplete.js, an external autocomplete library.
 
     @type request: HttpRequest
-    @var request: an HTTP request object.
+    @param request: an HTTP request object.
     @rtype: HttpResponse
     @return: An HTTP response object with json data for filtered L{Router}
         names.
@@ -326,7 +326,7 @@ def router_fingerprint_lookup(request):
     which is what I based this on.
 
     @type request: HttpRequest
-    @var request: an HTTP request object.
+    @param request: an HTTP request object.
     @rtype: HttpResponse
     @return: An HTTP response object with json data for the L{Router}'s
         fingerprint.

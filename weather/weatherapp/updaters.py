@@ -77,7 +77,7 @@ def check_low_bandwidth(ctl_util, email_list):
     determines if an email should be sent, and updates email_list.
 
     @type ctl_util: CtlUtil
-    @param: A valid CtlUtil instance.
+    @param ctl_util: A valid CtlUtil instance.
     @type email_list: list
     @param email_list: The list of tuples representing emails to send.
     @rtype: list
@@ -115,7 +115,7 @@ def check_earn_tshirt(ctl_util, email_list):
     should_email method in the TShirtSub class.
 
     @type ctl_util: CtlUtil
-    @param: A valid CtlUtil instance.
+    @param ctl_util: A valid CtlUtil instance.
     @type email_list: list
     @param email_list: The list of tuples representing emails to send.
     @rtype: list
@@ -174,7 +174,7 @@ def check_version(ctl_util, email_list):
     necessary.
 
     @type ctl_util: CtlUtil
-    @param: A valid CtlUtil instance.
+    @param ctl_util: A valid CtlUtil instance.
     @type email_list: list
     @param email_list: The list of tuples representing emails to send.
     @rtype: list
@@ -221,7 +221,7 @@ def check_all_subs(ctl_util, email_list):
     """Check/update all subscriptions
    
     @type ctl_util: CtlUtil
-    @param: A valid CtlUtil instance.
+    @param ctl_util: A valid CtlUtil instance.
     @type email_list: list
     @param email_list: The list of tuples representing emails to send.
     @rtype: list
@@ -243,7 +243,7 @@ def update_all_routers(ctl_util, email_list):
     email should be sent and add the email tuples to the list.
 
     @type ctl_util: CtlUtil
-    @param: A valid CtlUtil instance.
+    @param ctl_util: A valid CtlUtil instance.
     @type email_list: list
     @param email_list: The list of tuples representing emails to send.
     @rtype: list
