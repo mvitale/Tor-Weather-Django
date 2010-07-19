@@ -23,6 +23,14 @@
 			margin: 0 0 12px 0;
 		}
 
+		a {
+			text-decoration: none;
+		}
+		 
+		a:hover {
+			text-decoration: underline;
+		}
+
 		form {
 			font-size: 14px;
 		}
@@ -64,12 +72,10 @@
 					}
 
 					#fingerprint-container a {
-						text-decoration: none;
 						display: none;
 					}
 
 					#user-info a:hover {
-						text-decoration: underline
 					}
 
 				div#search-container {
@@ -97,6 +103,14 @@
 				width: 100px;
 				float: left;
 			}
+
+				.default-display {
+					color: rgb(150, 150, 150);
+				}
+
+				.nondefault-display {
+					color: black;
+				}
 			
 			.long-input {
 				width: 390px;
