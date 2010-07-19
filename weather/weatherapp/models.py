@@ -22,35 +22,61 @@ class Router(models.Model):
     """Model for Tor network routers. Django uses class variables to specify
     model fields, but these fields are practically used and thought of as
     instance variables, so this documentation will refer to them as such.
-    
-    document this
+    Fields are specified as their django field classes, with parentheses 
+    indicating the python type they are validated against and are treated as
+    practically.
+   
+    @type _FINGERPRINT_MAX_LEN: int
+    @cvar _FINGERPRINT_MAX_LEN: Maximum valid length for L{fingerprint}
+        fields.
+    @type _NAME_MAX_LEN: int
+    @cvar _NAME_MAX_LEN: Maximum valid length for L{name} fields.
+    @type _NAME_DEFAULT: str
+    @cvar _NAME_DEFAULT: Default value for unspecified L{name} fields.
+    @type _WELCOMED_DEFAULT: bool
+    @cvar _WELCOMED_DEFAULT: Default value for unspecified L{welcomed} fields.
+    @type _LAST_SEEN_DEFAULT: datetime.datetime
+    @cvar _LAST_SEEN_DEFAULT: Default value for unspecified L{last_seen}
+        fields.
+    @type _UP_DEFAULT: bool
+    @cvar _UP_DEFAULT: Default value for unspecified L{up} fields.
 
-    @type fingerprint: str
-    @ivar fingerprint: The router's fingerprint.
-    @type name: str
-    @ivar name: The name associated with the router.
-    @type welcomed: bool
-    @ivar welcomed: true if the router operater has received a welcome email,
-                    false if they haven't. Default value is C{False}.
-    @type last_seen: datetime
-    @ivar last_seen: The most recent time the router was listed on a consensus 
-                     document. Default value is C{datetime.now()}.
-    @type up: bool
-    @ivar up: C{True} if this router was up last time a new network consensus
-              was published, false otherwise. Default value is C{True}.
-    @type exit: bool
-    @ivar exit: C{True} if this router accepts exits to port 80, C{False} if
-        not.
+    @group fingerprint: _FINGERPRINT_MAX_LEN
+    @group name: _NAME_MAX_LEN, _NAME_DEFAULT
+    @group welcomed: _WELCOMED_DEFAULT
+    @group last seen: _LAST_SEEN_DEFAULT
+    @group up: _UP_DEFAULT
+    
+    @type fingerprint: CharField (str)
+    @ivar fingerprint: The L{Router}'s fingerprint.
+    @type name: CharField (str)
+    @ivar name: The L{Router}'s name.
+    @type welcomed: BooleanField (bool)
+    @ivar welcomed: Whether the L{Router} operator has received a welcome
+        email.
+    @type last_seen: DateTimeField (datetime)
+    @ivar last_seen: The most recent time the L{Router} was seen in consensus.
+    @type up: BooleanField (bool)
+    @ivar up: Whether this L{Router} was up the last time a new consensus
+        document was published.
+    @type exit: BooleanField (bool)
+    @ivar exit: Whether this L{Router} is an exit node (if it accepts exits 
+        to port 80).
     """
     
     _FINGERPRINT_MAX_LEN = 40
+    
     _NAME_MAX_LEN = 100
     _NAME_DEFAULT = "Unnamed"
+    
     _WELCOMED_DEFAULT = False
+    
     _LAST_SEEN_DEFAULT = datetime.now
+    
     _UP_DEFAULT = True
 
-    fingerprint = models.CharField(max_length=_FINGERPRINT_MAX_LEN, unique=True)
+    fingerprint = models.CharField(max_length=_FINGERPRINT_MAX_LEN,
+            unique=True)
     name = models.CharField(max_length=_NAME_MAX_LEN, default=_NAME_DEFAULT)
     welcomed = models.BooleanField(default=_WELCOMED_DEFAULT)
     last_seen = models.DateTimeField(default=_LAST_SEEN_DEFAULT)
@@ -65,42 +91,11 @@ class Router(models.Model):
         """
         return self.name + ": " + self.spaced_fingerprint()
 
-    def spaced_fingerprint(self):
-        """Returns the fingerprint for this router as a string with spaces
-        inserted every 4 characters.
-        
-        @rtype: str
-        @return: The router's fingerprint with spaces inserted.
-        """
-
-        return insert_fingerprint_spaces(self.fingerprint)
-
-    @staticmethod
-    def insert_fingerprint_spaces(fingerprint):
-        """Insert a space into C{fingerprint} every four spaces
-
-        @type fingerprint: str
-        @param fingerprint: A router fingerprint
-
-        @rtype: str
-        @return: C{fingerprint} with spaces inserted every four characters.
-        """
-
-        return ' '.join(re.findall('.{4}', str(fingerprint)))
-
-    def __repr__(self):
-        return 'Fingerprint: ' + self.fingerprint + \
-                '\nName: ' + self.name + \
-                '\nWelcomed: ' + str(self.welcomed) + \
-                '\nLast Seen: ' + str(self.last_seen) + \
-                '\nUp: ' + str(self.up) + \
-                '\nExit: ' + str(self.exit)
-
     def more_info(self):
-        """Returns a string description of this L{Router}. Meant to be 
+        """Returns a detailed description of this L{Router}. Meant to be 
         used for testing purposes in the shell, and is used to display
         more info than the basic string representation returned by
-        __unicode__.
+        L{__unicode__}.
 
         @rtype: str
         @return: A representation of this L{Router}'s fields.
@@ -113,31 +108,29 @@ class Router(models.Model):
                '\nUp: ' + str(self.up) + \
                '\nExit: ' + str(self.exit)
 
-class SubscriberManager(models.Manager):
-    """In Django, each model class has at least one Manager (by default,
-    there is one named 'objects' for each model). The Manager acts as the
-    interface through which database query operations are provided to the 
-    models. The SubscriberManager class is a custom Manager for the Subscriber
-    model, which contains the method get_rand_string to generate a random
-    string for user authentication keys."""
-
-    @staticmethod
-    def get_rand_string():
-        """Returns a random, url-safe string of 24 characters (no '+' or '/'
-        characters). The generated string does not end in '-'.
+    def spaced_fingerprint(self):
+        """Returns the L{fingerprint} for this L{Router} as a string with
+        spaces inserted every 4 characters.
         
         @rtype: str
-        @return: A randomly generated, 24 character string (url-safe).
+        @return: The L{Router}'s L{fingerprint} with spaces inserted.
         """
 
-        r = base64.urlsafe_b64encode(os.urandom(18))
+        return insert_fingerprint_spaces(self.fingerprint)
 
-        # some email clients don't like URLs ending in -
-        if r.endswith("-"):
-            r = r.replace("-", "x")
-        return r
+    @staticmethod
+    def insert_fingerprint_spaces(fingerprint):
+        """Insert a space into C{fingerprint} every four spaces.
 
-          
+        @type fingerprint: str
+        @param fingerprint: A router L{fingerprint}
+
+        @rtype: str
+        @return: C{fingerprint} with spaces inserted every four characters.
+        """
+
+        return ' '.join(re.findall('.{4}', str(fingerprint)))
+
 class Subscriber(models.Model):
     """
     A model to store information about Tor Weather subscribers, including their
@@ -163,23 +156,18 @@ class Subscriber(models.Model):
     @type sub_date: datetime.datetime
     @ivar sub_date: The date this user subscribed to Tor Weather. Default value
                     upon creation is datetime.now().
-    @type objects: SubscriberManager()
-    @cvar objects: The L{SubscriberManager} object that handles table-wide 
-        database manipulation for this model.
     """
     email = models.EmailField(max_length=75)
     router = models.ForeignKey(Router)
     confirmed = models.BooleanField(default = False)
     confirm_auth = models.CharField(max_length=250, 
-                    default=SubscriberManager.get_rand_string) 
+                    default=Subscriber.get_rand_string) 
     unsubs_auth = models.CharField(max_length=250, 
-                    default=SubscriberManager.get_rand_string)
+                    default=Subscriber.get_rand_string)
     pref_auth = models.CharField(max_length=250, 
-                    default=SubscriberManager.get_rand_string)
+                    default=Subscriber.get_rand_string)
 
     sub_date = models.DateTimeField(default=datetime.now)
-
-    objects = SubscriberManager()
 
     def __unicode__(self):
         """Returns the Subscriber's email as the string representation for 
@@ -320,12 +308,53 @@ class Subscriber(models.Model):
                '\nUnsubscribe Auth: ' + self.unsubs_auth + \
                '\nPreferences Auth: ' + self.pref_auth + \
                '\nSubscription Date: ' + str(self.sub_date)
+               
+    @staticmethod
+    def get_rand_string():
+        """Returns a random, url-safe string of 24 characters (no '+' or '/'
+        characters). The generated string does not end in '-'.
+        
+        @rtype: str
+        @return: A randomly generated, 24 character string (url-safe).
+        """
 
-class SubscriptionManager(models.Manager):
-    """The custom Manager for the Subscription class. The Manager contains
-    a method to get the number of hours since the time stored in the
-    'last_changed' field in a Subscription object.
+        r = base64.urlsafe_b64encode(os.urandom(18))
+
+        # some email clients don't like URLs ending in -
+        if r.endswith("-"):
+            r = r.replace("-", "x")
+        return r
+
+class Subscription(models.Model):
+    """The model storing information about a specific subscription. Each type
+    of email notification that a user selects generates a new subscription. 
+    For instance, each subscriber who elects to be notified about low bandwidth
+    will have a low_bandwidth subscription.
+    
+    @ivar subscriber: A link to the subscriber model representing the owner
+        of this subscription.
+    @type emailed: bool
+    @ivar emailed: True if the user has been emailed about the subscription
+        (trigger must also be True), False if the user has not been emailed. 
+        Default upon creation is C{False}.
     """
+    subscriber = models.ForeignKey(Subscriber)
+    emailed = models.BooleanField(default=False)
+
+    def more_info(self):
+        """Returns a string description of this subscription. Meant to be 
+        used for testing purposes in the shell, and is used to display
+        more info than the basic string representation returned by
+        __unicode__.
+
+        @rtype: str
+        @return: A representation of this L{Subscription}'s fields.
+        """
+
+        return 'Subscriber: ' + self.subscriber.email + ' ' + \
+                             self.subscriber.router.name + ' ' + \
+                             self.subscriber.router.fingerprint + \
+              '\nEmailed: ' + str(self.emailed)
 
     @staticmethod
     def hours_since_changed(last_changed):
@@ -342,44 +371,6 @@ class SubscriptionManager(models.Manager):
         hours_since_changed = (time_since_changed.hours * 24) + \
                               (time_since_changed.seconds / 3600)
         return hours_since_changed
-    
-
-class Subscription(models.Model):
-    """The model storing information about a specific subscription. Each type
-    of email notification that a user selects generates a new subscription. 
-    For instance, each subscriber who elects to be notified about low bandwidth
-    will have a low_bandwidth subscription.
-    
-    @ivar subscriber: A link to the subscriber model representing the owner
-        of this subscription.
-    @type emailed: bool
-    @ivar emailed: True if the user has been emailed about the subscription
-        (trigger must also be True), False if the user has not been emailed. 
-        Default upon creation is C{False}.
-    @type objects: SubscriptionManager()
-    @cvar objects: The L{SubscriptionManager} object for this class, which 
-        handles table-wide database manipulation for all Subscriptions. 
-    """
-    subscriber = models.ForeignKey(Subscriber)
-    emailed = models.BooleanField(default=False)
-
-    # In Django, Manager objects handle table-wide methods (i.e filtering)
-    objects = SubscriptionManager()
-
-    def more_info(self):
-        """Returns a string description of this subscription. Meant to be 
-        used for testing purposes in the shell, and is used to display
-        more info than the basic string representation returned by
-        __unicode__.
-
-        @rtype: str
-        @return: A representation of this L{Subscription}'s fields.
-        """
-
-        return 'Subscriber: ' + self.subscriber.email + ' ' + \
-                             self.subscriber.router.name + ' ' + \
-                             self.subscriber.router.fingerprint + \
-              '\nEmailed: ' + str(self.emailed)
 
 class NodeDownSub(Subscription):
     """A subscription class for node-down subscriptions, which send 
@@ -404,11 +395,11 @@ class NodeDownSub(Subscription):
         
         @rtype: bool
         @return: C{True} if C{triggered} and 
-        C{SubscriptionManager.hours_since_changed()} >= C{grace_pd}, otherwise
+        C{Subscription.hours_since_changed()} >= C{grace_pd}, otherwise
         C{False}.
         """
 
-        if self.triggered and SubscriptionManager.hours_since_changed() >= \
+        if self.triggered and Subscription.hours_since_changed() >= \
                 grace_pd:
             return True
         else:
