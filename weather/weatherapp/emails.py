@@ -102,7 +102,7 @@ _T_SHIRT_MAIL = "This is a Tor Weather Report.\n\n"+\
     "the following link for more information.\n\n"+\
     "http://www.torproject.org/tshirt.html"+\
     "\n\nYou might want to include this message in your email. "+\
-    "Thank you for your contribution to the Tor network!"+\
+    "Thank you for your contribution to the Tor network!"
     
 _WELCOME_SUBJ = 'Welcome to Tor!'
 _WELCOME_MAIL = "Hello and welcome to Tor!\n\n" +\
@@ -221,7 +221,7 @@ def send_confirmed(recipient,
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
     msg = _CONFIRMED_MAIL % name
-    msg = self._add_generic_footer(msg, unsubURL, prefURL)
+    msg = _add_generic_footer(msg, unsubURL, prefURL)
     send_mail(subj, msg, sender, [recipient], fail_silently=False)
 
 def bandwidth_tuple(recipient, fingerprint, observed, threshold, unsubs_auth,
@@ -248,7 +248,7 @@ def bandwidth_tuple(recipient, fingerprint, observed, threshold, unsubs_auth,
     prefURL = url_helper.get_preferences_url(pref_auth)
 
     msg = _LOW_BANDWIDTH_MAIL % (name, observed, threshold)
-    msg = self._add_generic_footer(msg, unsubURL, prefURL)
+    msg = _add_generic_footer(msg, unsubURL, prefURL)
 
     return (subj, msg, sender, [recipient])
 
@@ -278,7 +278,7 @@ def node_down_tuple(recipient, fingerprint, grace_pd, unsubs_auth, pref_auth):
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
     prefURL = url_helper.get_preferences_url(pref_auth)
     msg = _NODE_DOWN_MAIL % (name, num_hours)
-    msg = self._add_generic_footer(msg, unsubURL, prefURL)
+    msg = _add_generic_footer(msg, unsubURL, prefURL)
     return (subj, msg, sender, [recipient])
 
 def t_shirt_tuple(recipient,
@@ -321,7 +321,7 @@ def t_shirt_tuple(recipient,
     prefURL = url_helper.get_preferences_url(pref_auth)
     msg = _T_SHIRT_MAIL % (name, stable_message, days_running, 
                                                  avg_bandwidth)
-    msg = self._add_generic_footer(msg, unsubURL, prefURL)
+    msg = _add_generic_footer(msg, unsubURL, prefURL)
     return (subj, msg, sender, [recipient])
 
 def welcome_tuple(recipient, fingerprint, exit):
@@ -374,7 +374,7 @@ def version_tuple(recipient, fingerprint, version_type, unsubs_auth, pref_auth):
     prefURL = url_helper.get_preferences_url(pref_auth)
     downloadURL = url_helper.get_download_url()
     msg = _VERSION_MAIL % (name, version_type, downloadURL)
-    msg = self._add_generic_footer(msg, unsubURL, prefURL)
+    msg = _add_generic_footer(msg, unsubURL, prefURL)
                            
     return (subj, msg, sender, [recipient])
 
