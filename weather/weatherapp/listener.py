@@ -22,7 +22,7 @@ class MyEventHandler(TorCtl.EventHandler):
 
         @param event: The NEWCONSENSUS event. Not used by the function,
                       but included so that this overrides 
-                      C{TorCtl.EventHandler.new_consensus_event
+                      C{TorCtl.EventHandler.new_consensus_event}
         """
 
         logging.info('Got a new consensus. Updating router table and ' + \
