@@ -73,20 +73,20 @@ class Router(models.Model):
         @return: The router's fingerprint with spaces inserted.
         """
 
-        return ' '.join(re.findall('.{4}', str(self.fingerprint)))
+        return insert_fingerprint_spaces(self.fingerprint)
 
-    def get_string(self):
-        """Returns a string representation of the name and fingerprint of
-        this router. Ex: 'WesCSTor (id: 4094 8034 ...)'
+    @staticmethod
+    def insert_fingerprint_spaces(fingerprint):
+        """Insert a space into C{fingerprint} every four spaces
+
+        @type fingerprint: str
+        @param fingerprint: A router fingerprint
 
         @rtype: str
-        @return: name/fingerprint display.
+        @return: C{fingerprint} with spaces inserted every four characters.
         """
 
-        if self.name == 'Unnamed':
-            return '(id: ' + self.spaced_fingerprint() + ')'
-        else:
-            return self.name + '(id: ' + self.spaced_fingerprint() + ')'
+        return ' '.join(re.findall('.{4}', str(fingerprint)))
 
     def __repr__(self):
         return 'Fingerprint: ' + self.fingerprint + \
@@ -106,12 +106,12 @@ class Router(models.Model):
         @return: A representation of this L{Router}'s fields.
         """
 
-        print 'Fingerprint: ' + self.fingerprint + \
-              '\nName: ' + self.name + \
-              '\nWelcomed: ' + str(self.welcomed) + \
-              '\nLast Seen: ' + str(self.last_seen) + \
-              '\nUp: ' + str(self.up) + \
-              '\nExit: ' + str(self.exit)
+        return 'Fingerprint: ' + self.fingerprint + \
+               '\nName: ' + self.name + \
+               '\nWelcomed: ' + str(self.welcomed) + \
+               '\nLast Seen: ' + str(self.last_seen) + \
+               '\nUp: ' + str(self.up) + \
+               '\nExit: ' + str(self.exit)
 
 class SubscriberManager(models.Manager):
     """In Django, each model class has at least one Manager (by default,
@@ -424,14 +424,14 @@ class NodeDownSub(Subscription):
         @return: A representation of this L{NodeDownSub}'s fields.
         """
         
-        print 'Node Down Subscription' + \
-              '\nSubscriber: ' + self.subscriber.email + ' ' + \
-              self.subscriber.router.name + ' ' + \
-              self.subscriber.router.fingerprint + \
-              '\nEmailed: ' + str(self.emailed) + \
-              '\nTriggered: ' + str(self.triggered) + \
-              '\nGrace Period: ' + str(self.grace_pd) + \
-              '\nLast Changed: ' + str(self.last_changed)
+        return 'Node Down Subscription' + \
+               '\nSubscriber: ' + self.subscriber.email + ' ' + \
+                   self.subscriber.router.name + ' ' + \
+                   self.subscriber.router.fingerprint + \
+               '\nEmailed: ' + str(self.emailed) + \
+               '\nTriggered: ' + str(self.triggered) + \
+               '\nGrace Period: ' + str(self.grace_pd) + \
+               '\nLast Changed: ' + str(self.last_changed)
 
 class VersionSub(Subscription):
     """Subscription class for version notifications. Subscribers can choose
@@ -462,12 +462,12 @@ class VersionSub(Subscription):
         @return: A representation of this L{VersionSub}'s fields.
         """
         
-        print 'Version Subscription' + \
-              '\nSubscriber: ' + self.subscriber.email + ' ' + \
-              self.subscriber.router.name + ' ' + \
-              self.subscriber.router.fingerprint + \
-              '\nEmailed: ' + str(self.emailed) + \
-              '\nNotify Type: ' + self.notify_type
+        return 'Version Subscription' + \
+               '\nSubscriber: ' + self.subscriber.email + ' ' + \
+                   self.subscriber.router.name + ' ' + \
+                   self.subscriber.router.fingerprint + \
+               '\nEmailed: ' + str(self.emailed) + \
+               '\nNotify Type: ' + self.notify_type
 
 class BandwidthSub(Subscription):    
     """Subscription class for low bandwidth notifications. Subscribers 
@@ -495,12 +495,12 @@ class BandwidthSub(Subscription):
         @return: A representation of this subscription's fields.
         """
 
-        print 'Bandwidth Subscription' + \
-              '\nSubscriber: ' + self.subscriber.email + ' ' + \
-              self.subscriber.router.name + ' ' + \
-              self.subscriber.router.fingerprint + \
-              '\nEmailed: ' + str(self.emailed) + \
-              '\nThreshold: ' + self.threshold
+        return 'Bandwidth Subscription' + \
+               '\nSubscriber: ' + self.subscriber.email + ' ' + \
+                   self.subscriber.router.name + ' ' + \
+                   self.subscriber.router.fingerprint + \
+               '\nEmailed: ' + str(self.emailed) + \
+               '\nThreshold: ' + self.threshold
 
 class TShirtSub(Subscription):
     """A subscription class for T-shirt notifications. An email is sent
@@ -561,14 +561,14 @@ class TShirtSub(Subscription):
         @return: A representation of this L{TShirtSub}'s fields.
         """
         
-        print 'T-Shirt Subscription' + \
-              '\nSubscriber: ' + self.subscriber.email + ' ' + \
-              self.subscriber.router.name + ' ' + \
-              self.subscriber.router.fingerprint + \
-              '\nEmailed: ' + str(self.emailed) + \
-              '\nTriggered: ' + str(self.triggered) + \
-              '\nAverage Bandwidth: ' + str(self.avg_bandwidth) + \
-              '\nLast Changed:' + str(self.last_changed)
+        return 'T-Shirt Subscription' + \
+               '\nSubscriber: ' + self.subscriber.email + ' ' + \
+                   self.subscriber.router.name + ' ' + \
+                   self.subscriber.router.fingerprint + \
+               '\nEmailed: ' + str(self.emailed) + \
+               '\nTriggered: ' + str(self.triggered) + \
+               '\nAverage Bandwidth: ' + str(self.avg_bandwidth) + \
+               '\nLast Changed:' + str(self.last_changed)
 
 class PrefixedIntegerField(forms.IntegerField):
     """An Integer Field that accepts input of the form "-prefix- -integer-"

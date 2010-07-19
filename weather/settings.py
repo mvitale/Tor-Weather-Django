@@ -15,7 +15,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
         'NAME': PROJECT_PATH + "/WeatherDB",                      # Or path to database file if using sqlite3.
-        'TEST_NAME': 'TestDB',
+        'TEST_NAME': 'WeatherTestDB',
         'USER': '',                      # Not used with sqlite3.
         'PASSWORD': '',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
@@ -110,5 +110,3 @@ EMAIL_HOST_PASSWORD = 'torisawesome'
 EMAIL_HOST_USER = 'torweathertester@gmail.com'
 EMAIL_PORT = '587'
 EMAIL_USE_TLS = True
-
-TEST_DATABASE_NAME = 'weather_test_db'

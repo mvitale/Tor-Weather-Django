@@ -14,7 +14,17 @@ logging.basicConfig(format = '%(asctime) - 15s (%(process)d) %(message)s',
                     level = logging.DEBUG, filename = 'log/weather.log')
 
 class MyEventHandler(TorCtl.EventHandler):
+    """Extends C{TorCtl.EventHandler} so that C{updaters.run_all} is called
+    when a NEWCONSENSUS event is received.
+    """
     def new_consensus_event(self, event):
+        """Call C{updaters.run_all()} when a NEWCONSENSUS event is received.
+
+        @param event: The NEWCONSENSUS event. Not used by the function,
+                      but included so that this overrides 
+                      C{TorCtl.EventHandler.new_consensus_event
+        """
+
         logging.info('Got a new consensus. Updating router table and ' + \
                      'checking all subscriptions.')
         updaters.run_all()
@@ -24,7 +34,7 @@ def listen():
     new consensus events.
     """
     ctrl_host = "127.0.0.1"
-    ctrl_port = 9051
+    ctrl_port = config.listener_port
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((ctrl_host, ctrl_port))
     ctrl = TorCtl.Connection(sock)
@@ -35,5 +45,3 @@ def listen():
     print 'Listening for new consensus events.'
     logging.info('Listening for new consensus events.')
 
-def run_updaters():#just for testing
-    updaters.run_all()
