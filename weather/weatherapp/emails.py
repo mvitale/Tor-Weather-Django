@@ -46,7 +46,7 @@ send_mass_mail() method. Emails are sent after all database checks/updates.
 @var _LEGAL_INFO: Legal information to assist exit node operators. This is 
     appended to the welcome email if the recipient runs an exit node.
 @type _GENERIC_FOOTER: str
-@var _GENTERIC_FOOTER: A footer containing unsubscribe and preferences page
+@var _GENERIC_FOOTER: A footer containing unsubscribe and preferences page
     links.
 """
 import re

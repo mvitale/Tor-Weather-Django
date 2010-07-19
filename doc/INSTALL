@@ -1,0 +1,15 @@
+In weather/settings.py, change the EMAIL_* fields to reflect your SMTP 
+configurations and the email address for sending the Tor Weather notifications. 
+
+In weather.config.config.py, change the listener_port and updater_port ports
+to reflect valid control ports in your local torrc file. Ideally, they should 
+be different ports.
+
+Look here for documentation concerning how to deploy Django:
+http://docs.djangoproject.com/en/dev/howto/deployment/
+
+Once the application is deployed, the listener application should be run from
+inside the weather directory:
+/weather$ python manage.py runlistener
+The listener waits for consensus events from your local TorCtl process, then 
+updates the database and sends notifications.
