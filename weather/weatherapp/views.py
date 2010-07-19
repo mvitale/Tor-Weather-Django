@@ -57,9 +57,9 @@ def subscribe(request):
                 confirm_auth = subscriber.confirm_auth
                 addr = subscriber.email
                 fingerprint = subscriber.router.fingerprint
-                email_thread = threading.Thread(
-                        target=emails.send_confirmation,
-                        args=[addr, fingerprint, confirm_auth])
+                name = subscriber.router.name
+                email_thread = threading.Thread(target=emails.send_confirmation,
+                               args=[addr, fingerprint, name, confirm_auth])
                 email_thread.setDaemon(True)
                 email_thread.start()
         
@@ -166,7 +166,7 @@ def confirm(request, confirm_auth):
     # spawn a daemon to send an email confirming subscription and 
     #providing the links
     email_thread=threading.Thread(target=emails.send_confirmed,
-                            args=[user.email, router.fingerprint, 
+                            args=[user.email, router.fingerprint, router.name,
                                   user.unsubs_auth, user.pref_auth])
     email_thread.setDaemon(True)
     email_thread.start()
