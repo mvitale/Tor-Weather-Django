@@ -77,7 +77,7 @@ $(document).ready(function() {
 		var searchField = $("#search-container input");
 		var searchLabel = $("#search-container label");
 		var fingerprintField = $("#fingerprint-container input");
-		var nonuniqueError = "Please enter the fingerprint manually if the router has a non-unique name";
+		var nonuniqueError = "Non-unique name; enter fingerprint manually"
 		var noRouterError = "Please enter a valid router name:";
 		var defaultLabel = "Enter router name, then click the arrow:";
 
