@@ -156,7 +156,8 @@ def _get_router_name(fingerprint, name):
     C{if name == 'Unnamed'}.
     """
 
-    spaced_fingerprint = Router.insert_fingerprint_spaces(fingerprint) 
+    spaced_fingerprint = weatherapp.models.insert_fingerprint_spaces(
+            fingerprint) 
     if name == 'Unnamed':
         return "(id: %s)" % spaced_fingerprint
     else:
