@@ -50,7 +50,7 @@ class Router(models.Model):
     _LAST_SEEN_DEFAULT = datetime.now
     _UP_DEFAULT = True
 
-    fingerprint = models.CharField(_FINGERPRINT_MAX_LEN, unique=True)
+    fingerprint = models.CharField(max_length=_FINGERPRINT_MAX_LEN, unique=True)
     name = models.CharField(max_length=_NAME_MAX_LEN, default=_NAME_DEFAULT)
     welcomed = models.BooleanField(default=_WELCOMED_DEFAULT)
     last_seen = models.DateTimeField(default=_LAST_SEEN_DEFAULT)
@@ -302,7 +302,7 @@ class Subscriber(models.Model):
         return data
 
     def more_info(self):
-         """Returns a string description of this L{Subscriber}. Meant to be 
+        """Returns a string description of this L{Subscriber}. Meant to be 
         used for testing purposes in the shell, and is used to display
         more info than the basic string representation returned by
         __unicode__.
@@ -311,14 +311,14 @@ class Subscriber(models.Model):
         @return: A representation of this L{Subscriber}'s fields.
         """
 
-        print 'Email: ' + self.email + \
-              '\nRouter: ' + self.router.name + ' ' + \
+        return 'Email: ' + self.email + \
+               '\nRouter: ' + self.router.name + ' ' + \
                              self.router.fingerprint + \
-              '\nConfirmed: ' + str(self.confirmed) + \
-              '\nConfirm Auth: ' + self.confirm_auth + \
-              '\nUnsubscribe Auth: ' + self.unsubs_auth + \
-              '\nPreferences Auth: ' + self.pref_auth + \
-              '\nSubscription Date: ' + str(self.sub_date)
+               '\nConfirmed: ' + str(self.confirmed) + \
+               '\nConfirm Auth: ' + self.confirm_auth + \
+               '\nUnsubscribe Auth: ' + self.unsubs_auth + \
+               '\nPreferences Auth: ' + self.pref_auth + \
+               '\nSubscription Date: ' + str(self.sub_date)
 
 class SubscriptionManager(models.Manager):
     """The custom Manager for the Subscription class. The Manager contains
