@@ -302,6 +302,31 @@ class Subscriber(models.Model):
 
         return self._has_sub_type('TShirtSub')
 
+    def determine_unit(self, hours):
+        """Determines the probable unit entered for the node_down_grace_pd.
+        The unit entered in the form isn't saved internally, and everything is
+        converted to hours, so this method checks to see if the saved number
+        of hours is a clean number of days, weeks, or months, with the larger
+        time periods having precedence. Months are considered 30 days.
+
+        @type hours: int
+        @arg hours: A number of hours.
+        @rtype: str
+        @return: C{H} (hours), C{D} (days), C{W} (weeks), or C{M} (months).
+            Longer time periods take precedence, so if an input is an even
+            number of days and months (as it necessarily has to be to be an
+            even number of months), then C{M} will be returned, not C{D}.
+        """
+        
+        if hours % (24 * 30) == 0:
+            return 'M'
+        elif hours % (24 * 7) == 0:
+            return 'W'
+        elif hours % (24) == 0:
+            return 'D'
+        else:
+            return 'H'
+
     def get_preferences(self):
         """Compiles a dictionary of preferences for this L{Subscriber}.
         Key names are the names of fields in L{GenericForm}, L{SubscribeForm},
@@ -324,7 +349,18 @@ class Subscriber(models.Model):
         data['get_node_down'] = self.has_node_down_sub()
         if data['get_node_down']:
             n = NodeDownSub.objects.get(subscriber = self)
-            data['node_down_grace_pd'] = n.grace_pd
+            unit = self.determine_unit(n.grace_pd)
+            print unit
+            data['node_down_grace_pd_unit'] = unit
+            if unit == 'M':
+                grace_pd = n.grace_pd / (24 * 30)
+            elif unit == 'W':
+                grace_pd = n.grace_pd / (24 * 7)
+            elif unit == 'D':
+                grace_pd = n.grace_pd / (24)
+            else: 
+                grace_pd = n.grace_pd
+            data['node_down_grace_pd'] = grace_pd
         else:
             data['node_down_grace_pd'] = GenericForm._INIT_PREFIX + \
                     str(GenericForm._NODE_DOWN_GRACE_PD_INIT)
@@ -347,7 +383,7 @@ class Subscriber(models.Model):
         data['get_t_shirt'] = self.has_t_shirt_sub()
 
         return data
-         
+
 class Subscription(models.Model):
     """Generic (abstract) model for Tor Weather subscriptions. Only contains
     fields which are used by all types of Tor Weather subscriptions.
@@ -619,8 +655,8 @@ class PrefixedIntegerField(forms.IntegerField):
         if min_value is not None:
             self.validators.append(validators.MinValueValidator(min_value))
 
-        self.prefix = _PREFIX_DEFAULT
-        self.error_messages = _DEFAULT_ERRORS
+        self.prefix = PrefixedIntegerField._PREFIX_DEFAULT
+        self.error_messages = PrefixedIntegerField._DEFAULT_ERRORS
 
     def to_python(self, value):
         """First step in Django's validation process. Ensures that data in
@@ -925,7 +961,7 @@ class GenericForm(forms.Form):
 
     def delete_hidden_errors(self):
         """Deletes errors and supplies default values for fields which are 
-        in areas of the form that are collapsed.
+        in areas of the form that are collapsed. Returns the manipulated data.
         """
 
         data = self.cleaned_data
@@ -966,6 +1002,8 @@ class GenericForm(forms.Form):
                         self.error_class(['Ensure this time period is \
                         at most six months (4500 hours).'])
 
+            data['node_down_grace_pd'] = grace_pd
+
     def clean(self):
         """Performs the basic, form-wide cleaning for L{GenericForm}. This 
         method is called automatically by Django's form validation. Ensures
@@ -976,10 +1014,9 @@ class GenericForm(forms.Form):
                 
         @return: The 'cleaned' data from the POST request.
         """
+        
         self.check_if_sub_checked()
-
         self.convert_node_down_grace_pd_unit()
-
         self.delete_hidden_errors()
 
         return self.cleaned_data
@@ -1067,7 +1104,6 @@ class SubscribeForm(GenericForm):
         """
         
         # Calls the same helper methods used in the GenericForm clean() method.
-        data = self.cleaned_data
         GenericForm.check_if_sub_checked(self)
         GenericForm.convert_node_down_grace_pd_unit(self)
         GenericForm.delete_hidden_errors(self)
@@ -1222,11 +1258,9 @@ class PreferencesForm(GenericForm):
         self.user_info = PreferencesForm._USER_INFO_STR % (self.user.email, \
                 self.user.router.name, user.router.spaced_fingerprint())
 
-    def change_subscriptions(self, old_data, new_data):
+    def change_subscriptions(self, new_data):
         """Change the subscriptions and options if they are specified.
        
-        @type old_data: dict {str: various}
-        @arg old_data: Previous preferences.
         @type new_data: dict {str: various}
         @arg new_data: New preferences.
         """

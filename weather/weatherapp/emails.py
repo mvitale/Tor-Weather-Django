@@ -52,7 +52,7 @@ send_mass_mail() method. Emails are sent after all database checks/updates.
 import re
 
 from config import url_helper
-from weatherapp.models import Router
+from weatherapp.models import insert_fingerprint_spaces
 
 from django.core.mail import send_mail
 
@@ -156,8 +156,7 @@ def _get_router_name(fingerprint, name):
     C{if name == 'Unnamed'}.
     """
 
-    spaced_fingerprint = weatherapp.models.insert_fingerprint_spaces(
-            fingerprint) 
+    spaced_fingerprint = insert_fingerprint_spaces(fingerprint) 
     if name == 'Unnamed':
         return "(id: %s)" % spaced_fingerprint
     else:
@@ -381,17 +380,3 @@ def version_tuple(recipient, fingerprint, name, version_type, unsubs_auth,
     msg = _add_generic_footer(msg, unsubURL, prefURL)
                            
     return (subj, msg, sender, [recipient])
-
-def _insert_fingerprint_spaces(fingerprint):
-    """Take a fingerprint, insert a space every four characters, and
-    return it
-
-    @type fingerprint: str
-    @param fingerprint: A Tor relay fingerprint with spaces removed.
-
-    @rtype: str
-    @return: C{fingerprint} with spaces inserted every four characters.
-    """
-    fingerprint_list = re.findall('.{4}', fingerprint)
-    return ' '.join(fingerprint_list)
-    
