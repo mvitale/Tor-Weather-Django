@@ -985,10 +985,10 @@ class GenericForm(forms.Form):
         return self.cleaned_data
 
 class SubscribeForm(GenericForm):
-    """Inherits from L{GenericForm}. The L{SubscribeForm} class contains
-    all the fields in the L{GenericForm} class and additional fields for 
-    the user's email and the fingerprint of the router the user wants to
-    monitor.
+    """Form for subscribing to Tor Weather. Inherits from L{GenericForm}.
+    The L{SubscribeForm} class contains all the fields in the L{GenericForm}
+    class and additional fields for the user's email and the fingerprint of
+    the router the user wants to monitor.
     
     @type _EMAIL_1_LABEL: str
     @cvar _EMAIL_1_LABEL: Text displayed above L{email_1} fields.
