@@ -5,7 +5,8 @@ L{Subscription}, and L{Router}) as well as two form classes (L{SubscribeForm}
 and L{PreferencesForm}), which specify the fields to appear on the sign-up 
 and change preferences pages.
 
-@group Helper Functions: insert_fingerprint_spaces, get_rand_string, hours_since_changed
+@group Helper Functions: insert_fingerprint_spaces, get_rand_string,
+    hours_since_changed
 """
 from datetime import datetime
 import base64
@@ -24,7 +25,7 @@ def insert_fingerprint_spaces(fingerprint):
     """Insert a space into C{fingerprint} every four characters.
 
     @type fingerprint: str
-    @param fingerprint: A router L{fingerprint}
+    @param fingerprint: A router L{Router.fingerprint}
 
     @rtype: str
     @return: C{fingerprint} with spaces inserted every four characters.
@@ -34,7 +35,8 @@ def insert_fingerprint_spaces(fingerprint):
 
 def get_rand_string():
     """Returns a random, url-safe string of 24 characters (no '+' or '/'
-    characters). The generated string does not end in '-'.
+    characters). The generated string does not end in '-'. Main purpose is
+    for authorization URL extensions.
         
     @rtype: str
     @return: A randomly generated, 24 character string (url-safe).
@@ -62,12 +64,14 @@ def hours_since_changed(last_changed):
     return hours_since_changed
 
 class Router(models.Model):
-    """Model for Tor network routers. Django uses class variables to specify   
-    model fields, but these fields are practically used and thought of as
-    instance variables, so this documentation will refer to them as such.
-    Fields are specified as their django field classes, with parentheses 
-    indicating the python type they are validated against and are treated as
-    practically.
+    """Model for Tor network routers. 
+    Django uses class variables to specify model fields, but these fields are
+    practically used and thought of as instance variables, so this 
+    documentation will refer to them as such. Field types are specified as
+    their Django field classes, with parentheses indicating the python type
+    they are validated against and are treated as practically. When 
+    constructing a L{Router} object, instance variables are specified as 
+    keyword arguments in L{Router} constructors.
    
     @type _FINGERPRINT_MAX_LEN: int
     @cvar _FINGERPRINT_MAX_LEN: Maximum valid length for L{fingerprint}
@@ -77,40 +81,43 @@ class Router(models.Model):
     @type _DEFAULTS: dict {str: various}
     @cvar _DEFAULTS: Dictionary mapping field names to their default
         parameters. These are the values that fields will be instantiated with
-        if they are not specified in the field's construction.
+        if they are not specified in the model's construction.
 
     @type fingerprint: CharField (str)
-    @ivar fingerprint: The L{Router}'s fingerprint.
+    @ivar fingerprint: The L{Router}'s fingerprint. Required constructor
+        argument.
     @type name: CharField (str)
-    @ivar name: The L{Router}'s name.
+    @ivar name: The L{Router}'s name. Default value is C{'Unnamed'}.
     @type welcomed: BooleanField (bool)
     @ivar welcomed: Whether the L{Router} operator has received a welcome
-        email.
+        email. Default value is C{False}.
     @type last_seen: DateTimeField (datetime)
     @ivar last_seen: The most recent time the L{Router} was seen in consensus.
+        Default value is a call to C{datetime.now()}.
     @type up: BooleanField (bool)
     @ivar up: Whether this L{Router} was up the last time a new consensus
-        document was published.
+        document was published. Default value is C{True}.
     @type exit: BooleanField (bool)
     @ivar exit: Whether this L{Router} is an exit node (if it accepts exits 
-        to port 80).
+        to port 80). Default is C{False}.
     """
     
     _FINGERPRINT_MAX_LEN = 40
     _NAME_MAX_LEN = 100
-    _DEFAULTS = { 'name': "Unnamed",
+    _DEFAULTS = { 'name': 'Unnamed',
                   'welcomed': False,
                   'last_seen': datetime.now,
-                  'up': True }
+                  'up': True,
+                  'exit': False }
 
     fingerprint = models.CharField(max_length=_FINGERPRINT_MAX_LEN,
-            unique=True)
+            default=None, blank=False)
     name = models.CharField(max_length=_NAME_MAX_LEN,
             default=_DEFAULTS['name'])
     welcomed = models.BooleanField(default=_DEFAULTS['welcomed'])
     last_seen = models.DateTimeField(default=_DEFAULTS['last_seen'])
     up = models.BooleanField(default=_DEFAULTS['up'])
-    exit = models.BooleanField()
+    exit = models.BooleanField(default=_DEFAULTS['exit'])
 
     def __unicode__(self):
         """Returns a simple description of this L{Router}, namely its L{name}
@@ -133,12 +140,14 @@ class Router(models.Model):
         return insert_fingerprint_spaces(self.fingerprint)
 
 class Subscriber(models.Model):
-    """Model for Tor Weather subscribers. Django uses class variables to 
-    specify model fields, but these fields are practically used and thought of
-    as instance variables, so this documentation will refer to them as such.
-    Fields are specified as their django field classes, with parentheses
-    indicating the python type they are validated against and treated as 
-    practically.
+    """Model for Tor Weather subscribers. 
+    Django uses class variables to specify model fields, but these fields are 
+    practically used and thought of as instance variables, so this 
+    documentation will refer to them as such. Field types are specified as 
+    their Django field classes, with parentheses indicating the python type 
+    they are validated against and treated as practically. When constructing a 
+    L{Subscriber} object, instance variables are specified as keyword arguments
+    in L{Subscriber} constructors.
 
     @type _EMAIL_MAX_LEN: int
     @cvar _EMAIL_MAX_LEN: Maximum length for L{email} field.
@@ -147,23 +156,30 @@ class Subscriber(models.Model):
         L{pref_auth}
     @type _DEFAULTS: Dictionary mapping field names to their default
         parameters. These are the values that fields will be instantiated with
-        if they are not specified in the field's construction.
+        if they are not specified in the model's construction.
 
     @type email: EmailField (str)
-    @ivar email: The L{Subscriber}'s email address.
+    @ivar email: The L{Subscriber}'s email address. Required constructor 
+        argument.
     @type router: L{Router}
-    @ivar router: The L{Router} the L{Subscriber} is subscribed to.
+    @ivar router: The L{Router} the L{Subscriber} is subscribed to. Required
+        constructor argument.
     @type confirmed: BooleanField (bool)
     @ivar confirmed: Whether the user has confirmed their subscription through
-        an email confirmation link.
+        an email confirmation link; C{True} if they have, C{False} if they 
+        haven't. Default value is C{False}.
     @type confirm_auth: CharField (str)
-    @ivar confirm_auth: Confirmation authorization code.
+    @ivar confirm_auth: Confirmation authorization code. Default value is a
+        random string generated by L{get_rand_string}.
     @type unsubs_auth: CharField (str)
-    @ivar unsubs_auth: Unsubscription authorization code.
+    @ivar unsubs_auth: Unsubscription authorization code. Default value is a
+        random string generated by L{get_rand_string}.
     @type pref_auth: CharField (str)
-    @ivar pref_auth: Preferences access authorization code.
+    @ivar pref_auth: Preferences access authorization code. Default value is a
+        random string generated by L{get_rand_string}.
     @type sub_date: DateTimeField (datetime)
-    @ivar sub_date: Datetime at which the L{Subscriber} subscribed.
+    @ivar sub_date: Datetime at which the L{Subscriber} subscribed. Default 
+        value is the current time, evaluated by a call to C{datetime.now}.
     """
 
     _EMAIL_MAX_LEN = 75
@@ -174,8 +190,9 @@ class Subscriber(models.Model):
                   'pref_auth': get_rand_string,
                   'sub_date': datetime.now }
 
-    email = models.EmailField(max_length=_EMAIL_MAX_LEN)
-    router = models.ForeignKey(Router)
+    email = models.EmailField(max_length=_EMAIL_MAX_LEN, 
+            default=None, blank=False)
+    router = models.ForeignKey(Router, default=None, blank=False)
     confirmed = models.BooleanField(default=_DEFAULTS['confirmed'])
     confirm_auth = models.CharField(max_length=_AUTH_MAX_LEN,
             default=_DEFAULTS['confirm_auth'])
@@ -204,11 +221,8 @@ class Subscriber(models.Model):
             L{VersionSub}, L{BandwidthSub}, or L{TShirtSub}).
         @rtype: bool
         @return: Whether this L{Subscriber} has a L{Subscription} of type
-            C{sub_type}. Also returns C{False} if C{sub_type} is not a valid
-            name of a 
-        @return: C{True} if this subscriber object has a L{Subscription} of 
-                 C{sub_type}, C{False} otherwise. Also returns C{False} if 
-                 C{sub_type} is not a valid name of a L{Subscription} subclass.
+            C{sub_type}; C{True} if it does, C{False} if it doesn't. Also 
+            returns C{False} if C{sub_type} is not a valid name of a 
         """
 
         if sub_type == 'NodeDownSub':
@@ -235,7 +249,8 @@ class Subscriber(models.Model):
         """Checks if this L{Subscriber} has a L{NodeDownSub}.
 
         @rtype: bool
-        @return: Whether a L{NodeDownSub} exists for this L{Subscriber}.
+        @return: Whether a L{NodeDownSub} exists for this L{Subscriber}; C{True}
+            if it does, C{False} if it doesn't.
         """
         
         return self._has_sub_type('NodeDownSub')
@@ -244,7 +259,8 @@ class Subscriber(models.Model):
         """Checks if this L{Subscriber} has a L{VersionSub}.
         
         @rtype: bool
-        @return: Whether a L{VersionSub} exists for this L{Subscriber}.
+        @return: Whether a L{VersionSub} exists for this L{Subscriber}; C{True}
+            if it does, C{False} if it doesn't.
         """
 
         return self._has_sub_type('VersionSub')
@@ -253,7 +269,9 @@ class Subscriber(models.Model):
         """Checks if this L{Subscriber} has a L{BandwidthSub}.
 
         @rtype: bool
-        @return: Whether a L{BandwidthSub} exists for this L{Subscriber}.
+        @return: Whether a L{BandwidthSub} exists for this L{Subscriber};
+            C{True} if it does, C{False} if it doesn't.
+
         """
 
         return self._has_sub_type('BandwidthSub')
@@ -262,7 +280,8 @@ class Subscriber(models.Model):
         """Checks if this L{Subscriber} has a L{TShirtSub}.
         
         @rtype: bool
-        @return: Whether a L{TShirtSub} exists for this L{Subscriber}.
+        @return: Whether a L{TShirtSub} exists for this L{Subscriber}; C{True}
+            if it does, C{False} if it doesn't.
         """
 
         return self._has_sub_type('TShirtSub')
@@ -314,117 +333,137 @@ class Subscriber(models.Model):
         return data
          
 class Subscription(models.Model):
-    """Generic (abstract) mdoel for Tor Weather subscriptions. Only contains
-    fields which are used by all types of Tor Weather subscriptions. Django
-    uses class variables to specify model fields, but these fields are
-    practically used and thought as instance variables, so this documentation
-    will refer to them as such. Fields are specified as their django field 
-    classes, with parantheses indicating the python type they are validated
-    against and treated as practically.
+    """Generic (abstract) model for Tor Weather subscriptions. Only contains
+    fields which are used by all types of Tor Weather subscriptions. 
+    Django uses class variables to specify model fields, but these fields are
+    practically used and thought of as instance variables, so this 
+    documentation will refer to them as such. Field types are specified as 
+    their Django field classes, with parentheses indicating the python type 
+    they are validated against and treated as practically.
 
     @type _DEFAULTS: dict {str: various}
     @cvar _DEFAULTS: Dictionary mapping field names to their default
         parameters. These are the values that fields will be instantiated
-        with if they are not specified in the field's construction.
+        with if they are not specified in the model's construction.
 
     @type subscriber: L{Subscriber}
     @ivar subscriber: The L{Subscriber} who is subscribed to this
         L{Subscription}.
     @type emailed: BooleanField (bool)
     @ivar emailed: Whether the user has already been emailed about this
-        L{Subscription} since it has been triggered.
+        L{Subscription} since it has been triggered; C{True} if they have
+        been, C{False} if they haven't been.
     """
 
     _DEFAULTS = { 'emailed': False }
 
-    subscriber = models.ForeignKey(Subscriber)
-    emailed = models.BooleanField(default=False)
+    subscriber = models.ForeignKey(Subscriber, default=None, blank=False)
+    emailed = models.BooleanField(default=_DEFAULTS['emailed'])
 
 class NodeDownSub(Subscription):
-    """A subscription class for node-down subscriptions, which send 
-    notifications to the user if their node is down for the downtime grace
-    period they specify. 
+    """Model for node-down notification subscriptions, which send notifications
+    to their C{susbcriber} if the C{subscriber}'s C{router} is offline for
+    C{grace_pd} hours.
+    Django uses class variables to specify model fields, but these fields are
+    practically used and thought of as instance variables, so this
+    documentation will refer to them as such. Fields are specfieid as their 
+    Django field classes, with parentheses indicating the python type they are
+    validated against and treated as practically.
 
-    @type triggered: bool
-    @ivar triggered: C{True} if the node is down, C{False} if it is up.
-    @type grace_pd: int
-    @ivar grace_pd: The amount of time (hours) before a notification is sent
-                    after a node is seen down.
-    @type last_changed: datetime
-    @ivar last_changed: The datetime object representing the time the triggered
-                        flag was last changed.
+    @type _DEFAULTS: dict {str: various}
+    @cvar _DEFAULTS: Dictionary mapping field names to their default
+        parameters. These are the values that fields will be instantiated
+        with if they are not specified in the model's construction.
+
+    @type triggered: BooleanField (bool)
+    @ivar triggered: Whether the C{subscriber}'s C{router} is offline; C{True}
+        if it is, C{False} if it isn't. Default value is C{False}.
+    @type grace_pd: IntegerField (int)
+    @ivar grace_pd: Number of hours which the C{subscriber}'s C{router} must
+        be offline before a notification is sent.
+    @type last_changed: DateTimeField (datetime)
+    @ivar last_changed: Datetime at which the C{triggered} flag was last 
+        changed.
+
     """
-    triggered = models.BooleanField(default=False)
-    grace_pd = models.IntegerField()
-    last_changed = models.DateTimeField(default=datetime.now)
+    
+    _DEFAULTS = { 'triggered': False,
+                  'last_changed': datetime.now }
 
+    triggered= models.BooleanField(default=_DEFAULTS['triggered'])
+    grace_pd = models.IntegerField(default=None, blank=False)
+    last_changed = models.DateTimeField(default=_DEFAULTS['last_changed'])
+    
     def is_grace_passed(self):
-        """Check if the grace period has passed for this subscription
+        """Check if the C{subscriber}'s C{router} has been offline for 
+        C{grace_pd} hours.
         
         @rtype: bool
-        @return: C{True} if C{triggered} and 
-        C{hours_since_changed()} >= C{grace_pd}, otherwise
-        C{False}.
+        @return: Whether the L{subscriber}'s L{router} has been offline for
+            L{grace_pd} hours; C{True} if it has, C{False} if it hasn't.
         """
 
-        if self.triggered and hours_since_changed() >= \
-                grace_pd:
+        if self.triggered \
+                and hours_since_changed(self.last_changed) >= grace_pd:
             return True
         else:
             return False
 
 class VersionSub(Subscription):
-    """Subscription class for version notifications. Subscribers can choose
-    between two notification types: OBSOLETE or UNRECOMMENDED. For OBSOLETE
-    notifications, the user is sent an email if their router's version of Tor
-    does not appear in the list of recommended versions (obtained via TorCtl).
-    For UNRECOMMENDED notifications, the user is sent an email if their  
-    router's version of Tor is not the most recent stable (non-alpha/beta)   
-    version of Tor in the list of recommended versions.
+    """Model for version update notification subscriptions, which send 
+    notifications to their C{subscriber} if the C{subscriber}'s C{router} is
+    running a version of Tor that is out-of-date. OBSOLETE notifications are
+    triggered if the C{router}'s version of Tor is not in the list of 
+    recommended versions (obtained via TorCtl), and UNRECOMMENDED notifications
+    are triggered if the C{router}'s version fo Tor is not the most recent 
+    stable (non-alpha/beta) version of Tor in the list of recommended versions.
+    Django uses class variables to specify model fields, but these fields
+    are practically used and thought of as instance variables, so this
+    documentation will refer to them as such. Field types are specified as 
+    their Django field classes, with parentheses indicating the python type 
+    they are validated against and treated as practically.
 
-    @type notify_type: str
-    @ivar notify_type: Either UNRECOMMENDED (notify users if the router isn't 
-        running the most recent stable version of Tor) or OBSOLETE (notify 
-        users
-        if their router is running a version of Tor that doesn't appear on the
-        list of recommended versions).
-    """
-    #only send notifications if the version is of type notify_type 
-    notify_type = models.CharField(max_length=250)
-
-class BandwidthSub(Subscription):    
-    """Subscription class for low bandwidth notifications. Subscribers 
-    determine a threshold bandwidth in KB/s (default is 20KB/s). If the 
-    observed bandwidth field in the descriptor file for their router is ever   
-    below that threshold, the user is sent a notification. According to the 
-    directory specifications, the observed bandwidth field "is an estimate of 
-    the capacity this server can handle. The server remembers the max 
-    bandwidth sustained output over any ten second period in the past day, and 
-    another sustained input. The 'observed' value is the lesser of these two 
-    numbers." An email is sent as soon as we this observed bandwidth crosses 
-    the threshold (no grace pd).
-
-    @type threshold: int
-    @ivar threshold: The threshold for the bandwidth (in KB/s) that the user 
-        specifies for receiving notifications.
-    """
-    threshold = models.IntegerField(default = 20)
+    @type _NOTIFY_TYPE_MAX_LEN: int
+    @cvar _NOTIFY_TYPE_MAX_LEN: Maximum length for L{notify_type} field.
     
-    def more_ino(self):
-        """Returns a description of this subscription. Meant to be used for
-        testing purposes in the shell
+    @type notify_type: CharField (str)
+    @ivar notify_type: The type of notification, either 'UNRECOMMENDED' or 
+        'OBSOLETE'.
+    """
 
-        @rtype: str
-        @return: A representation of this subscription's fields.
-        """
+    _NOTIFY_TYPE_MAX_LEN = 13
 
-        return 'Bandwidth Subscription' + \
-               '\nSubscriber: ' + self.subscriber.email + ' ' + \
-                   self.subscriber.router.name + ' ' + \
-                   self.subscriber.router.fingerprint + \
-               '\nEmailed: ' + str(self.emailed) + \
-               '\nThreshold: ' + self.threshold
+    notify_type = models.CharField(max_length=_NOTIFY_TYPE_MAX_LEN)
 
+class BandwidthSub(Subscription):   
+    """Model for low bandwidth notification subscriptions, which send
+    notifications to their C{subscriber} if the C{subscriber}'s C{router} has
+    an observed bandwidth below their specified C{threshold}. Observer
+    bandwidth information is found in descriptor files, and, according to
+    the directory specifications, the observed bandwidth field "is an estimate
+    of the capacity this server can hadnle. The server remembers the max 
+    bandwidth sustained output over any ten second period in the past day,
+    and anothe rsustained input. The 'observed' value is the lesser of these
+    two numbers."
+    Django uses class variables to specify model fields, but these fields are
+    practically used and thought of as instance variables, so this
+    documentation will refer to them as such. Field types are specified as
+    their Django field classes, with parentheses indicating the python type
+    they are validated against and treated as practically.
+
+    @type _DEFAULTS: dict {str: various}
+    @cvar _DEFAULTS: Dictionary mapping field names to their default
+        parameters. These are the values that fields will be instantiated with
+        if they are not specified in the model's construction.
+
+    @type threshold: IntegerField (int)
+    @ivar threshold: The bandwidth threshold (in kB/s).
+    """
+
+    _DEFAULTS = { 'threshold': 20 }
+
+    threshold = models.IntegerField(_DEFAULTS['threshold'])
+    
 class TShirtSub(Subscription):
     """A subscription class for T-shirt notifications. An email is sent
     to the user if the router they're monitoring has earned them a T-shirt.
