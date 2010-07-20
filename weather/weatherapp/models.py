@@ -1,13 +1,20 @@
 """
-The models module handles the bulk of Tor Weather's database management. The 
-module contains three models that correspond to database tables (L{Subscriber}, 
-L{Subscription}, and L{Router}) as well as two form classes (L{SubscribeForm} 
-and L{PreferencesForm}), which specify the fields to appear on the sign-up 
-and change preferences pages.
+The models module handles the bulk of Tor Weather's database management. The
+module contains three models that correspond to the three main database tables
+(L{Router}, L{Subscriber}, and L{Subscription}), as well as four subclasses of
+L{Subscription} for the various subscription types and three classes for forms
+(L{GenericForm}, L{SubscribeForm}, and L{PreferencesForm}), which specify and do
+the work of the forms displayed on the sign-up and preferences pages.
 
 @group Helper Functions: insert_fingerprint_spaces, get_rand_string,
-    hours_since_changed
+    hours_since
+@group Models: Router, Subscriber, Subscription, Subscription Subclasses
+@group Subscription Subclasses: NodeDownSub, VersionSub, BandwidthSub, 
+    TShirtSub
+@group Forms: GenericForm, SubscribeForm, PreferencesForm
+@group Custom Fields: PrefixedIntegerField
 """
+
 from datetime import datetime
 import base64
 import os
@@ -21,14 +28,19 @@ from django import forms
 from django.core import validators
 from django.core.exceptions import ValidationError
 
+
+# HELPER FUNCTION -------------------------------------------------------------
+# ----------------------------------------------------------------------------- 
+
 def insert_fingerprint_spaces(fingerprint):
     """Insert a space into C{fingerprint} every four characters.
 
     @type fingerprint: str
-    @param fingerprint: A router L{Router.fingerprint}
+    @arg fingerprint: A router L{fingerprint<Router.fingerprint>}
 
     @rtype: str
-    @return: C{fingerprint} with spaces inserted every four characters.
+    @return: a L{fingerprint<Router.fingerprint>} with spaces inserted every 
+    four characters.
     """
 
     return ' '.join(re.findall('.{4}', str(fingerprint)))
@@ -49,19 +61,22 @@ def get_rand_string():
         r = r.replace("-", "x")
     return r  
 
-def hours_since_changed(last_changed):
-    """Returns the number of hours passed since C{last_changed}.
+def hours_since(time):
+    """Get the number of hours passed since datetime C{time}.
 
-    @type last_changed: datetime
-    @param last_changed: The datetime of the most recent change
-        for some flag.
+    @type time: C{datetime}
+    @arg time: A C{datetime} object.
     @rtype: int
-    @return: The number of hours since C{last_changed}.
+    @return: The number of hours since C{time}.
     """
-    time_since_changed = datetime.now() - last_changed
-    hours_since_changed = (time_since_changed.hours * 24) + \
-                              (time_since_changed.seconds / 3600)
-    return hours_since_changed
+    
+    delta = datetime.now() - time
+    hours = (delta.hours * 24) + (delta.seconds / 3600)
+    return hours
+
+
+# MODELS ----------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 class Router(models.Model):
     """Model for Tor network routers. 
@@ -141,6 +156,7 @@ class Router(models.Model):
 
 class Subscriber(models.Model):
     """Model for Tor Weather subscribers. 
+
     Django uses class variables to specify model fields, but these fields are 
     practically used and thought of as instance variables, so this 
     documentation will refer to them as such. Field types are specified as 
@@ -216,7 +232,7 @@ class Subscriber(models.Model):
         C{sub_type}.
 
         @type sub_type: str
-        @param sub_type: The type of L{Subscription} to check. This must be the 
+        @arg sub_type: The type of L{Subscription} to check. This must be the 
             exact name of a subclass of L{Subscription} (L{NodeDownSub},
             L{VersionSub}, L{BandwidthSub}, or L{TShirtSub}).
         @rtype: bool
@@ -334,12 +350,15 @@ class Subscriber(models.Model):
          
 class Subscription(models.Model):
     """Generic (abstract) model for Tor Weather subscriptions. Only contains
-    fields which are used by all types of Tor Weather subscriptions. 
+    fields which are used by all types of Tor Weather subscriptions.
+
     Django uses class variables to specify model fields, but these fields are
     practically used and thought of as instance variables, so this 
     documentation will refer to them as such. Field types are specified as 
     their Django field classes, with parentheses indicating the python type 
-    they are validated against and treated as practically.
+    they are validated against and treated as practically. When constructing
+    a L{Subscription} object, instance variables are specified as keyword
+    arguments in L{Subscription} constructors.
 
     @type _DEFAULTS: dict {str: various}
     @cvar _DEFAULTS: Dictionary mapping field names to their default
@@ -348,17 +367,21 @@ class Subscription(models.Model):
 
     @type subscriber: L{Subscriber}
     @ivar subscriber: The L{Subscriber} who is subscribed to this
-        L{Subscription}.
+        L{Subscription}. Required constructor argument.
     @type emailed: BooleanField (bool)
     @ivar emailed: Whether the user has already been emailed about this
         L{Subscription} since it has been triggered; C{True} if they have
-        been, C{False} if they haven't been.
+        been, C{False} if they haven't been. Default value is C{False}.
     """
 
     _DEFAULTS = { 'emailed': False }
 
     subscriber = models.ForeignKey(Subscriber, default=None, blank=False)
     emailed = models.BooleanField(default=_DEFAULTS['emailed'])
+
+
+# SUBSCRIPTION SUBCLASSES -----------------------------------------------------
+# -----------------------------------------------------------------------------
 
 class NodeDownSub(Subscription):
     """Model for node-down notification subscriptions, which send notifications
@@ -380,11 +403,12 @@ class NodeDownSub(Subscription):
         if it is, C{False} if it isn't. Default value is C{False}.
     @type grace_pd: IntegerField (int)
     @ivar grace_pd: Number of hours which the C{subscriber}'s C{router} must
-        be offline before a notification is sent.
+        be offline before a notification is sent. Required constructor 
+        argument.
     @type last_changed: DateTimeField (datetime)
-    @ivar last_changed: Datetime at which the C{triggered} flag was last 
-        changed.
-
+    @ivar last_changed: Datetime at which the L{triggered} flag was last 
+        changed. Default value is the current time, evaluated with a call to
+        C{datetime.now}.
     """
     
     _DEFAULTS = { 'triggered': False,
@@ -404,7 +428,7 @@ class NodeDownSub(Subscription):
         """
 
         if self.triggered \
-                and hours_since_changed(self.last_changed) >= grace_pd:
+                and hours_since(self.last_changed) >= grace_pd:
             return True
         else:
             return False
@@ -428,12 +452,13 @@ class VersionSub(Subscription):
     
     @type notify_type: CharField (str)
     @ivar notify_type: The type of notification, either 'UNRECOMMENDED' or 
-        'OBSOLETE'.
+        'OBSOLETE'. Required constructor argument.
     """
 
     _NOTIFY_TYPE_MAX_LEN = 13
 
-    notify_type = models.CharField(max_length=_NOTIFY_TYPE_MAX_LEN)
+    notify_type = models.CharField(max_length=_NOTIFY_TYPE_MAX_LEN,
+            default=None, blank=False)
 
 class BandwidthSub(Subscription):   
     """Model for low bandwidth notification subscriptions, which send
@@ -457,7 +482,7 @@ class BandwidthSub(Subscription):
         if they are not specified in the model's construction.
 
     @type threshold: IntegerField (int)
-    @ivar threshold: The bandwidth threshold (in kB/s).
+    @ivar threshold: The bandwidth threshold (in kB/s). Default value is 20.
     """
 
     _DEFAULTS = { 'threshold': 20 }
@@ -465,45 +490,74 @@ class BandwidthSub(Subscription):
     threshold = models.IntegerField(_DEFAULTS['threshold'])
     
 class TShirtSub(Subscription):
-    """A subscription class for T-shirt notifications. An email is sent
-    to the user if the router they're monitoring has earned them a T-shirt.
-    The router must be running for 61 days (2 months). If it's an exit node,
-    it's avg bandwidth must be at least 100 KB/s. Otherwise, it must be at 
-    least 500 KB/s.
+    """Model for t-shirt notification subscriptions, which send notifications 
+    to their C{susbcriber} if running their C{router} has earned the 
+    C{subscriber} a t-shirt. The (vague) specification for earning a t-shirt by
+    running a router is that the router must be running for 61 days (2 months),
+    with an average bandwidth of at least 500 kB/s (or 100 kB/s if it's an exit
+    node).
 
-    @type triggered: bool
-    @ivar triggered: C{True} if this router is up, 
-    @type avg_bandwidth: int
-    @ivar avg_bandwidth: The router's average bandwidth in KB/s
+    Django uses class variables to specify model fields, but these fields are
+    practically used and thought of as instance variables, so this documentation
+    will refer to them as such. Field types are specified as their Django field
+    classes, with parentheses indicating the pythn type they are validated
+    against and are treated as practically. When constructing a L{TShirtSub}
+    object, instance variables are specified as keyword arguments in
+    L{TShirtSub} constructors.
+
+    @type _DEFAULTS: C{dict} {C{str}: various}
+    @cvar _DEFAULTS: Dictionary mapping field names to their default parameters.
+        These are the values that fields will be instantiated with if they are
+        not specified in the model's construction.
+
+    @type triggered: BooleanField (bool)
+    @ivar triggered: Whether the C{router} is up. Default is C{False}.
+    @type avg_bandwidth: IntegerField (int)
+    @ivar avg_bandwidth: The L{router<Subscriber.router>}'s average bandwidth 
+        in kB/s. Default is 0.
     @type last_changed: datetime
-    @ivar last_changed: The datetime object representing the last time the 
-        triggered flag was changed.
+    @ivar last_changed: The datetime at which the L{triggered} flag was last
+        changed. Default is the current time, evaluated with a call to
+        datetime.now.
     """
-    triggered = models.BooleanField(default = False)
-    avg_bandwidth = models.IntegerField(default = 0)
-    last_changed = models.DateTimeField(default = datetime.now)
+    
+    _DEFAULTS = { 'triggered': False,
+                  'avg_bandwidth': 0,
+                  'last_changed': datetime.now }
+
+    triggered = models.BooleanField(default=_DEFAULTS['triggered'])
+    avg_bandwidth = models.IntegerField(default=_DEFAULTS['avg_bandwidth'])
+    last_changed = models.DateTimeField(default=_DEFAULTS['last_changed'])
 
     def get_hours_since_triggered(self):
-        """Returns the time in hours that the router has been up."""
+        """Get the number of hours that the L{router<Subscriber.router>} has
+        been up.
+
+        @rtype: C{bool}
+        @return: The number of hours that the router has been up, or C{0} if the
+            router is offline.
+        """
+
         if self.triggered == False:
             return 0
-        time_since_triggered = datetime.now() - self.last_changed
-        # timedelta objects only store days, seconds, and microseconds :(
-        hours = time_since_triggered.seconds / 3600 + \
-                time_since_triggered.days * 24
-        return hours
-
-    def should_email(self, hours_up):
-        """Returns true if the router being watched has been up for 1464 hours
-        (61 days, or approx 2 months). If it's an exit node, the avg bandwidth
-        must be at or above 100 KB/s. If not, it must be >= 500 KB/s.
+        else:
+            return hours_since(self.last_changed)
         
-        @type hours_up: int
-        @param hours_up: The hours that this router has been up (0 if the
-            router was last seen down)
-        @rtype: bool
-        @return: C{True} if the user earned a T-shirt, C{False} if not.
-        """
+    def should_email(self):
+        """Determines if the L{subscriber<Subscription.subscriber>} has earned a
+        t-shirt by running its L{router<Subscriber.router>}. Determines this by
+        checking if the L{router<Subscriber.router>} has been up for 1464 hours
+        (61 days, appox 2 months) and then checking if its average bandwidth is
+        above the required threshold (100 kB/s for an exit node, 500 kB/s for a
+        non-exit node).
+        
+        @rtype: C{bool}
+        @return: Whether the L{subscriber<Subscription.subscriber>} has earned 
+            a t-shirt; C{True} if they have, C{False} if they haven't.
+        """ 
+        
+        hours_up = get_hours_since_triggered(self)
+        
         if not self.emailed and self.triggered and hours_up >= 1464:
             if self.subscriber.router.exit:
                 if self.avg_bandwidth >= 100:
@@ -513,18 +567,33 @@ class TShirtSub(Subscription):
                     return True
         return False
 
+
+# CUSTOM FIELDS ---------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 class PrefixedIntegerField(forms.IntegerField):
-    """An Integer Field that accepts input of the form "-prefix- -integer-"
-    and parses it as simply -integer- in its to_python method. Replaces the
-    previous process of overwriting post data, which was an ugly workaround.
-    A PrefixedIntegerField will not accept empty input, but will throw a
-    validationerror specifying that it was left empty, so that this error can
-    be intercepted and dealth with cleanly.
+    """An C{IntegerField} that accepts input of the form C{PREFIX INTEGER}
+    and parses it as simply C{INTEGER} in its L{to_python} method. A 
+    L{PrefixedIntegerField} will not accept empty input, but will throw a
+    C{ValidationError} specifying that it was left empty, so that this error 
+    can be intercepted and dealth with cleanly. This class does not handle
+    displaying the field to include the C{PREFIX}, but simply handles the
+    gritty details of validating a field whose data is int but displays text as
+    well.
+
+    @type _PREFIX_DEFAULT: C{str}
+    @cvar _PREFIX_DEFAULT: Default prefix.
+    @type _DEFAULT_ERRORS: C{dict} {C{str}: C{str}}
+    @cvar _DEFAULT_ERRORS: Dictionary mapping default error names to their error
+        messages.
+
+    @type prefix: C{str}
+    @ivar prefix: Prefix to use for this L{PrefixedIntegerField} instance. 
     """
 
-    _PREFIX = 'Default value is '
+    _PREFIX_DEFAULT = 'Default value is '
 
-    default_error_messages = {
+    _DEFAULT_ERRORS = {
         'invalid': 'Enter a whole number.',
         'max_value': 'Ensure this value is less than or equal to \
                 %(limit_value)s.',
@@ -534,6 +603,15 @@ class PrefixedIntegerField(forms.IntegerField):
     }
 
     def __init__(self, max_value=None, min_value=None, *args, **kwargs):
+        """Constructor for L{PrefixedIntegerField}. Passes arguments to 
+        C{IntegerField}, and adds validators for min and max values.
+
+        @type max_value: C{int}
+        @arg max_value: Maximum allowed value for this L{PrefixedIntegerField}.
+        @type min_value: C{int}
+        @arg min_value: Minimum allowed value for this L{PrefixedIntegerField}.
+        """
+
         forms.IntegerField.__init__(self, *args, **kwargs)
 
         if max_value is not None:
@@ -541,8 +619,25 @@ class PrefixedIntegerField(forms.IntegerField):
         if min_value is not None:
             self.validators.append(validators.MinValueValidator(min_value))
 
+        self.prefix = _PREFIX_DEFAULT
+        self.error_messages = _DEFAULT_ERRORS
+
     def to_python(self, value):
-        prefix = PrefixedIntegerField._PREFIX
+        """First step in Django's validation process. Ensures that data in
+        L{Prefixed IntegerField} is a Python C{int} and returns the data in 
+        that form. L{PrefixedIntegerField} is necessary in order to overwrite
+        this method; cuts off the prefix and then sends the remaining input to
+        the C{IntegerField} C{to_python} method.
+
+        @arg value: The input of the L{PrefixedIntegerField} field.
+        @rtype: int
+        @return: The data in the input field if it is an integer, with the 
+            prefix removed if it is of the form C{PREFIX INTEGER}. 
+        @raise ValidationError: If the L{PrefixedIntegerField} is empty. 
+            Passes the empty error message so that this error can be caught and
+            handled correctly.
+        """
+        prefix = self.prefix
 
         if value == '':
             raise ValidationError(self.error_messages['empty'])
@@ -559,13 +654,20 @@ class PrefixedIntegerField(forms.IntegerField):
 
         return value
 
+
+# FORMS -----------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 class GenericForm(forms.Form):
-    """The basic form class that is inherited by the SubscribeForm class
-    and the PreferencesForm class. Class variables specifying the types of 
-    fields that instances of GenericForm receive are labeled as instance
-    variables in this epydoc documentation since the specifications for fields
-    can be thought of as the fields that act like instance variables.
-   
+    """The basic form class that is inherited by the L{SubscribeForm} class
+    and the L{PreferencesForm} class. 
+    
+    Django uses class variables to specify form fields, but these fields are 
+    practically used and thought of as instance variables, so this 
+    documentation will refer to them as such. Field types are specified as
+    their Django field classes, with parentheses indicating the python type
+    they are validated against and treated as practically.
+    
     @type _GET_NODE_DOWN_INIT: bool
     @cvar _GET_NODE_DOWN_INIT: Initial display value and default submission
         value of the L{get_node_down} checkbox.
@@ -590,6 +692,12 @@ class GenericForm(forms.Form):
     @type _NODE_DOWN_GRACE_PD_HELP_TEXT: str
     @cvar _NODE_DOWN_GRACE_PD_HELP_TEXT: Text displayed next to 
         L{node_down_grace_pd} checkbox.
+    @type _NODE_DOWN_GRACE_PD_UNIT_CHOICES: list [tuple (str)]
+    @cvar _NODE_DOWN_GRACE_PD_UNIT_CHOICES: List of tuples of backend and 
+        frontend names for unit choice for L{node_down_grace_pd_unit}.
+    @type _NODE_DOWN_GRACE_PD_UNIT_INIT: tuple (str)
+    @cvar _NODE_DOWN_GRACE_PD_UNIT_INIT: Initial tuple for the
+        L{node_down_grace_pd_unit} field.
     
     @type _GET_VERSION_INIT: bool
     @cvar _GET_VERSION_INIT: Initial display value and default submission 
@@ -612,8 +720,7 @@ class GenericForm(forms.Form):
     @cvar _VERSION_TYPE_CHOICES: List of tuples of backend and frontend names
         for each choice of the L{version_type} field.
     @type _VERSION_TYPE_INIT: str
-    @cvar _VERSION_TYPE_INIT: Initial display value of the L{version_type} 
-        field.
+    @cvar _VERSION_TYPE_INIT: Initial tuple for the L{version_type} field.
     @type _VERSION_INFO: str
     @cvar _VERSION_INFO: Text explaining the version subscription,  displayed
         in the expandable version section of the form, with HTML enabled.
@@ -662,35 +769,34 @@ class GenericForm(forms.Form):
     @cvar _INIT_MAPPING: Dictionary of initial values for fields in 
         L{GenericForm}. Points to each of the fields' _XXX_INIT fields.
 
-    @type get_node_down: forms.BooleanField
+    @type get_node_down: BooleanField
     @ivar get_node_down: Checkbox letting users choose to subscribe to a
         L{NodeDownSub}.
-    @type node_down_grace_pd: PrefixedIntegerField
+    @type node_down_grace_pd: L{PrefixedIntegerField}
     @ivar node_down_grace_pd: Integer field (displaying prefix) letting users
         specify their grace period for a L{NodeDownSub}.
+    @type node_down_grace_pd_unit: ChoiceField
+    @ivar node_down_grace_pd_unit: Unit for L{node_down_grace_pd}. 
 
-    @type get_version: forms.BooleanField
+    @type get_version: BooleanField
     @ivar get_version: Checkbox letting users choose to subscribe to a 
         L{VersionSub}.
-    @type version_type: forms.ChoiceField
+    @type version_type: ChoiceField
     @ivar version_type: Radio button list letting users choose the type of
         L{VersionSub} to subscribe to.
     
-    @type get_band_low: forms.BooleanField
+    @type get_band_low: BooleanField
     @ivar get_band_low: Checkbox letting users choose to subscribe to a
         L{BandwidthSub}.
-    @type band_low_threshold: PrefixedIntegerField
+    @type band_low_threshold: L{PrefixedIntegerField}
     @ivar band_low_threshold: Integer field (displaying prefix) letting users
         specify their threshold for a L{BandwidthSub}.
 
-    @type get_t_shirt: forms.BooleanField
+    @type get_t_shirt: BooleanField
     @ivar get_t_shirt: Checkbox letting users choose to subscribe to a 
         L{TShirtSub}.
     """
       
-    # NOTE: Most places inherit the min, max, and default values for fields
-    # from here, but one notable exception is in the javascript file when
-    # checking if textboxes haven't been altered.
     _GET_NODE_DOWN_INIT = True
     _GET_NODE_DOWN_LABEL = 'Email me when the node is down'
     _NODE_DOWN_GRACE_PD_INIT = 1
@@ -699,10 +805,6 @@ class GenericForm(forms.Form):
     _NODE_DOWN_GRACE_PD_LABEL = 'How long before we send a notifcation?'
     _NODE_DOWN_GRACE_PD_HELP_TEXT = 'Enter a value between one hour and six \
             months'
-    _NODE_DOWN_GRACE_PD_UNIT_CHOICE_1 = 'hours'
-    _NODE_DOWN_GRACE_PD_UNIT_CHOICE_2 = 'days'
-    _NODE_DOWN_GRACE_PD_UNIT_CHOICE_3 = 'weeks'
-    _NODE_DOWN_GRACE_PD_UNIT_CHOICE_4 = 'months'
     _NODE_DOWN_GRACE_PD_UNIT_CHOICES = [ ('H', 'hours'),
                                          ('D', 'days'),
                                          ('W', 'weeks'),
@@ -756,9 +858,6 @@ class GenericForm(forms.Form):
                              str(_BAND_LOW_THRESHOLD_INIT),
                      'get_t_shirt': _GET_T_SHIRT_INIT}
 
-    # These variables look like class variables, but are actually Django
-    # shorthand for instance variables. Upon __init__, these fields will
-    # be generated in instance's list of fields.
     get_node_down = forms.BooleanField(required=False,
             label=_GET_NODE_DOWN_LABEL,
             widget=forms.CheckboxInput(attrs={'class':_CLASS_CHECK}))
@@ -792,6 +891,11 @@ class GenericForm(forms.Form):
             widget=forms.CheckboxInput(attrs={'class':_CLASS_CHECK}))
 
     def __init__(self, data = None, initial = None):
+        """Initializes form and creates instance variables for the text
+        displayed in the version and t-shirt sections of the form so that the
+        template can access them.
+        """
+
         if data == None:
             if initial == None:
                 forms.Form.__init__(self, initial=GenericForm._INIT_MAPPING)
@@ -806,7 +910,9 @@ class GenericForm(forms.Form):
     def check_if_sub_checked(self):
         """Throws a validation error if no subscriptions are checked. 
         Abstracted out of clean() so that there isn't any redundancy in 
-        subclass clean() methods."""
+        subclass clean() methods.
+        """
+        
         data = self.cleaned_data
 
         # Ensures that at least one subscription must be checked.
@@ -818,6 +924,10 @@ class GenericForm(forms.Form):
                                          type of subscription!')
 
     def delete_hidden_errors(self):
+        """Deletes errors and supplies default values for fields which are 
+        in areas of the form that are collapsed.
+        """
+
         data = self.cleaned_data
         errors = self._errors
 
@@ -832,6 +942,10 @@ class GenericForm(forms.Form):
             data['band_low_threshold'] = GenericForm._BAND_LOW_THRESHOLD_INIT
 
     def convert_node_down_grace_pd_unit(self):
+        """Converts the L{node_down_grace_pd} to hours, and creates an error
+        message if this value in hours is above the maximum allowed value.
+        """
+
         data = self.cleaned_data
         unit = data['node_down_grace_pd_unit']
 
@@ -853,10 +967,12 @@ class GenericForm(forms.Form):
                         at most six months (4500 hours).'])
 
     def clean(self):
-        """Calls the check_if_sub_checked to ensure that at least one 
-        subscription type has been selected. (This is a Django thing, called
-        every time the is_valid method is called on a GenericForm POST 
-        request).
+        """Performs the basic, form-wide cleaning for L{GenericForm}. This 
+        method is called automatically by Django's form validation. Ensures
+        that at least on subscription type is selected, converts the
+        L{node_down_grace_pd} to hours and ensures it isn't over the maximum
+        allowed value after this conversion, and deletes errors for sections of
+        the form corresponding to subscriptions the user isn't subscribing to.
                 
         @return: The 'cleaned' data from the POST request.
         """
@@ -869,36 +985,41 @@ class GenericForm(forms.Form):
         return self.cleaned_data
 
 class SubscribeForm(GenericForm):
-    """Inherits from L{GenericForm}. The SubscribeForm class contains
-    all the fields in the GenericForm class and additional fields for 
+    """Inherits from L{GenericForm}. The L{SubscribeForm} class contains
+    all the fields in the L{GenericForm} class and additional fields for 
     the user's email and the fingerprint of the router the user wants to
     monitor.
     
     @type _EMAIL_1_LABEL: str
-    @cvar _EMAIL_1_LABEL: Text displayed above L{email_1} field.
+    @cvar _EMAIL_1_LABEL: Text displayed above L{email_1} fields.
     @type _EMAIL_MAX_LEN: str
-    @cvar _EMAIL_MAX_LEN: Maximum length of L{email_1} field.
+    @cvar _EMAIL_MAX_LEN: Maximum length of L{email_1} fields.
     @type _EMAIL_2_LABEL: str
-    @type _FINGERPRINT_LABEL: Text displayed above L{email_2} field.
-    @type _FINGERPRINT_MAX_LEN:
-    @type _SEARCH_LABEL:
-    @type _SEARCH_MAX_LEN:
-    @type _SEARCH_ID:
-    @type _CLASS_EMAIL:
-    @type _CLASS_LONG:
+    @cvar _EMAIL_2_LABEL: Text displayed above L{email_2} fields.
+    @type _FINGERPRINT_LABEL: str
+    @cvar _FINGERPRINT_LABEL: Text displayed above L{fingerprint} fields.
+    @type _FINGERPRINT_MAX_LEN: int
+    @cvar _FINGERPRINT_MAX_LEN: Maximum length of L{fingerprint} fields.
+    @type _SEARCH_LABEL: str
+    @cvar _SEARCH_LABEL: Text displayed above L{router_search} fields.
+    @type _SEARCH_MAX_LEN: int
+    @cvar _SEARCH_MAX_LEN: Maximum length for L{router_search} fields.
+    @type _SEARCH_ID: str
+    @cvar _SEARCH_ID: HTML/CSS id for L{router_search} fields.
+    @type _CLASS_EMAIL: str
+    @cvar _CLASS_EMAIL: HTML/CSS class for L{email_1} and L{email_2} fields.
+    @type _CLASS_LONG: str
+    @cvar _CLASS_LONG: HTML/CSS class for L{fingeprint} fields.
 
-    @type email_1:
-    @type email_2:
-    @type fingerprint:
-    @type router_search:
-
-    @type email_1: EmailField
-    @ivar email_1: A field for the user's email 
-    @type email_2: EmailField
-    @ivar email_2: A field for the user's email (enter twice for security)
-    @type fingerprint: str
-    @ivar fingerprint: The fingerprint of the router the user wants to 
-        monitor.
+    @type email_1: EmailField (str)
+    @ivar email_1: User's email.
+    @type email_2: EmailField (str)
+    @ivar email_2: User's email (entered a second time to ensure they entered a
+        valid email).
+    @type fingerprint: CharField (str)
+    @ivar fingerprint: Fingerprint of the router the user wants to monitor.
+    @type router_search: CharField (str)
+    @ivar router_search: Field to search by router name for a fingerprint.
     """
 
     _EMAIL_1_LABEL = 'Enter Email:'
@@ -937,8 +1058,13 @@ class SubscribeForm(GenericForm):
             GenericForm.__init__(self, data)
 
     def clean(self):
-        """Called when the is_valid method is evaluated for a SubscribeForm 
-        after a POST request."""
+        """Called when the is_valid method is evaluated for a L{SubscribeForm} 
+        after a POST request. Calls the same methods that the L{GenericForm}
+        L{clean<GenericForm.clean>} method does; also ensures that the two 
+        email fields match and fills in default values for 
+        L{node_down_grace_pd} and L{band_low_threshold} fields if they are left
+        blank.        
+        """
         
         # Calls the same helper methods used in the GenericForm clean() method.
         data = self.cleaned_data
@@ -964,7 +1090,7 @@ class SubscribeForm(GenericForm):
         # If the field is empty, then deletes the empty validation error and 
         # inserts the default value into the cleaned data.
         if 'node_down_grace_pd' in self._errors:
-            if PrefixedIntegerField.default_error_messages['empty'] in \
+            if PrefixedIntegerField._DEFAULT_ERRORS['empty'] in \
                     str(self._errors['node_down_grace_pd']):
                del self._errors['node_down_grace_pd']
                data['node_down_grace_pd'] = \
@@ -973,7 +1099,7 @@ class SubscribeForm(GenericForm):
         # If the field is empty, then deletes the empty validation error and
         # inserts the default value into the cleaned data.
         if 'band_low_threshold' in self._errors:
-            if PrefixedIntegerField.default_error_messages['empty'] in \
+            if PrefixedIntegerField._DEFAULT_ERRORS['empty'] in \
                     str(self._errors['band_low_threshold']):
                 del self._errors['band_low_threshold']
                 data['band_low_threshold'] = \
@@ -982,15 +1108,9 @@ class SubscribeForm(GenericForm):
         return data
 
     def clean_fingerprint(self):
-        """Uses Django's built-in 'clean' form processing functionality to
-        test whether the fingerprint entered is a router we have in the
-        current database, and presents an appropriate error message if it
-        isn't (along with helpful information).
-
-        @rtype: str
-        @return: String representation of the entered fingerprint, if it
-            is a valid router fingerprint.
-        @raise ValidationError: Raises a validation error if no valid 
+        """Called in the validation process before the L{clean} method. Tests
+        whether the fingeprint is a valid router in the database, and presents
+        an appropriate error message if it isn't.
         """
         fingerprint = self.cleaned_data.get('fingerprint')
         
@@ -1009,10 +1129,10 @@ class SubscribeForm(GenericForm):
         """Helper function to check if a router exists in the database.
 
         @type fingerprint: str
-        @param fingerprint: String representation of a router's fingerprint.
+        @arg fingerprint: String representation of a router's fingerprint.
         @rtype: bool
         @return: Whether a router with the specified fingerprint exists in
-            the database.
+            the database; C{True} if it does, C{False} if it doesn't.
         """
 
         # The router fingerprint field is unique, so we only need to worry
@@ -1056,7 +1176,7 @@ class SubscribeForm(GenericForm):
         """Create the subscriptions if they are specified.
         
         @type subscriber: Subscriber
-        @param subscriber: The subscriber whose subscriptions are being saved.
+        @arg subscriber: The subscriber whose subscriptions are being saved.
         """
         # Create the various subscriptions if they are specified.
         if self.cleaned_data['get_node_down']:
@@ -1080,6 +1200,9 @@ class PreferencesForm(GenericForm):
     page. The form displays the user's current settings for all subscription 
     types (i.e. if they haven't selected a subscription type, the box for that 
     field is unchecked). The PreferencesForm form inherits L{GenericForm}.
+
+    @type _USER_INFO_STR: str
+    @cvar _USER_INFO_STR: Format of user info displayed at the top of the page.
     """
     
     _USER_INFO_STR = '<p><span>Email:</span> %s</p> \
@@ -1101,9 +1224,11 @@ class PreferencesForm(GenericForm):
 
     def change_subscriptions(self, old_data, new_data):
         """Change the subscriptions and options if they are specified.
-        
-        @type new_data: dict {unicode: various}
-        @param new_data: New preferences.
+       
+        @type old_data: dict {str: various}
+        @arg old_data: Previous preferences.
+        @type new_data: dict {str: various}
+        @arg new_data: New preferences.
         """
 
         old_data = self.user.get_preferences()
