@@ -192,13 +192,13 @@ def unsubscribe(request, unsubscribe_auth):
     
     email = user.email
     router_name = router.name
-    fingerprint = router.fingerprint 
+    fingerprint = router.spaced_fingerprint() 
     
     # We know the router has a fingerprint, but it might not have a name,
     # format the string.
     name = ""
     if router.name != "Unnamed":
-        name += " " + router_name + ","
+        name += " " + router_name
 
     # delete the Subscriber (all Subscriptions with a foreign key relationship
     # to this Subscriber are automatically deleted)
