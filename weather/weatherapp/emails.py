@@ -67,12 +67,12 @@ _CONFIRMATION_MAIL = "Dear human,\n\n" +\
     "address.\n\nIf you wish to confirm this request, please visit the "+\
     "following url:\n\n%s\n\nIf you do not wish to receive Tor Weather "+\
     "Reports, you don't need to do anything. You shouldn't hear from us "+\
-    "again.\n"
+    "again."
 
 _CONFIRMED_SUBJ = 'Confirmation Successful'
 _CONFIRMED_MAIL="Dear human,\n\nThis is the Tor Weather Report "+\
     "system.You successfully subscribed for Weather Reports about a Tor "+\
-    "node %s.\n\n"
+    "node %s."
 
 _NODE_DOWN_SUBJ = 'Node Down!'
 _NODE_DOWN_MAIL = "This is a Tor Weather Report.\n\n" +\
@@ -127,7 +127,7 @@ _WELCOME_MAIL = "Hello and welcome to Tor!\n\n" +\
     "%sThank you again for your contribution to the Tor network! "+\
     "We won't send you any further emails unless you subscribe.\n\n"+\
     "Disclaimer: If you have no idea why you're receiving this email, we "+\
-    "sincerely apologize! You shouldn't hear from us again.\n"
+    "sincerely apologize! You shouldn't hear from us again."
 
 _LEGAL_INFO = "Additionally, since you are running as an exit node, you " +\
     "might be interested in Tor's Legal FAQ for Relay Operators "+\
@@ -138,7 +138,7 @@ _LEGAL_INFO = "Additionally, since you are running as an exit node, you " +\
 
 _GENERIC_FOOTER = "\n\nYou can unsubscribe from these reports at any time "+\
     "by visiting the following url:\n\n%s\n\nor change your Tor Weather "+\
-    "notification preferences here: \n\n%s\n"
+    "notification preferences here: \n\n%s"
 
 
 def _get_router_name(fingerprint, name):
