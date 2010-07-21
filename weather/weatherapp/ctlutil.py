@@ -42,7 +42,7 @@ class CtlUtil:
     @ivar control: Connection to TorCtl.
     """
     _CONTROL_HOST = '127.0.0.1'
-    _CONTROL_PORT = 9051 
+    _CONTROL_PORT = config.control_port 
     _AUTHENTICATOR = config.authenticator
     
     def __init__(self, control_host = _CONTROL_HOST, 
@@ -507,15 +507,11 @@ class CtlUtil:
             if line.startswith('contact '):
                 contact = contact + line
         clean_line = contact.replace('<', ' ').replace('>', ' ') 
-        email = re.search('[^\s]+@.+\.[^\n\s\)\(]+', clean_line)
-        if email == None:
-            email = re.search('[^\s]+['+punct+'\s]+at['+punct+'\s]+' +
-                    '.+['+punct+'\s]+dot['+punct+'\s]+[^\n\s\)\(]+',
-                    clean_line, re.IGNORECASE)
-            if email == None:
-                email = re.search('[^\s]+(?:@|['+punct+'\s]at['+punct+
-                                '\s]).+\.[^\n\)\(]+', clean_line, 
-                                                            re.IGNORECASE)
+
+        email = re.search('[^\s]+(?:@|['+punct+'\s]+at['+punct+'\s]+).+(?:\.'+
+                          '|['+punct+'\s]+dot['+punct+'\s]+)[^\n\s\)\(]+', 
+                          clean_line, re.IGNORECASE)
+    
         if email == None:
             logging.info("Couldn't parse an email address from:\n%s" % contact)
             unparsable = open(unparsable_email_file, 'w')
