@@ -310,8 +310,7 @@ def run_all():
     """Run all updaters/checkers in proper sequence, then send emails."""
 
     #The CtlUtil for all methods to use
-    updater_port = config.updater_port
-    ctl_util = CtlUtil(control_port = updater_port)
+    ctl_util = CtlUtil()
 
     # the list of tuples of email info, gets updated w/ each call
     email_list = []
@@ -321,7 +320,6 @@ def run_all():
     logging.info('Finished checking subscriptions. About to send emails.')
     mails = tuple(email_list)
 
-    #-------commented out for safety!---------------
     try:
         send_mass_mail(mails, fail_silently = False)
     except SMTPException, e:
