@@ -150,14 +150,13 @@ def check_earn_tshirt(ctl_util, email_list):
                     sub.last_changed = datetime.now()
                 else:
                 # update the avg bandwidth (arithmetic)
-                    hours_up = sub.get_hours_since_triggered()
                     sub.avg_bandwidth = ctl_util.get_new_avg_bandwidth(
                                                 sub.avg_bandwidth,
                                                 hours_up,
                                                 current_bandwidth)
 
                     #send email if needed
-                    if sub.should_email(hours_up):
+                    if sub.should_email():
                         recipient = sub.subscriber.email
                         fingerprint = sub.subscriber.router.fingerprint
                         name = sub.subscriber.router.name
