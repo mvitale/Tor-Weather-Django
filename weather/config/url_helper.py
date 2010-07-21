@@ -2,6 +2,7 @@
 accessing them. That way, all of the url extensions can be changed in one 
 place if they are ever modified in urls.py.
 
+@var base_url: The base URL for the Tor Weather web application.
 @var _CONFIRM: The url pattern for the confirmation page.
 @var _CONFIRM_PREF: The url pattern for the preferences confirmed page.
 @var _ERROR: The url pattern for the error page.
@@ -17,12 +18,9 @@ place if they are ever modified in urls.py.
 @var _DOWNLOAD: The url for the Tor download page.
 @var _T_SHIRT: The url for the Tor T-Shirt page.
 """
+import config 
 
-base_url = 'http://localhost:8000'
-
-# --------------------------------------------------------------------------
-# CHANGE ONCE WE KNOW THE BASE URL
-# --------------------------------------------------------------------------
+base_url = config.base_url
 
 _CONFIRM = '/confirm/%s/'
 _CONFIRM_PREF = '/confirm_pref/%s/'
