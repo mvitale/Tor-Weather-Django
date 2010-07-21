@@ -303,11 +303,10 @@ class Subscriber(models.Model):
         return self._has_sub_type('TShirtSub')
 
     def determine_unit(self, hours):
-        """Determines the probable unit entered for the node_down_grace_pd.
+        """Determines the time unit entered for the node_down_grace_pd.
         The unit entered in the form isn't saved internally, and everything is
-        converted to hours, so this method checks to see if the saved number
-        of hours is a clean number of days, weeks, or months, with the larger
-        time periods having precedence. Months are considered 30 days.
+        converted to hours, so this method checks to see if the number of hours
+        stored is expressable as a whole number of months, weeks, or days.
 
         @type hours: int
         @arg hours: A number of hours.
@@ -350,7 +349,6 @@ class Subscriber(models.Model):
         if data['get_node_down']:
             n = NodeDownSub.objects.get(subscriber = self)
             unit = self.determine_unit(n.grace_pd)
-            print unit
             data['node_down_grace_pd_unit'] = unit
             if unit == 'M':
                 grace_pd = n.grace_pd / (24 * 30)
