@@ -8,7 +8,7 @@ the work of the forms displayed on the sign-up and preferences pages.
 
 @group Helper Functions: insert_fingerprint_spaces, get_rand_string,
     hours_since
-@group Models: Router, Subscriber, Subscription, Subscription Subclasses
+@group Models: Router, Subscriber, Subscription
 @group Subscription Subclasses: NodeDownSub, VersionSub, BandwidthSub, 
     TShirtSub
 @group Forms: GenericForm, SubscribeForm, PreferencesForm
@@ -459,7 +459,7 @@ class NodeDownSub(Subscription):
         C{grace_pd} hours.
         
         @rtype: bool
-        @return: Whether the L{subscriber}'s L{router} has been offline for
+        @return: Whether the C{subscriber}'s C{router} has been offline for
             L{grace_pd} hours; C{True} if it has, C{False} if it hasn't.
         """
 
@@ -592,7 +592,7 @@ class TShirtSub(Subscription):
             a t-shirt; C{True} if they have, C{False} if they haven't.
         """ 
         
-        hours_up = get_hours_since_triggered(self)
+        hours_up = self.get_hours_since_triggered()
         
         if not self.emailed and self.triggered and hours_up >= 1464:
             if self.subscriber.router.exit:
@@ -757,9 +757,10 @@ class GenericForm(forms.Form):
         for each choice of the L{version_type} field.
     @type _VERSION_TYPE_INIT: str
     @cvar _VERSION_TYPE_INIT: Initial tuple for the L{version_type} field.
-    @type _VERSION_INFO: str
-    @cvar _VERSION_INFO: Text explaining the version subscription,  displayed
-        in the expandable version section of the form, with HTML enabled.
+    @type _VERSION_SECTION_INFO: str
+    @cvar _VERSION_SECTION_INFO: Text explaining the version subscription,
+        displayed in the expandable version section of the form, with HTML
+        enabled.
 
     @type _GET_BAND_LOW_INIT: bool
     @cvar _GET_BAND_LOW_INIT: Initial display value and default submission
@@ -789,9 +790,10 @@ class GenericForm(forms.Form):
     @type _GET_T_SHIRT_INIT: bool
     @cvar _GET_T_SHIRT_INIT: Initial display value and default submission 
         value of the L{get_t_shirt} checkbox.
-    @type _T_SHIRT_INFO: str
-    @cvar _T_SHIRT_INFO: Text explaining the t-shirt subscription, displayed
-        in the expandable version section of the form, with HTML enabled.
+    @type _T_SHIRT_SECTION_INFO: str
+    @cvar _T_SHIRT_SECTION_INFO: Text explaining the t-shirt subscription,
+        displayed in the expandable version section of the form, with HTML
+        enabled.
 
     @type _INIT_PREFIX: str
     @cvar _INIT_PREFIX: Prefix for display of default values.
@@ -1046,7 +1048,7 @@ class SubscribeForm(GenericForm):
     @type _CLASS_EMAIL: str
     @cvar _CLASS_EMAIL: HTML/CSS class for L{email_1} and L{email_2} fields.
     @type _CLASS_LONG: str
-    @cvar _CLASS_LONG: HTML/CSS class for L{fingeprint} fields.
+    @cvar _CLASS_LONG: HTML/CSS class for L{fingerprint} fields.
 
     @type email_1: EmailField (str)
     @ivar email_1: User's email.
@@ -1102,6 +1104,8 @@ class SubscribeForm(GenericForm):
         L{node_down_grace_pd} and L{band_low_threshold} fields if they are left
         blank.        
         """
+
+        data = self.cleaned_data
         
         # Calls the same helper methods used in the GenericForm clean() method.
         GenericForm.check_if_sub_checked(self)
@@ -1145,9 +1149,12 @@ class SubscribeForm(GenericForm):
 
     def clean_fingerprint(self):
         """Called in the validation process before the L{clean} method. Tests
-        whether the fingeprint is a valid router in the database, and presents
-        an appropriate error message if it isn't.
+        whether the fingerprint is a valid router in the database, and presents
+        an appropriate error message if it isn't. The ValidationError raised
+        if the fingerprint isn't in the database is inserted into the form
+        through Django's automatic form error handling.
         """
+        
         fingerprint = self.cleaned_data.get('fingerprint')
         
         # Removes spaces from fingerprint field.
@@ -1239,13 +1246,22 @@ class PreferencesForm(GenericForm):
 
     @type _USER_INFO_STR: str
     @cvar _USER_INFO_STR: Format of user info displayed at the top of the page.
+
+    @type user: L{Subscriber}
+    @ivar user: The user/subscriber accessing their preferences.
+    @type user_info: str
+    @ivar user_info: The email, router name, and router fingerprint of C{user}.
     """
     
     _USER_INFO_STR = '<p><span>Email:</span> %s</p> \
-            <p><span>Router name:</span> %s</p> \
-            <p><span>Router id:</span> %s</p>'
+            <p><span>Router Name:</span> %s</p> \
+            <p><span>Router Fingerprint:</span> %s</p>'
 
     def __init__(self, user, data = None):
+        """Calls GenericForm __init__ method and saves C{user} and
+        C{user_info} instance variables.
+        """
+
         # If no data, is provided, then create using preferences as initial
         # form data. Otherwise, use provided data.
         if data == None:
