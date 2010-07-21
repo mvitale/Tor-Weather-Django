@@ -298,7 +298,6 @@ def update_all_routers(ctl_util, email_list):
             #send a welcome email if indicated
             if router_data.welcomed == False and ctl_util.is_stable(finger):
                 address = ctl_util.get_email(finger)
-                print address
                 if not address == "":
                     email = emails.welcome_tuple(address, finger, name, is_exit)
                     email_list.append(email)

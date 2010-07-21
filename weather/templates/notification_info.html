@@ -12,7 +12,7 @@ Tor Weather - Notification Specs
 <div id="notification-info-section">
 	<h2>Node Down Notifications</h2>
 	<p>
-	To determine weather a node is offline, Weather uses a local TorCtl process to search for a consensus document for the node in question using the fingerprint provided by the user. If there is no consensus document for the node and there is no hibernating flag in the node's descriptor file, it is considered down. An email notification is sent when the node is down for the grace period specified by the user.
+	To determine whether a node is offline, Weather is alerted by the arrival of a new consensus document to the local Tor process. If your relay isn't represented in consensus and there is no hibernating flag in its descriptor file, it is considered down. An email notification is sent when the node is down for the grace period specified by the user.
 	
 	<br /><br />Since descriptor files generally are not updated as often as consensus documents, we won't be able to immediately notify node operators if their relay goes down during hibernation. Weather will assume the node is still hibernating for up to 12 hours, since descriptor files are updated immediately upon entering hibernation but can take up to 12 hours to disappear once a router is diconnected. 
 	</p>
