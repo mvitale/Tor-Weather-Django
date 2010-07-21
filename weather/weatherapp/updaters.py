@@ -53,8 +53,7 @@ def check_node_down(email_list):
                    sub.last_changed = datetime.now()
             else:
                 if sub.triggered:
-                    if sub.emailed == False:
-                    #if sub.is_grace_passed() and sub.emailed == False:------enable after debugging---
+                    if sub.is_grace_passed() and sub.emailed == False:
                         recipient = sub.subscriber.email
                         fingerprint = sub.subscriber.router.fingerprint
                         name = sub.subscriber.router.name
@@ -297,7 +296,6 @@ def update_all_routers(ctl_util, email_list):
             #send a welcome email if indicated
             if router_data.welcomed == False and ctl_util.is_stable(finger):
                 address = ctl_util.get_email(finger)
-                print address
                 if not address == "":
                     email = emails.welcome_tuple(address, finger, name, is_exit)
                     email_list.append(email)

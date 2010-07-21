@@ -503,9 +503,11 @@ class CtlUtil:
         split_desc = desc.split('\n')
         punct = string.punctuation
         contact = ""
+
         for line in split_desc:
             if line.startswith('contact '):
                 contact = contact + line
+
         clean_line = contact.replace('<', ' ').replace('>', ' ') 
 
         email = re.search('[^\s]+(?:@|['+punct+'\s]+at['+punct+'\s]+).+(?:\.'+
@@ -513,7 +515,8 @@ class CtlUtil:
                           clean_line, re.IGNORECASE)
     
         if email == None:
-            logging.info("Couldn't parse an email address from:\n%s" % contact)
+            logging.info("Couldn't parse an email address from line:\n%s" %
+                         contact)
             unparsable = open(unparsable_email_file, 'w')
             unparsable.write(contact + '\n')
             unparsable.close()
