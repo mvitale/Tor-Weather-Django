@@ -72,34 +72,31 @@ $(document).ready(function() {
 		searchContainer.hide();
 	});
 
-	// Looks up fingeprint based on router name.
+	// Looks up fingerprint based on router name.
 	$("#router-search-submit").click(function() {
 		var searchField = $("#search-container input");
 		var searchLabel = $("#search-container label");
 		var fingerprintField = $("#fingerprint-container input");
-		var nonuniqueError = "Please enter the fingerprint manually if the router has a non-unique name";
+		var nonuniqueError = "Non-unique name; enter fingerprint manually"
 		var noRouterError = "Please enter a valid router name:";
 		var defaultLabel = "Enter router name, then click the arrow:";
 
-		$.getJSON("/router_fingerprint_lookup/?query=" + searchField.val(), function(json){
+		$.getJSON("/router_fingerprint_lookup/?query=" + searchField.val(), function(json) {
 			if (json == "nonunique_name") {
 				fingerprintField.val("");
 				searchLabel.html(nonuniqueError);
-				searchLabel.css("color", "red");
+				searchLabel.addClass("form-error");
 			} else if (json == "no_router") {
 				searchLabel.html(noRouterError);
 				fingerprintField.val("");
-				searchLabel.css("color", "red");
+				searchLabel.addClass("form-error");
 			} else {
 				fingerprintField.val(json);
 				searchLabel.html(defaultLabel);
-				searchLabel.css("color", "black");
+				searchLabel.removeClass("form-error");
 				fingerprintLink.click();
 			}
 		});
 	});
-
-	$("div#fingerprint-container p.form-error").closest("div").next("div").css("padding-top", "17px");
-
 });
 
