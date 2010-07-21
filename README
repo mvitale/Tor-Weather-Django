@@ -4,7 +4,7 @@ See /doc/INSTALL for details.
 
 ------------------------------------------------------------------------------
 API:
-To generate the Tor Weather API, install epydoc (http://epydoc.sourceforge.  net/installing.html) and run the following command within weather: 
+To generate the Tor Weather API, install epydoc (http://epydoc.sourceforge.net/installing.html) and run the following command within weather: 
 
 /weather$ epydoc . --config config/epydoc_config.py
 
