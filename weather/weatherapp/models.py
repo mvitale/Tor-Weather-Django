@@ -71,7 +71,7 @@ def hours_since(time):
     """
     
     delta = datetime.now() - time
-    hours = (delta.hours * 24) + (delta.seconds / 3600)
+    hours = (delta.days * 24) + (delta.seconds / 3600)
     return hours
 
 
