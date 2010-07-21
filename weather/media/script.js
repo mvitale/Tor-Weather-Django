@@ -51,7 +51,7 @@ $(document).ready(function() {
 
 
 	// Setup variables
-	var fingerprintLink = $("#fingerprint-container a");
+	var fingerprintLink = $("#show-search-link");
 	var searchContainer = $("div#search-container");
 	var showLink = "(search by router name)";
 	var hideLink = "(hide fingerprint search)";

@@ -46,7 +46,7 @@ Tor Weather - Sign Up!
 	<div class="field-container" id="fingerprint-container">
 		<p>
 			{{ form.fingerprint.label_tag }}
-			<a href="Javascript:void()"><span>(search by router name)</span></a>
+			<a href="Javascript:void()" id="show-search-link"><span>(search by router name)</span></a>
 		</p>
 		{% for error in form.fingerprint.errors %}
 		<p class="form-error">{{ error|safe}}</p>

@@ -8,7 +8,7 @@ page rendering/redirection.
 import threading
 
 from weatherapp.models import Subscriber, Router, GenericForm, \
-        SubscribeForm, PreferencesForm
+        SubscribeForm, PreferencesForm, insert_fingerprint_spaces
 from weatherapp import emails
 from config import url_helper, templates
 from weatherapp import error_messages
@@ -262,7 +262,8 @@ def fingerprint_not_found(request, fingerprint):
     template = templates.fingerprint_not_found
 
     #display the page
-    return render_to_response(template, {'fingerprint' : fingerprint})
+    return render_to_response(template, {'fingerprint' :
+        insert_fingerprint_spaces(fingerprint)})
 
 def error(request, error_type, key):
     """The generic error page, which displays a message based on the error

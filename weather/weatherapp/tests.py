@@ -411,16 +411,16 @@ class TestWeb(TestCase):
         #Check to see that the email should be sent.
         hours_up = shirt_sub.get_hours_since_triggered()
         self.assertEqual(hours_up, 1464)
-        self.assertEqual(shirt_sub.should_email(hours_up), True)
+        self.assertEqual(shirt_sub.should_email(), True)
 
         #Make sure should_email is set to False if the bandwidth is too low
         shirt_sub.avg_bandwidth = 499
-        self.assertEqual(shirt_sub.should_email(hours_up), False)
+        self.assertEqual(shirt_sub.should_email(), False)
 
         #Make sure should_email is set to False if hours_up < 1464
         shirt_sub.avg_bandwidth = 500
-        hours_up = 1463
-        self.assertEqual(shirt_sub.should_email(hours_up), False)
+        shirt_sub.last_changed = shirt_sub.last_changed + timedelta(hours=1)
+        self.assertEqual(shirt_sub.should_email(), False)
 
     def test_earn_shirt_exit(self):
         """Make sure checking conditions for earning a T-shirt works for 
@@ -444,14 +444,14 @@ class TestWeb(TestCase):
         #Check to see that the email should be sent.
         hours_up = shirt_sub.get_hours_since_triggered()
         self.assertEqual(hours_up, 1464)
-        self.assertEqual(shirt_sub.should_email(hours_up), True)
+        self.assertEqual(shirt_sub.should_email(), True)
 
         #Make sure should_email is set to False if the bandwidth is too low
         shirt_sub.avg_bandwidth = 99
-        self.assertEqual(shirt_sub.should_email(hours_up), False)
+        self.assertEqual(shirt_sub.should_email(), False)
 
         #Make sure should_email is set to False if hours_up < 1464
         shirt_sub.avg_bandwidth = 100
-        hours_up = 1463
-        self.assertEqual(shirt_sub.should_email(hours_up), False)
+        shirt_sub.last_changed = shirt_sub.last_changed + timedelta(hours=1)
+        self.assertEqual(shirt_sub.should_email(), False)
 
