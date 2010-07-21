@@ -53,8 +53,7 @@ def check_node_down(email_list):
                    sub.last_changed = datetime.now()
             else:
                 if sub.triggered:
-                    if sub.emailed == False:
-                    #if sub.is_grace_passed() and sub.emailed == False:------enable after debugging---
+                    if sub.is_grace_passed() and sub.emailed == False:
                         recipient = sub.subscriber.email
                         fingerprint = sub.subscriber.router.fingerprint
                         name = sub.subscriber.router.name
