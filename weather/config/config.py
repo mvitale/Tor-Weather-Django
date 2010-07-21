@@ -4,6 +4,7 @@ A module for storing configuration settings.
 @var authenticator: The authentication key
 @var listener_port: The Tor control port for the listener to use. This port
     must be configured in the torrc file.
+@var base_url: The
 """
 
 # XXX: Make bulletproof
@@ -14,3 +15,6 @@ listener_port = 9051
 
 #The Tor control port for updaters to use. Must be configured in your torrc file
 updater_port = 9052
+
+#The base URL for the Tor Weather web application:
+base_url = 'http://www.weather.torproject.org'

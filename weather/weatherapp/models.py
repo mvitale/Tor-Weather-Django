@@ -29,7 +29,7 @@ from django.core import validators
 from django.core.exceptions import ValidationError
 
 
-# HELPER FUNCTION -------------------------------------------------------------
+# HELPER FUNCTIONS ------------------------------------------------------------
 # ----------------------------------------------------------------------------- 
 
 def insert_fingerprint_spaces(fingerprint):
