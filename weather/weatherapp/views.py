@@ -335,7 +335,6 @@ def router_fingerprint_lookup(request):
         if u'query' in request.GET:
             router_name = request.GET[u'query']
             try:
-                print 'getting router'
                 router = Router.objects.get(name = router_name)
             except Router.MultipleObjectsReturned:
                 json = simplejson.dumps('nonunique_name')
