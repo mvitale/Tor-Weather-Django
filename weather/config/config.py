@@ -1,10 +1,12 @@
 """
-A module for storing configuration settings.
+Configuration settings.
 
 @var authenticator: The authentication key
 @var listener_port: The Tor control port for the listener to use. This port
     must be configured in the torrc file.
-@var base_url: The
+@var updater_poart: The Tor control port for the updater to use. This port 
+    must be configured in the torrc file.
+@var base_url: The root URL for the Tor Weather web application.
 """
 
 # XXX: Make bulletproof

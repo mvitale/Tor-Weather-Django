@@ -150,6 +150,7 @@ def check_earn_tshirt(ctl_util, email_list):
                     sub.last_changed = datetime.now()
                 else:
                 # update the avg bandwidth (arithmetic)
+                    hours_up = sub.get_hours_since_triggered()
                     sub.avg_bandwidth = ctl_util.get_new_avg_bandwidth(
                                                 sub.avg_bandwidth,
                                                 hours_up,
@@ -161,7 +162,7 @@ def check_earn_tshirt(ctl_util, email_list):
                         fingerprint = sub.subscriber.router.fingerprint
                         name = sub.subscriber.router.name
                         avg_band = sub.avg_bandwidth
-                        time = sub.hours_since_triggered
+                        time = hours_up
                         exit = sub.subscriber.router.exit
                         unsubs_auth = sub.subscriber.unsubs_auth
                         pref_auth = sub.subscriber.pref_auth
@@ -310,8 +311,7 @@ def run_all():
     """Run all updaters/checkers in proper sequence, then send emails."""
 
     #The CtlUtil for all methods to use
-    updater_port = config.updater_port
-    ctl_util = CtlUtil(control_port = updater_port)
+    ctl_util = CtlUtil()
 
     # the list of tuples of email info, gets updated w/ each call
     email_list = []
@@ -321,7 +321,6 @@ def run_all():
     logging.info('Finished checking subscriptions. About to send emails.')
     mails = tuple(email_list)
 
-    #-------commented out for safety!---------------
     try:
         send_mass_mail(mails, fail_silently = False)
     except SMTPException, e:

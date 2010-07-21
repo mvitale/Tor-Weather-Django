@@ -297,7 +297,7 @@ def t_shirt_tuple(recipient, fingerprint, name, avg_bandwidth,
     @param fingerprint: The router's fingerprint
     @type avg_bandwidth: int
     @param avg_bandwidth: The user's average bandwidth over the
-        observed period.
+        observed period in kB/s.
     @type hours_since_triggered: int
     @param hours_since_triggered: The hours since the user's router
         was first viewed as running.
@@ -316,7 +316,7 @@ def t_shirt_tuple(recipient, fingerprint, name, avg_bandwidth,
     if is_exit:
         node_type += ' as an exit node'
     days_running = hours_since_triggered / 24
-    avg_bandwidth = avg_bandwidth / 1000
+    avg_bandwidth = avg_bandwidth
     subj = _SUBJECT_HEADER + _T_SHIRT_SUBJ
     sender = _SENDER
     unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
