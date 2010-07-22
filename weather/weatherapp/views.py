@@ -243,7 +243,8 @@ def resend_conf(request, confirm_auth):
 
     # spawn a daemon to resend the confirmation email
     email_thread=threading.Thread(target=emails.send_confirmation,
-                            args=[user.email, router.fingerprint, confirm_auth])
+                            args=[user.email, router.fingerprint, router.name,
+                                  confirm_auth])
     email_thread.setDaemon(True)
     email_thread.start()
 
