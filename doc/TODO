@@ -1,0 +1,6 @@
+Make the low bandwidth checking more fine-tuned. The current implementation 
+relies on the directory authorities' calculation of the router's max sustained
+bandwidth for any 10-second interval in the past 24 hours. 
+
+If bandwidth updating is improved, the changes should be applied to T-shirt
+notifications as well.

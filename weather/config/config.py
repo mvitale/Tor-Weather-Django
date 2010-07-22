@@ -16,7 +16,7 @@ authenticator = open("config/auth_token", "r").read().strip()
 listener_port = 9051
 
 #The Tor control port for updaters to use. Must be configured in your torrc file
-updater_port = 9052
+updater_port = 9051
 
 #The base URL for the Tor Weather web application:
 base_url = 'http://www.weather.torproject.org'

@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.5: http://docutils.sourceforge.net/" />
+<title>Tor Weather Design Documentation</title>
+<style type="text/css">
+
+/*
+:Author: David Goodger (goodger@python.org)
+:Id: $Id: html4css1.css 5196 2007-06-03 20:25:28Z wiemann $
+:Copyright: This stylesheet has been placed in the public domain.
+
+Default cascading style sheet for the HTML output of Docutils.
+
+See http://docutils.sf.net/docs/howto/html-stylesheets.html for how to
+customize this style sheet.
+*/
+
+/* used to remove borders from tables and images */
+.borderless, table.borderless td, table.borderless th {
+  border: 0 }
+
+table.borderless td, table.borderless th {
+  /* Override padding for "table.docutils td" with "! important".
+     The right padding separates the table cells. */
+  padding: 0 0.5em 0 0 ! important }
+
+.first {
+  /* Override more specific margin styles with "! important". */
+  margin-top: 0 ! important }
+
+.last, .with-subtitle {
+  margin-bottom: 0 ! important }
+
+.hidden {
+  display: none }
+
+a.toc-backref {
+  text-decoration: none ;
+  color: black }
+
+blockquote.epigraph {
+  margin: 2em 5em ; }
+
+dl.docutils dd {
+  margin-bottom: 0.5em }
+
+/* Uncomment (and remove this text!) to get bold-faced definition list terms
+dl.docutils dt {
+  font-weight: bold }
+*/
+
+div.abstract {
+  margin: 2em 5em }
+
+div.abstract p.topic-title {
+  font-weight: bold ;
+  text-align: center }
+
+div.admonition, div.attention, div.caution, div.danger, div.error,
+div.hint, div.important, div.note, div.tip, div.warning {
+  margin: 2em ;
+  border: medium outset ;
+  padding: 1em }
+
+div.admonition p.admonition-title, div.hint p.admonition-title,
+div.important p.admonition-title, div.note p.admonition-title,
+div.tip p.admonition-title {
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.attention p.admonition-title, div.caution p.admonition-title,
+div.danger p.admonition-title, div.error p.admonition-title,
+div.warning p.admonition-title {
+  color: red ;
+  font-weight: bold ;
+  font-family: sans-serif }
+
+/* Uncomment (and remove this text!) to get reduced vertical space in
+   compound paragraphs.
+div.compound .compound-first, div.compound .compound-middle {
+  margin-bottom: 0.5em }
+
+div.compound .compound-last, div.compound .compound-middle {
+  margin-top: 0.5em }
+*/
+
+div.dedication {
+  margin: 2em 5em ;
+  text-align: center ;
+  font-style: italic }
+
+div.dedication p.topic-title {
+  font-weight: bold ;
+  font-style: normal }
+
+div.figure {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+div.footer, div.header {
+  clear: both;
+  font-size: smaller }
+
+div.line-block {
+  display: block ;
+  margin-top: 1em ;
+  margin-bottom: 1em }
+
+div.line-block div.line-block {
+  margin-top: 0 ;
+  margin-bottom: 0 ;
+  margin-left: 1.5em }
+
+div.sidebar {
+  margin: 0 0 0.5em 1em ;
+  border: medium outset ;
+  padding: 1em ;
+  background-color: #ffffee ;
+  width: 40% ;
+  float: right ;
+  clear: right }
+
+div.sidebar p.rubric {
+  font-family: sans-serif ;
+  font-size: medium }
+
+div.system-messages {
+  margin: 5em }
+
+div.system-messages h1 {
+  color: red }
+
+div.system-message {
+  border: medium outset ;
+  padding: 1em }
+
+div.system-message p.system-message-title {
+  color: red ;
+  font-weight: bold }
+
+div.topic {
+  margin: 2em }
+
+h1.section-subtitle, h2.section-subtitle, h3.section-subtitle,
+h4.section-subtitle, h5.section-subtitle, h6.section-subtitle {
+  margin-top: 0.4em }
+
+h1.title {
+  text-align: center }
+
+h2.subtitle {
+  text-align: center }
+
+hr.docutils {
+  width: 75% }
+
+img.align-left {
+  clear: left }
+
+img.align-right {
+  clear: right }
+
+ol.simple, ul.simple {
+  margin-bottom: 1em }
+
+ol.arabic {
+  list-style: decimal }
+
+ol.loweralpha {
+  list-style: lower-alpha }
+
+ol.upperalpha {
+  list-style: upper-alpha }
+
+ol.lowerroman {
+  list-style: lower-roman }
+
+ol.upperroman {
+  list-style: upper-roman }
+
+p.attribution {
+  text-align: right ;
+  margin-left: 50% }
+
+p.caption {
+  font-style: italic }
+
+p.credits {
+  font-style: italic ;
+  font-size: smaller }
+
+p.label {
+  white-space: nowrap }
+
+p.rubric {
+  font-weight: bold ;
+  font-size: larger ;
+  color: maroon ;
+  text-align: center }
+
+p.sidebar-title {
+  font-family: sans-serif ;
+  font-weight: bold ;
+  font-size: larger }
+
+p.sidebar-subtitle {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+p.topic-title {
+  font-weight: bold }
+
+pre.address {
+  margin-bottom: 0 ;
+  margin-top: 0 ;
+  font-family: serif ;
+  font-size: 100% }
+
+pre.literal-block, pre.doctest-block {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+span.classifier {
+  font-family: sans-serif ;
+  font-style: oblique }
+
+span.classifier-delimiter {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+span.interpreted {
+  font-family: sans-serif }
+
+span.option {
+  white-space: nowrap }
+
+span.pre {
+  white-space: pre }
+
+span.problematic {
+  color: red }
+
+span.section-subtitle {
+  /* font-size relative to parent (h1..h6 element) */
+  font-size: 80% }
+
+table.citation {
+  border-left: solid 1px gray;
+  margin-left: 1px }
+
+table.docinfo {
+  margin: 2em 4em }
+
+table.docutils {
+  margin-top: 0.5em ;
+  margin-bottom: 0.5em }
+
+table.footnote {
+  border-left: solid 1px black;
+  margin-left: 1px }
+
+table.docutils td, table.docutils th,
+table.docinfo td, table.docinfo th {
+  padding-left: 0.5em ;
+  padding-right: 0.5em ;
+  vertical-align: top }
+
+table.docutils th.field-name, table.docinfo th.docinfo-name {
+  font-weight: bold ;
+  text-align: left ;
+  white-space: nowrap ;
+  padding-left: 0 }
+
+h1 tt.docutils, h2 tt.docutils, h3 tt.docutils,
+h4 tt.docutils, h5 tt.docutils, h6 tt.docutils {
+  font-size: 100% }
+
+ul.auto-toc {
+  list-style-type: none }
+
+</style>
+</head>
+<body>
+<div class="document" id="tor-weather-design-documentation">
+<h1 class="title">Tor Weather Design Documentation</h1>
+
+<!-- This file is written in reStructuredText. See the README for instructions on how to generate an HTML version. -->
+<div class="section" id="django">
+<h1>Django</h1>
+<p>Tor Weather was ported to <a class="reference external" href="http://docs.djangoproject.com/en/1.2/intro/overview/">Django (v1.2)</a> to take advantage of the framework's object relational mapper for database access. Data can be directly accessed by way of Django's models, each of which maps to a table in the database and can be utilized as an object. Django's adaptation of the model-view-controller schema is a bit confusing: controllers are stored in a module named views.py and views are called templates (but models are still, thankfully, called models). Still, Django greatly simplified design and development of the Tor Weather web application, which is why it was chosen.</p>
+</div>
+<div class="section" id="directory-structure">
+<h1>Directory Structure</h1>
+<p>Directory structure in Django involves an outer directory, weather, with four
+default files: __init__.py (empty), manage.py (we leave this alone--it syncs the database and runs the server), settings.py (a config file), and urls.py (stores url patterns to recognize and the corresponding controller to direct to). The next level is the application's folder, weatherapp. By default, application folders in Django contain four default files: __init__.py (empty), models.py (a module for the models), tests.py (a module for application tests), and views.py (a module for the controllers).</p>
+<p>Within the main directory (weather/), we included a directory for docs (including a README and licensing information), a templates directory including all of the Tor Weather views, and a config directory. In the templates directory, the file base.html is the main template with the Tor banner, and all other template files 'extend' this template (a Django funtionality). The config directory contains a module (templates.py) for mapping template filenames to variables and a module (url_helper.py) for accessing url extensions. Should the template file names or url path extensions in urls.py ever be changed, these need only be updated in the config directory.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="tor-weather-notification-types">
+<h1>Tor Weather Notification Types</h1>
+<p>The original Tor Weather implementation handled only node-down notifications. You could sign up to receive notifications if a node went down by providing its fingerprint, your email, and a downtime grace period. This implementation of Tor Weather adds three new notification types: T-Shirt notifications, low bandwidth notifications, and version notifications. The user must sign up
+for these notifications in order to receive the corresponding emails; by
+default, they will only receive the standard node down notifications.</p>
+<p>Each subscription is checked when a consensus document is received on the server running Tor Weather, which are received hourly (although not necessarily at the same time every hour).</p>
+<div class="section" id="node-down-notifications">
+<h2>Node Down Notifications</h2>
+<blockquote>
+This is the default notification type. A router is considered &quot;down&quot; if it
+does not appear in the consensus documents <em>and</em> does not have a hibernating
+flag set to True in its descriptor file. An email is sent if a node has
+been down for at least as long as the user's specified grace period and if
+the user has not yet received a node-down email since the node was last
+seen up.</blockquote>
+</div>
+<div class="section" id="t-shirt-notifications">
+<h2>T-Shirt Notifications</h2>
+<blockquote>
+According to the <a class="reference external" href="http://www.torproject.org/tshirt.html.en">Tor T-shirt page</a>, running a relay can earn the
+operator a T-shirt in two cases: the router must either allow exits to port
+80 and average 100 KB/s of traffic for two months of uptime, or the router
+must average 500 KB/s traffic for two months of uptime (no exit
+requirement). If the user signs up for T-Shirt notifications, a
+notification is sent if their router has been seen up for at least 1464
+hours (61 days, or roughly 2 months) with an average bandwidth of 500 KB/s
+or 100 KB/s if the router allows exits to port 80. The observed bandwidth
+is listed in the descriptor file. According to the <a class="reference external" href="https://svn.torproject.org/svn/tor/trunk/doc/spec/dir-spec.txt">directory
+specifications</a>, the listed observed bandwidth &quot;is an estimate of the
+capacity this server can handle. The server remembers the max bandwidth
+sustained output over any ten second period in the past day, and another
+sustained input. The 'observed' value is the lesser of these two numbers.&quot;
+When a new consensus document is received, this observed bandwidth is used
+to recalculate the average bandwidth for the router being watched.</blockquote>
+</div>
+<div class="section" id="low-bandwidth-notifications">
+<h2>Low Bandwidth Notifications</h2>
+<blockquote>
+<p>We added a notification type to alert users if their router crosses some
+threshold for minimum bandwidth. By default, this threshold is set to
+20 KB/s, which Tor defines as the minimum bandwidth for a router. Our
+implementation uses the observed bandwidth listed in the descriptor file
+(see description under T-Shirt Notifications). By this implementation, the
+notification signals that the router hasn't been able to sustain the
+minimum threshold for any 10-second period in the past 24 hours.</p>
+<p><em>For development: Fine-tune low bandwidth notifications and implement
+a high bandwidth notification to warn users if traffic through their router
+exceeds some ceiling they indicate.</em></p>
+</blockquote>
+</div>
+<div class="section" id="version-notifications">
+<h2>Version Notifications</h2>
+<blockquote>
+<p>A list of &quot;recommended&quot; Tor versions can be obtained via communication with
+TorCtl. The list contains all stable versions of Tor that are not considered
+obsolete and includes some alpha versions. There are two version
+notification types to choose from: required and recommended.</p>
+<blockquote>
+<p>-Required: If the router's version does not appear in the list of
+recommended versions, the user will receive an email notification.</p>
+<p>-Recommended: If the router's version is not the most recent stable
+(non-alpha/beta) version in the list, the user will receive an email
+notification.</p>
+</blockquote>
+</blockquote>
+</div>
+<div class="section" id="welcome-email">
+<h2>Welcome Email</h2>
+<blockquote>
+<p>The database backing Tor Weather stores information about every router seen
+in consensus within the past year (or for as long as Tor Weather has been
+running, whichever is shorter). If a router in the database is flagged as
+stable and has not yet been sent a welcome email, the router operator's
+email is parsed from the contact field in the descriptor file for that
+node. A welcome email containing information about Tor Weather is sent to
+these node operators if an email address was successfully parsed.</p>
+<p>The welcome email thanks the operator for his/her contribution and
+encourages the operator to subscribe to Tor Weather. If the router allows
+exits to port 80, information is appended to the email containing links
+to legal help for exit relay operators.</p>
+<p>The welcome emails are <em>not</em> a subscribable notification type and are sent
+to <em>all</em> stable relay operators who provide a parsable (by our standards)
+email address in the contact field of their configuration file. The email
+is sent regardless of whether the operator has subscribed to Tor Weather.</p>
+</blockquote>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="modules-in-weatherapp">
+<h1>Modules in weatherapp</h1>
+<div class="section" id="models-py">
+<h2>models.py</h2>
+<p>Tor Weather uses three main models: Router, Subscriber, and Subscription.
+To allow flexibility in terms of adding new notification types to Tor Weather,
+each notification type contains its own subclass that inherits from
+Subscription. That way, if a new notification type is added to Tor Weather, it
+won't cause problems with the existing database.</p>
+<div class="section" id="router">
+<h3>Router</h3>
+<blockquote>
+The Router table stores information about every router in the Tor network
+that a)posts its fingerprint to the directory authorities and b)has been
+seen up either within the past year or since the new Tor Weather has been
+running (whichever is more recent). That way, Tor Weather can send welcome
+notifications to all new relay operators once their node is flagged
+stable, assuming the email parser successfully gleaned their email address.</blockquote>
+</div>
+<div class="section" id="subscriber">
+<h3>Subscriber</h3>
+<blockquote>
+The Subscriber maps to a single router by a many-to-one foreign key
+relation (multiple users can subscribe to a single router, but if a user
+wants to subscribe to more than one router they will be represented by
+multiple Subscriber objects in the table). Each object stores unique
+authorization keys that are used to access user-specific pages (i.e.
+preferences, unsubscribe, etc).</blockquote>
+</div>
+<div class="section" id="subscription">
+<h3>Subscription</h3>
+<blockquote>
+We decided to create separate Subscription models to improve flexibility:
+with new &quot;subscription types&quot;, each Subscriber can have multiple
+Subscriptions to a Router. The subscription types (each of which inherits
+from the Subscription model) include NodeDownSub (sends an email if the
+Router is down), TShirtSub (sends an email if the Router earned the
+Subscriber--ideally the operator--a t-shirt), LowBandwidthSub (sends an
+email if the Router's bandwidth drops below 50 KB/s, Tor's minimum for
+being a functional node), and VersionSub (sends an email if the Router is
+running an out-of-date version of Tor).</blockquote>
+</div>
+</div>
+<div class="section" id="views-py">
+<h2>views.py</h2>
+<p>The module stores all of the controllers for the web interface.</p>
+</div>
+<div class="section" id="auth-token">
+<h2>auth_token</h2>
+<p>A key used to authenticate a connection to the local Tor process through TorCtl</p>
+</div>
+<div class="section" id="ctlutil-py">
+<h2>ctlutil.py</h2>
+<p>Contains the CtlUtil class, which establishes a connection to TorCtl and handles all relevant communication (i.e. accessing consensus documents and descriptor files).</p>
+</div>
+<div class="section" id="emails-py">
+<h2>emails.py</h2>
+<p>Contains all email messages that Tor Weather can send and the methods to send them.</p>
+</div>
+<div class="section" id="error-messages-py">
+<h2>error_messages.py</h2>
+<p>Contains the error messages that are passed to the error template and the
+method to access the appropriate message.</p>
+</div>
+<div class="section" id="listener-py">
+<h2>listener.py</h2>
+<p>Listens to TorCtl for new consensus events and initializes the events to check all subscriptions.</p>
+</div>
+<div class="section" id="updaters-py">
+<h2>updaters.py</h2>
+<p>Calls methods for checking each Subscription in the database and populating/updating the Router table.</p>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="event-flow">
+<h1>Event Flow</h1>
+<p>The arrival of a new consensus document triggers a cascade of events. First, the Router table is populated and updated, and welcome emails are sent to new stable relay operators. Next, each Subscription is checked to determine if a Tor Weather notification should be sent. Finally, all of the necessary emails are sent out.</p>
+<div class="section" id="consensus-event-hanlding">
+<h2>Consensus Event Hanlding</h2>
+<p>The main method in listeners.py spawns a thread that continually listens for new consensus events through TorCtl and triggers run_all() within the updaters module when a consensus document is received.</p>
+</div>
+<div class="section" id="updating-and-notifying">
+<h2>Updating and Notifying</h2>
+<p>Updating the database and sending email notifications is handled by the updaters module. Within updaters, the Router table is first populated and updated by scanning the consensus document for all router fingerprints therein. If a router isn't stored in the database, it's added. Relevant information for existing routers in the database is updated using descriptor information. If a router in the database is flagged as stable in the consensus document, a welcome email is sent to the node operator after parsing their email from the descriptor file. The welcome email contains information about Tor Weather and legal information if the node functions as an exit node.</p>
+<p>Each Subscription in the database is updated, and emails are sent to the Subscriber's email if the conditions indicate a notification should be sent.</p>
+</div>
+</div>
+</div>
+</body>
+</html>
