@@ -25,7 +25,7 @@ from config import url_helper
 
 from django.db import models
 from django import forms
-from django.core import validators
+#from django.core import validators
 from django.core.exceptions import ValidationError
 
 
@@ -647,15 +647,15 @@ class PrefixedIntegerField(forms.IntegerField):
         @arg min_value: Minimum allowed value for this L{PrefixedIntegerField}.
         """
 
-        forms.IntegerField.__init__(self, *args, **kwargs)
+#        forms.IntegerField.__init__(self, *args, **kwargs)
 
-        if max_value is not None:
-            self.validators.append(validators.MaxValueValidator(max_value))
-        if min_value is not None:
-            self.validators.append(validators.MinValueValidator(min_value))
+#        if max_value is not None:
+#            self.validators.append(validators.MaxValueValidator(max_value))
+#        if min_value is not None:
+#            self.validators.append(validators.MinValueValidator(min_value))
 
-        self.prefix = PrefixedIntegerField._PREFIX_DEFAULT
-        self.error_messages = PrefixedIntegerField._DEFAULT_ERRORS
+#        self.prefix = PrefixedIntegerField._PREFIX_DEFAULT
+#        self.error_messages = PrefixedIntegerField._DEFAULT_ERRORS
 
     def to_python(self, value):
         """First step in Django's validation process. Ensures that data in

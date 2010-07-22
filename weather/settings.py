@@ -11,17 +11,15 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': PROJECT_PATH + "/WeatherDB",                      # Or path to database file if using sqlite3.
-        'TEST_NAME': 'WeatherTestDB',
-        'USER': '',                      # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
-    }
-}
+DATABASE_ENGINE = 'django.db.backends.sqlite3' 
+DATABASE_NAME = PROJECT_PATH + "/WeatherDB" # Or path to database file if using sqlite3.
+TEST_DATABASE_NAME = 'WeatherTestDB'
+DATABASE_USER = ''                      # Not used with sqlite
+DATABASE_PASSWORD = ''                  # Not used with sqlite3.
+DATABASE_HOST = ''                      # Set to empty string for localhost. Not used with sqlite3.
+DATABASE_PORT = ''                      # Set to empty string for default. Not used with sqlite3.
+    
+
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -75,7 +73,6 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
 )
 
 ROOT_URLCONF = 'weather.urls'
@@ -96,7 +93,6 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
-    'django.contrib.messages',
     'weather.weatherapp',
 
     # Uncomment the next line to enable the admin:
