@@ -1,25 +1,31 @@
-1) In weather/settings.py, change the EMAIL_* fields to reflect your SMTP 
+1) In weather, make a directory named "log".
+
+2) In weather/settings.py, change the EMAIL_* fields to reflect your SMTP 
 configurations and the email address for sending the Tor Weather notifications. 
 
-2) In weather.config.config.py, change the listener_port and updater_port 
+3) In weather.config.config.py, change the listener_port and updater_port 
 fields to reflect valid control ports in your local torrc file. These should be 
 unique. Change the base_url field to reflect the base URL for the Tor Weather 
 application.
 
-3) A copy of (or link to) the TorCtl package must be located within the weather 
+4) A copy of (or link to) the TorCtl package must be located within the weather 
 directory. 
 
-4) Look here for documentation concerning how to deploy the Django web 
+5) Create the database by running the following command from within the weather
+directory:
+/weather$ python manage.py syncdb
+
+6) Look here for documentation concerning how to deploy the Django web 
 application:
 http://docs.djangoproject.com/en/dev/howto/deployment/
 
-5) Once the application is deployed, the listener application should be run from
+7) Once the application is deployed, the listener application should be run from
 inside the weather directory:
 /weather$ python manage.py runlistener
 The listener waits for consensus events from your local TorCtl process, then 
 updates the database and sends notifications.
-WARNING: As soon as this is run, it will send welcome emails to all routers.
-	     To disable this when testing deploying the application, comment out
-		 lines 298-303 of weatherapp/updaters.py (starting with if
-		 "router_data.welcomed == False and ctl_util.is_stable(finger):" and
-		 ending with "router_data.welcomed = True"). 
+WARNING: There should only be one instance of this application running at any
+    one time. The application does send a single email to new, stable relay
+    operators regardless of whether they've subscribed to Tor Weather. We hope
+    to strictly limit the number of emails that are sent, so please do not run 
+    this application if it is already deployed somewhere.
