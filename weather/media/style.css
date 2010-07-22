@@ -1,14 +1,24 @@
 div#center {
 	text-align: center;
-}
-
-#center {
 	max-width: 760px;
+	min-width: 415px;
+	width: 85%;
 	overflow: auto;
+	margin: 0 auto 0;
 }
 
 	#banner img {
+		float: right;
+	}
+
+	#banner a img {
 		float: left;
+	}
+
+	div#banner {
+		background: url(http://weather.torproject.org/top-middle.png) repeat-x top left;
+		width: 100%;
+		overflow: auto;
 	}
 
 	div#main-column {
@@ -94,10 +104,11 @@ div#center {
 
 					div#search-container {
 						display: none;
-						width: 4000px;
+						width: 350px;
 						position: absolute;
 						bottom: 0px;
-						left: 394px;
+						left: 400px;
+						overflow: auto;
 					}
 
 					div#search-results {
