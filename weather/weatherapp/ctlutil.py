@@ -42,7 +42,7 @@ class CtlUtil:
     @ivar control: Connection to TorCtl.
     """
     _CONTROL_HOST = '127.0.0.1'
-    _CONTROL_PORT = config.control_port 
+    _CONTROL_PORT = config.updater_port 
     _AUTHENTICATOR = config.authenticator
     
     def __init__(self, control_host = _CONTROL_HOST, 
@@ -381,12 +381,12 @@ class CtlUtil:
         return finger_list
 
     def get_new_avg_bandwidth(self, avg_bandwidth, hours_up, obs_bandwidth):
-        """Calculates the new average bandwidth for a router. The average 
-        is calculated by rounding rather than truncating.
+        """Calculates the new average bandwidth for a router in kB/s. The 
+        average is calculated by rounding rather than truncating.
          
         @type avg_bandwidth: int
         @param avg_bandwidth: The current average bandwidth for the router in
-            KB/s.
+            kB/s.
         @type hours_up: int
         @param hours_up: The number of hours this router has been up 
         @type obs_bandwidth: int
@@ -503,9 +503,11 @@ class CtlUtil:
         split_desc = desc.split('\n')
         punct = string.punctuation
         contact = ""
+
         for line in split_desc:
             if line.startswith('contact '):
                 contact = contact + line
+
         clean_line = contact.replace('<', ' ').replace('>', ' ') 
 
         email = re.search('[^\s]+(?:@|['+punct+'\s]+at['+punct+'\s]+).+(?:\.'+
@@ -513,7 +515,8 @@ class CtlUtil:
                           clean_line, re.IGNORECASE)
     
         if email == None:
-            logging.info("Couldn't parse an email address from:\n%s" % contact)
+            logging.info("Couldn't parse an email address from line:\n%s" %
+                         contact)
             unparsable = open(unparsable_email_file, 'w')
             unparsable.write(contact + '\n')
             unparsable.close()
