@@ -1,10 +1,20 @@
-.center {
+div#center {
+	text-align: center;
+}
+
+#center {
 	max-width: 760px;
 	overflow: auto;
 }
 
-	.main-column {
+	#banner img {
+		float: left;
+	}
+
+	div#main-column {
 		padding: 15px 0 10px 10px;
+		text-align: left;
+		clear: both;
 	}
 	
 		h1 {
