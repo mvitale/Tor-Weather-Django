@@ -30,7 +30,7 @@ DATABASES = {
 # timezone as the operating system.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-TIME_ZONE = 'America/Chicago'
+TIME_ZONE = 'America/New_York'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -79,7 +79,6 @@ MIDDLEWARE_CLASSES = (
 )
 
 ROOT_URLCONF = 'weather.urls'
-# os.path.join(PROJECT_PATH, 'urls')
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -105,8 +104,8 @@ INSTALLED_APPS = (
 )
 
 #SMTP server configuration
-EMAIL_HOST = ''
-EMAIL_HOST_PASSWORD = '' 
-EMAIL_HOST_USER = ''
-EMAIL_PORT = ''
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_PASSWORD = 'torisawesome' 
+EMAIL_HOST_USER = 'torweathertester@gmail.com'
+EMAIL_PORT = '587'
 EMAIL_USE_TLS = True
