@@ -2,6 +2,7 @@
 accessing them. That way, all of the url extensions can be changed in one 
 place if they are ever modified in urls.py.
 
+@var base_url: The base URL for the Tor Weather web application.
 @var _CONFIRM: The url pattern for the confirmation page.
 @var _CONFIRM_PREF: The url pattern for the preferences confirmed page.
 @var _ERROR: The url pattern for the error page.
@@ -17,12 +18,9 @@ place if they are ever modified in urls.py.
 @var _DOWNLOAD: The url for the Tor download page.
 @var _T_SHIRT: The url for the Tor T-Shirt page.
 """
+import config 
 
-base_url = 'http://localhost:8000'
-
-# --------------------------------------------------------------------------
-# CHANGE ONCE WE KNOW THE BASE URL
-# --------------------------------------------------------------------------
+base_url = config.base_url
 
 _CONFIRM = '/confirm/%s/'
 _CONFIRM_PREF = '/confirm_pref/%s/'
@@ -142,6 +140,18 @@ def get_preferences_url(pref_auth):
     """
     url = base_url + _PREFERENCES % pref_auth
     return url
+
+def get_preferences_ext(pref_auth):
+    """Returns the url extension for the user-specific preferences page.
+    
+    @type pref_auth: str
+    @param pref_auth: The user's unique preferences authorization key, which
+        is incorporated into the url.
+    @rtype: str
+    @return: The url extension for the user's preferences page.
+    """
+    ext = _PREFERENCES % pref_auth
+    return ext
 
 def get_resend_ext(confirm_auth):
     """Returns the url extension for the page displayed after the user

@@ -29,7 +29,7 @@ from django.core import validators
 from django.core.exceptions import ValidationError
 
 
-# HELPER FUNCTION -------------------------------------------------------------
+# HELPER FUNCTIONS ------------------------------------------------------------
 # ----------------------------------------------------------------------------- 
 
 def insert_fingerprint_spaces(fingerprint):
@@ -170,7 +170,8 @@ class Subscriber(models.Model):
     @type _AUTH_MAX_LEN: int
     @cvar _AUTH_MAX_LEN: Maximum length for L{confirm_auth}, L{unsubs_auth},
         L{pref_auth}
-    @type _DEFAULTS: Dictionary mapping field names to their default
+    @type _DEFAULTS: Dictionary
+    @cvar _DEFAULTS: Dictionary mapping field names to their default
         parameters. These are the values that fields will be instantiated with
         if they are not specified in the model's construction.
 
@@ -303,11 +304,10 @@ class Subscriber(models.Model):
         return self._has_sub_type('TShirtSub')
 
     def determine_unit(self, hours):
-        """Determines the probable unit entered for the node_down_grace_pd.
+        """Determines the time unit entered for the node_down_grace_pd.
         The unit entered in the form isn't saved internally, and everything is
-        converted to hours, so this method checks to see if the saved number
-        of hours is a clean number of days, weeks, or months, with the larger
-        time periods having precedence. Months are considered 30 days.
+        converted to hours, so this method checks to see if the number of hours
+        stored is expressable as a whole number of months, weeks, or days.
 
         @type hours: int
         @arg hours: A number of hours.
@@ -350,7 +350,6 @@ class Subscriber(models.Model):
         if data['get_node_down']:
             n = NodeDownSub.objects.get(subscriber = self)
             unit = self.determine_unit(n.grace_pd)
-            print unit
             data['node_down_grace_pd_unit'] = unit
             if unit == 'M':
                 grace_pd = n.grace_pd / (24 * 30)
@@ -386,7 +385,7 @@ class Subscriber(models.Model):
 
 class Subscription(models.Model):
     """Generic (abstract) model for Tor Weather subscriptions. Only contains
-    fields which are used by all types of Tor Weather subscriptions.
+    fields which are used by all types of Tor Weathe Dictionary subscriptions.
 
     Django uses class variables to specify model fields, but these fields are
     practically used and thought of as instance variables, so this 

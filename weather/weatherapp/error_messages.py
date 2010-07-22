@@ -58,16 +58,15 @@ def get_error_message(error_type, key):
     elif error_type == 'already_subscribed':
         # the key represents the user's pref_auth key
         pref_auth = key
-        pref_url = url_helper.get_preferences_url(pref_auth)
-        message = _ALREADY_SUBSCRIBED % pref_url
+        pref_ext = url_helper.get_preferences_ext(pref_auth)
+        message = _ALREADY_SUBSCRIBED % pref_ext
         return message
     elif error_type == 'need_confirmation':
         # the key represents the user's confirm_auth key
         confirm_auth = key
         user = Subscriber.objects.get(confirm_auth = confirm_auth)
         url_extension = url_helper.get_resend_ext(confirm_auth)
-        message = _NEED_CONFIRMATION % (user.email, 
-                                                      url_extension)
+        message = _NEED_CONFIRMATION % (user.email, url_extension)
         return message
     else:
         # the error type wasn't recognized, just return a default msg

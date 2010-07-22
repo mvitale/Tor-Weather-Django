@@ -192,13 +192,13 @@ def unsubscribe(request, unsubscribe_auth):
     
     email = user.email
     router_name = router.name
-    fingerprint = router.fingerprint 
+    fingerprint = router.spaced_fingerprint() 
     
     # We know the router has a fingerprint, but it might not have a name,
     # format the string.
     name = ""
     if router.name != "Unnamed":
-        name += " " + router_name + ","
+        name += " " + router_name
 
     # delete the Subscriber (all Subscriptions with a foreign key relationship
     # to this Subscriber are automatically deleted)
@@ -243,7 +243,8 @@ def resend_conf(request, confirm_auth):
 
     # spawn a daemon to resend the confirmation email
     email_thread=threading.Thread(target=emails.send_confirmation,
-                            args=[user.email, router.fingerprint, confirm_auth])
+                            args=[user.email, router.fingerprint, router.name,
+                                  confirm_auth])
     email_thread.setDaemon(True)
     email_thread.start()
 
@@ -294,7 +295,7 @@ def router_name_lookup(request):
     autocomplete.js, an external autocomplete library.
 
     @type request: HttpRequest
-    @var request: an HTTP request object.
+    @param request: an HTTP request object.
     @rtype: HttpResponse
     @return: An HTTP response object with json data for filtered L{Router}
         names.
@@ -325,7 +326,7 @@ def router_fingerprint_lookup(request):
     which is what I based this on.
 
     @type request: HttpRequest
-    @var request: an HTTP request object.
+    @param request: an HTTP request object.
     @rtype: HttpResponse
     @return: An HTTP response object with json data for the L{Router}'s
         fingerprint.

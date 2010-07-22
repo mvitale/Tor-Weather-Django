@@ -53,8 +53,7 @@ def check_node_down(email_list):
                    sub.last_changed = datetime.now()
             else:
                 if sub.triggered:
-                    if sub.emailed == False:
-                    #if sub.is_grace_passed() and sub.emailed == False:------enable after debugging---
+                    if sub.is_grace_passed() and sub.emailed == False:
                         recipient = sub.subscriber.email
                         fingerprint = sub.subscriber.router.fingerprint
                         name = sub.subscriber.router.name
@@ -79,7 +78,7 @@ def check_low_bandwidth(ctl_util, email_list):
     determines if an email should be sent, and updates email_list.
 
     @type ctl_util: CtlUtil
-    @param: A valid CtlUtil instance.
+    @param ctl_util: A valid CtlUtil instance.
     @type email_list: list
     @param email_list: The list of tuples representing emails to send.
     @rtype: list
@@ -119,7 +118,7 @@ def check_earn_tshirt(ctl_util, email_list):
     should_email method in the TShirtSub class.
 
     @type ctl_util: CtlUtil
-    @param: A valid CtlUtil instance.
+    @param ctl_util: A valid CtlUtil instance.
     @type email_list: list
     @param email_list: The list of tuples representing emails to send.
     @rtype: list
@@ -150,6 +149,7 @@ def check_earn_tshirt(ctl_util, email_list):
                     sub.last_changed = datetime.now()
                 else:
                 # update the avg bandwidth (arithmetic)
+                    hours_up = sub.get_hours_since_triggered()
                     sub.avg_bandwidth = ctl_util.get_new_avg_bandwidth(
                                                 sub.avg_bandwidth,
                                                 hours_up,
@@ -161,7 +161,7 @@ def check_earn_tshirt(ctl_util, email_list):
                         fingerprint = sub.subscriber.router.fingerprint
                         name = sub.subscriber.router.name
                         avg_band = sub.avg_bandwidth
-                        time = sub.hours_since_triggered
+                        time = hours_up
                         exit = sub.subscriber.router.exit
                         unsubs_auth = sub.subscriber.unsubs_auth
                         pref_auth = sub.subscriber.pref_auth
@@ -181,7 +181,7 @@ def check_version(ctl_util, email_list):
     necessary.
 
     @type ctl_util: CtlUtil
-    @param: A valid CtlUtil instance.
+    @param ctl_util: A valid CtlUtil instance.
     @type email_list: list
     @param email_list: The list of tuples representing emails to send.
     @rtype: list
@@ -230,7 +230,7 @@ def check_all_subs(ctl_util, email_list):
     """Check/update all subscriptions
    
     @type ctl_util: CtlUtil
-    @param: A valid CtlUtil instance.
+    @param ctl_util: A valid CtlUtil instance.
     @type email_list: list
     @param email_list: The list of tuples representing emails to send.
     @rtype: list
@@ -252,7 +252,7 @@ def update_all_routers(ctl_util, email_list):
     email should be sent and add the email tuples to the list.
 
     @type ctl_util: CtlUtil
-    @param: A valid CtlUtil instance.
+    @param ctl_util: A valid CtlUtil instance.
     @type email_list: list
     @param email_list: The list of tuples representing emails to send.
     @rtype: list
@@ -297,7 +297,6 @@ def update_all_routers(ctl_util, email_list):
             #send a welcome email if indicated
             if router_data.welcomed == False and ctl_util.is_stable(finger):
                 address = ctl_util.get_email(finger)
-                print address
                 if not address == "":
                     email = emails.welcome_tuple(address, finger, name, is_exit)
                     email_list.append(email)
