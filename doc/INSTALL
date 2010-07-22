@@ -20,3 +20,8 @@ inside the weather directory:
 /weather$ python manage.py runlistener
 The listener waits for consensus events from your local TorCtl process, then 
 updates the database and sends notifications.
+WARNING: As soon as this is run, it will send welcome emails to all routers.
+	     To disable this when testing deploying the application, comment out
+		 lines 298-303 of weatherapp/updaters.py (starting with if
+		 "router_data.welcomed == False and ctl_util.is_stable(finger):" and
+		 ending with "router_data.welcomed = True"). 
