@@ -1,3 +1,5 @@
+There should only be one running instance of this application. Please do not run it if you are not a Tor developer.
+
 --------------------------------------------------------------------------------
 INSTALLATION:
 See /doc/INSTALL for details.
