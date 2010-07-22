@@ -659,6 +659,8 @@ class PrefixedIntegerField(forms.IntegerField):
         Throws errors if values are above or below max/min values.
         """
 
+        value = self.to_python(value)
+
         if self.max_value != None:
             if value > self.max_value:
                 raise ValidationError(self.error_messages['max_value' %
@@ -693,10 +695,10 @@ class PrefixedIntegerField(forms.IntegerField):
 
         try:
             if value.startswith(prefix):
-                value = int(forms.IntegerField.to_python(self, 
+                value = int(forms.IntegerField.clean(self, 
                     value[len(prefix):]))
             else:
-                value = int(forms.IntegerField.to_python(self,
+                value = int(forms.IntegerField.clean(self,
                                                 value))
         except (ValueError, TypeError):
             raise ValidationError(self.error_messages['invalid'])
