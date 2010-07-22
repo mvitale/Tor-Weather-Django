@@ -631,9 +631,9 @@ class PrefixedIntegerField(forms.IntegerField):
     _DEFAULT_ERRORS = {
         'invalid': 'Enter a whole number.',
         'max_value': 'Ensure this value is less than or equal to \
-                %(limit_value)s.',
+                %s.',
         'min_value': 'Ensure this value is greater than or equal to \
-                %(limit_value)s.',
+                %s.',
         'empty': 'yo, dawg; I am empty and no user should see this error',
     }
 
@@ -659,12 +659,14 @@ class PrefixedIntegerField(forms.IntegerField):
         Throws errors if values are above or below max/min values.
         """
 
-        if max_value != None:
-            if value > max_value:
-                raise ValidationError(self.error_messages['max_value'])
-        if min_value != None:
-            if value < min_value:
-                raise ValidationError(self.error_messages['min_value'])
+        if self.max_value != None:
+            if value > self.max_value:
+                raise ValidationError(self.error_messages['max_value' %
+                    self.max_value])
+        if self.min_value != None:
+            if value < self.min_value:
+                raise ValidationError(self.error_messages['min_value' %
+                    self.max_value])
 
         return value
 
