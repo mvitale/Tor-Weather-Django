@@ -9,11 +9,15 @@ application.
 3) A copy of (or link to) the TorCtl package must be located within the weather 
 directory. 
 
-4) Look here for documentation concerning how to deploy the Django web 
+4) Create the database by running the following command from within the weather
+directory:
+/weather$ python manage.py syncdb
+
+5) Look here for documentation concerning how to deploy the Django web 
 application:
 http://docs.djangoproject.com/en/dev/howto/deployment/
 
-5) Once the application is deployed, the listener application should be run from
+6) Once the application is deployed, the listener application should be run from
 inside the weather directory:
 /weather$ python manage.py runlistener
 The listener waits for consensus events from your local TorCtl process, then 

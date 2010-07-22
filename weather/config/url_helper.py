@@ -112,6 +112,15 @@ def get_home_ext():
     extension = _HOME
     return extension
 
+def get_home_url():
+    """Returns the complete url for the Tor Weather home page.
+
+    @rtype: str
+    @return: The url extension for the Tor Weather home page.
+    """
+    url = base_url + _HOME
+    return url
+
 def get_pending_ext(confirm_auth):
     """Returns the url extension for the pending page, displayed when the
     user submits an acceptable subscribe form.

@@ -118,7 +118,7 @@ _WELCOME_MAIL = "Hello and welcome to Tor!\n\n" +\
     "service to be vitally important and greatly useful to all node "+\
     "operators. If you're interested in Tor Weather, please visit the "+\
     "following link to register:\n\n"+\
-    "https://weather.torproject.org/\n\n"+\
+    "%s\n\n"+\
     "You might also be interested in the or-announce mailing list, "+\
     "which is a low volume list for announcements of new releases and "+\
     "critical security updates. To join, send an e-mail message to "+\
@@ -348,7 +348,8 @@ def welcome_tuple(recipient, fingerprint, name, exit):
     # if the router is an exit node, append legal info 
     if exit:
         append = _LEGAL_INFO
-    msg = _WELCOME_MAIL % (router, append)
+    url = url_helper.get_home_url()
+    msg = _WELCOME_MAIL % (router, url, append)
     return (subj, msg, sender, [recipient])
 
 def version_tuple(recipient, fingerprint, name, version_type, unsubs_auth, 
