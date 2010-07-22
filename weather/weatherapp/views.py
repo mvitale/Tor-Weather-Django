@@ -15,7 +15,6 @@ from weatherapp import error_messages
 
 import django.views.static
 from django.db import models
-from django.core.context_processors import csrf
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponseRedirect, HttpRequest, Http404
 from django.http import HttpResponse
@@ -66,11 +65,6 @@ def subscribe(request):
                 return HttpResponseRedirect(url_extension)
     
     c = {'form' : form}
-
-    # For pages with POST methods, a Cross Site Request Forgery protection
-    # key is added to block attacking sites.
-    c.update(csrf(request))
-
     return render_to_response(templates.subscribe, c)
 
 def preferences(request, pref_auth):
@@ -104,8 +98,7 @@ def preferences(request, pref_auth):
 
     fields = {'pref_auth': pref_auth, 'fingerprint': user.router.fingerprint,
          'form': form}
-    fields.update(csrf(request))
-
+    
     # get the template
     template = templates.preferences
 
