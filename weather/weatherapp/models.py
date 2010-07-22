@@ -170,7 +170,8 @@ class Subscriber(models.Model):
     @type _AUTH_MAX_LEN: int
     @cvar _AUTH_MAX_LEN: Maximum length for L{confirm_auth}, L{unsubs_auth},
         L{pref_auth}
-    @type _DEFAULTS: Dictionary mapping field names to their default
+    @type _DEFAULTS: Dictionary
+    @cvar _DEFAULTS: Dictionary mapping field names to their default
         parameters. These are the values that fields will be instantiated with
         if they are not specified in the model's construction.
 
@@ -384,7 +385,7 @@ class Subscriber(models.Model):
 
 class Subscription(models.Model):
     """Generic (abstract) model for Tor Weather subscriptions. Only contains
-    fields which are used by all types of Tor Weather subscriptions.
+    fields which are used by all types of Tor Weathe Dictionary subscriptions.
 
     Django uses class variables to specify model fields, but these fields are
     practically used and thought of as instance variables, so this 

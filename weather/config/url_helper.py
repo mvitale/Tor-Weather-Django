@@ -141,6 +141,18 @@ def get_preferences_url(pref_auth):
     url = base_url + _PREFERENCES % pref_auth
     return url
 
+def get_preferences_ext(pref_auth):
+    """Returns the url extension for the user-specific preferences page.
+    
+    @type pref_auth: str
+    @param pref_auth: The user's unique preferences authorization key, which
+        is incorporated into the url.
+    @rtype: str
+    @return: The url extension for the user's preferences page.
+    """
+    ext = _PREFERENCES % pref_auth
+    return ext
+
 def get_resend_ext(confirm_auth):
     """Returns the url extension for the page displayed after the user
     asks to be resent their confirmation email.
