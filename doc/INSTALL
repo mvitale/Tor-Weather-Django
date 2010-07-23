@@ -16,6 +16,7 @@ directory:
 6) Look here for documentation concerning how to deploy the Django web 
 application:
 http://docs.djangoproject.com/en/dev/howto/deployment/
+We recommend deploying Django with Apache and mod_wsgi. 
 
 7) Once the application is deployed, the listener application should be run from
 inside the weather directory:
@@ -27,3 +28,4 @@ WARNING: There should only be one instance of this application running at any
     operators regardless of whether they've subscribed to Tor Weather. We hope
     to strictly limit the number of emails that are sent, so please do not run 
     this application if it is already deployed somewhere.
+
