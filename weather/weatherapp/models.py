@@ -690,31 +690,20 @@ class PrefixedIntegerField(forms.IntegerField):
             handled correctly.
         """
         prefix = self.prefix
-        # XXX
-        print 'Value: ' + str(value)
 
         if value == '':
-            # XXX
-            print 'raising empty validation error'
             raise ValidationError(self.error_messages['empty'])
 
         try:
             if value.startswith(prefix):
-                # XXX
-                print 'calling superclass clean method with prefix removed'
                 value = int(forms.IntegerField.clean(self, 
                     value[len(prefix):]))
             else:
-                # XXX
-                print 'calling superclass clean method w/o prefix removed'
                 value = int(forms.IntegerField.clean(self,
                                                 value))
         except (ValueError, TypeError):
-            # XXX
-            print 'raising invalid validation error'
             raise ValidationError(self.error_messages['invalid'])
 
-        print 'returning value: ' + str(value)
         return value
 
 
@@ -1134,16 +1123,6 @@ class SubscribeForm(GenericForm):
         else:
             GenericForm.__init__(self, data)
 
-        # XXX
-        print '\n\nMaking SubscribeForm:'
-        if data != None:
-            print '    Initial Data:'
-            print '      get_node_down: ' + data['get_node_down']
-            print '        node_down_grace_pd: ' + data['node_down_grace_pd']
-            print '      get_band_low: ' + data['get_band_low']
-            print '        band_low_threshold: ' + data['band_low_threshold']
-            print '      full data: ' + str(data)
-
     def clean(self):
         """Called when the is_valid method is evaluated for a L{SubscribeForm} 
         after a POST request. Calls the same methods that the L{GenericForm}
@@ -1253,15 +1232,6 @@ class SubscribeForm(GenericForm):
         @arg subscriber: The subscriber whose subscriptions are being saved.
         """
         
-        # XXX
-        print "I'm about to create subscriptions, here's my cleaned_data"
-        if 'node_down_grace_pd' in self.cleaned_data:
-            print 'node_down_grace_pd: ' + \
-                str(self.cleaned_data['node_down_grace_pd'])
-        if 'band_low_threshold' in self.cleaned_data:
-            print 'band_low_threshold: ' + \
-                str(self.cleaned_data['band_low_threshold'])
-
         # Create the various subscriptions if they are specified.
         if self.cleaned_data['get_node_down']:
             node_down_sub = NodeDownSub(subscriber=subscriber,
