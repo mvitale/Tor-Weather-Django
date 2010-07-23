@@ -378,6 +378,17 @@ class TestWeb(TestCase):
         time.sleep(3)
         self.assertEqual(len(mail.outbox), 0)
     
+class TestNotifications(TestCase):
+    """Test the notification side of Tor Weather"""
+
+    def setUp(self):
+        """Create a router and a Subscriber"""
+
+        self.router = Router(name='myrouter', fingerprint='1234', exit=False)
+
+        self.subscriber = Subscriber(email='name@place.com',
+                                     router=self.router)
+
     def test_bandwidth_calc(self):
         """Make sure bandwidth arithmetic works. Averages should be calculated
         by rounding, not truncating."""
@@ -392,21 +403,14 @@ class TestWeb(TestCase):
     def test_earn_shirt(self):
         """Make sure checking conditions for earning a T-shirt works for 
         non-exit routers."""   
-        #Create a non-exit router
-        router = Router(fingerprint = '654', name='abc', exit=False)
-        router.save()
-
-        #Create a Subscriber
-        subscriber = Subscriber(email = 'name@place.com', router = router) 
-        subscriber.save()
 
         #Create a T-Shirt subscription following a router that's been running 
         #for 1464 hours, or 61 days (the minimum for earning a T-shirt)
         time_change = timedelta(61)
         then = datetime.now() - time_change
-        shirt_sub = TShirtSub(subscriber = subscriber, avg_bandwidth = 500,
+        shirt_sub = TShirtSub(subscriber = self. subscriber, 
+                              avg_bandwidth = 500,
                               triggered = True, last_changed = then)
-        shirt_sub.save()
 
         #Check to see that the email should be sent.
         hours_up = shirt_sub.get_hours_since_triggered()
@@ -425,21 +429,15 @@ class TestWeb(TestCase):
     def test_earn_shirt_exit(self):
         """Make sure checking conditions for earning a T-shirt works for 
         exit routers."""
-        #Create a router, set it to be an exit
-        router = Router(fingerprint = '54321', name='abc', exit=True)
-        router.save()
-
-        #Create a Subscriber
-        subscriber = Subscriber(email = 'name@place.com', router = router) 
-        subscriber.save()
+        #set self.router to be an exit
+        self.router.exit = True
 
         #Create a T-Shirt subscription following a router that's been running 
         #for 1464 hours, or 61 days (the minimum for earning a T-shirt)
         time_change = timedelta(61)
         then = datetime.now() - time_change
-        shirt_sub = TShirtSub(subscriber = subscriber, avg_bandwidth = 100,
+        shirt_sub = TShirtSub(subscriber = self.subscriber, avg_bandwidth = 100,
                               triggered = True, last_changed = then)
-        shirt_sub.save()
 
         #Check to see that the email should be sent.
         hours_up = shirt_sub.get_hours_since_triggered()
@@ -455,3 +453,5 @@ class TestWeb(TestCase):
         shirt_sub.last_changed = shirt_sub.last_changed + timedelta(hours=1)
         self.assertEqual(shirt_sub.should_email(), False)
 
+                               
+                                   
