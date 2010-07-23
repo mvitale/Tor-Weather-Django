@@ -25,7 +25,7 @@ from config import url_helper
 
 from django.db import models
 from django import forms
-from django.core.exceptions import ValidationError
+from django.forms import ValidationError
 
 
 # HELPER FUNCTIONS ------------------------------------------------------------
@@ -658,11 +658,6 @@ class PrefixedIntegerField(forms.IntegerField):
         """Handles the min/max validation provided for fields in Django 1.2
         Throws errors if values are above or below max/min values.
         """
-
-        print 'cleaning'
-        print self.max_value
-        print self.error_messages
-
         value = self.to_python(value)
 
         if self.max_value != None:
@@ -692,7 +687,7 @@ class PrefixedIntegerField(forms.IntegerField):
             Passes the empty error message so that this error can be caught and
             handled correctly.
         """
-        prefix = self.prefix
+        prefix = self.prefix 
 
         if value == '':
             raise ValidationError(self.error_messages['empty'])

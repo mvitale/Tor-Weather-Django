@@ -38,10 +38,11 @@ def subscribe(request):
         form = SubscribeForm()
     else:
         form = SubscribeForm(request.POST)
-
+ 
         if form.is_valid():
             # Tries to save the new subscriber, but redirects if saving the
             # subscriber failed because of the subscriber already existing
+            
             try:
                 subscriber = form.create_subscriber()
             except Exception, e:
