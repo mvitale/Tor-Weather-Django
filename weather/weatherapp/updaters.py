@@ -23,7 +23,7 @@ from smtplib import SMTPException
 from config import config
 from weatherapp.ctlutil import CtlUtil
 from weatherapp.models import Subscriber, Router, NodeDownSub, BandwidthSub, \
-                              TShirtSub, VersionSub
+                              TShirtSub, VersionSub, DeployedDatetime
 from weatherapp import emails
 
 from django.core.mail import send_mass_mail
@@ -265,10 +265,10 @@ def update_all_routers(ctl_util, email_list):
     if len(deployed_query) == 0:
         #then this is the first time that update_all_routers has run,
         #so create a DeployedDatetime with deployed set to now.
-        deployed = DeployedDatetime(deployed = datetime.now())
-        deployed.save()
+        deployed = datetime.now()
+        DeployedDatetime(deployed = deployed).save()
     else:
-        deployed = deployed_query[0]
+        deployed = deployed_query[0].deployed
     if (datetime.now() - deployed).days < 2:
         fully_deployed = False
     else:

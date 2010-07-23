@@ -1342,7 +1342,7 @@ class PreferencesForm(GenericForm):
             t = TShirtSub(subscriber=self.user)
             t.save()
 
-class DeploymentDatetime(models.Model):
+class DeployedDatetime(models.Model):
     """Stores the date and time when this instance of Tor Weather was first
     deployed. This should only ever have one row, and is used by updaters to 
     populate the router table for 48 hours after deployment without sending
@@ -1354,4 +1354,13 @@ class DeploymentDatetime(models.Model):
     """
 
     deployed = models.DateTimeField()
+
+    def __unicode__(self):
+        """Returns a unicode representation of C{deployed}
+
+        @rtype: unicode
+        @return: A unicode representation of C{deployed}
+        """
+
+        return self.deployed
 
