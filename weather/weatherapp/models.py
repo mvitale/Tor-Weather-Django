@@ -25,7 +25,7 @@ from config import url_helper
 
 from django.db import models
 from django import forms
-from django.core.exceptions import ValidationError
+from django.forms import ValidationError
 
 
 # HELPER FUNCTIONS ------------------------------------------------------------
@@ -660,10 +660,6 @@ class PrefixedIntegerField(forms.IntegerField):
         Throws errors if values are above or below max/min values.
         """
 
-        print 'cleaning'
-        print self.max_value
-        print self.error_messages
-
         value = self.to_python(value)
 
         if self.max_value != None:
@@ -676,7 +672,6 @@ class PrefixedIntegerField(forms.IntegerField):
                     self.max_value])
 
         return value
-
 
     def to_python(self, value):
         """First step in Django's validation process. Ensures that data in
@@ -1135,7 +1130,7 @@ class SubscribeForm(GenericForm):
         L{node_down_grace_pd} and L{band_low_threshold} fields if they are left
         blank.        
         """
-
+        
         data = self.cleaned_data
         
         # Calls the generic clean() helper methods.
