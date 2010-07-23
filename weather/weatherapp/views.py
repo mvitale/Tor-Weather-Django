@@ -353,11 +353,3 @@ def router_fingerprint_lookup(request):
                 json = simplejson.dumps(router.spaced_fingerprint())
             return HttpResponse(json, mimetype='application/json')
             
-def pref_shortcut(request):
-    """FOR TESTING """
-    # XXX
-    user = Subscriber.objects.all()[0]
-    if not user.confirmed:
-        user.confirmed = True
-        user.save()
-    return HttpResponseRedirect('/preferences/' + user.pref_auth)
