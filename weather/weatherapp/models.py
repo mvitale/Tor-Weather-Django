@@ -25,7 +25,7 @@ from config import url_helper
 
 from django.db import models
 from django import forms
-from django.core.exceptions import ValidationError
+from django.forms import ValidationError
 
 
 # HELPER FUNCTIONS ------------------------------------------------------------
@@ -659,10 +659,7 @@ class PrefixedIntegerField(forms.IntegerField):
         Throws errors if values are above or below max/min values.
         """
 
-        print 'cleaning'
-        print self.max_value
-        print self.error_messages
-
+        print "passing %s to to_python" % value
         value = self.to_python(value)
 
         if self.max_value != None:
@@ -964,6 +961,9 @@ class GenericForm(forms.Form):
         self.version_section_text = GenericForm._VERSION_SECTION_INFO
         self.t_shirt_section_text = GenericForm._T_SHIRT_SECTION_INFO
 
+    def clean(self):
+        print "doing generic clean"
+
     def check_if_sub_checked(self):
         """Throws a validation error if no subscriptions are checked. 
         Abstracted out of clean() so that there isn't any redundancy in 
@@ -1134,9 +1134,8 @@ class SubscribeForm(GenericForm):
         L{node_down_grace_pd} and L{band_low_threshold} fields if they are left
         blank.        
         """
-
         data = self.cleaned_data
-        
+        print self.cleaned_data 
         # Calls the generic clean() helper methods.
         GenericForm.check_if_sub_checked(self)
         GenericForm.convert_node_down_grace_pd_unit(self)
@@ -1158,6 +1157,7 @@ class SubscribeForm(GenericForm):
                 del data['email_1']
                 del data['email_2']
 
+        print data
         return data
 
     def clean_fingerprint(self):
