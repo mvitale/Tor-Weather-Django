@@ -352,4 +352,3 @@ def router_fingerprint_lookup(request):
             else:
                 json = simplejson.dumps(router.spaced_fingerprint())
             return HttpResponse(json, mimetype='application/json')
-            
