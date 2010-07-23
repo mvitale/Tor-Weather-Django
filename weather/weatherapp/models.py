@@ -1138,7 +1138,9 @@ class SubscribeForm(GenericForm):
         GenericForm.check_if_sub_checked(self)
         GenericForm.convert_node_down_grace_pd_unit(self)
         GenericForm.delete_hidden_errors(self)
-        GenericForm.replace_blank_values(self, GenericForm._INIT_MAPPING)
+        GenericForm.replace_blank_values(self, {'node_down_grace_pd':
+            GenericForm._NODE_DOWN_GRACE_PD_INIT, 'band_low_threshold':
+            GenericForm._BAND_LOW_THRESHOLD_INIT})
 
         # Makes sure email_1 and email_2 match and creates error messages
         # if they don't as well as deleting the cleaned data so that it isn't
