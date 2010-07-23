@@ -871,7 +871,7 @@ class GenericForm(forms.Form):
     _VERSION_TYPE_CHOICE_2_H = 'Required Updates'
     _VERSION_TYPE_CHOICES = [ ('UNRECOMMENDED', 'Recommended Updates'),
                               ('OBSOLETE', 'Required Updates') ]
-    _VERSION_TYPE_INIT = ('RECOMMENDED', 'Recommended Updates')
+    _VERSION_TYPE_INIT = 'UNRECOMMENDED'
     _VERSION_SECTION_INFO = '<p><em>Recommended Updates:</em>  Emails when\
     the router is not running the most up-to-date stable version of Tor.</p> \
     <p><em>Required Updates:</em>  Emails when the router is running \
