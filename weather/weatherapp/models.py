@@ -532,17 +532,17 @@ class TShirtSub(Subscription):
     node).
 
     Django uses class variables to specify model fields, but these fields are
-    practically used and thought of as instance variables, so this documentation
-    will refer to them as such. Field types are specified as their Django field
-    classes, with parentheses indicating the pythn type they are validated
-    against and are treated as practically. When constructing a L{TShirtSub}
-    object, instance variables are specified as keyword arguments in
-    L{TShirtSub} constructors.
+    practically used and thought of as instance variables, so this
+    documentation will refer to them as such. Field types are specified as
+    their Django field classes, with parentheses indicating the python type
+    they are validated against and are treated as practically. When
+    constructing a L{TShirtSub} object, instance variables are specified as 
+    keyword arguments in L{TShirtSub} constructors.
 
     @type _DEFAULTS: C{dict} {C{str}: various}
-    @cvar _DEFAULTS: Dictionary mapping field names to their default parameters.
-        These are the values that fields will be instantiated with if they are
-        not specified in the model's construction.
+    @cvar _DEFAULTS: Dictionary mapping field names to their default
+        parameters. These are the values that fields will be instantiated with 
+        if they are not specified in the model's construction.
 
     @type triggered: BooleanField (bool)
     @ivar triggered: Whether the C{router} is up. Default is C{False}.
@@ -568,8 +568,8 @@ class TShirtSub(Subscription):
         been up.
 
         @rtype: C{bool}
-        @return: The number of hours that the router has been up, or C{0} if the
-            router is offline.
+        @return: The number of hours that the router has been up, or C{0} if
+            the router is offline.
         """
 
         if self.triggered == False:
@@ -578,12 +578,12 @@ class TShirtSub(Subscription):
             return hours_since(self.last_changed)
         
     def should_email(self):
-        """Determines if the L{subscriber<Subscription.subscriber>} has earned a
-        t-shirt by running its L{router<Subscriber.router>}. Determines this by
-        checking if the L{router<Subscriber.router>} has been up for 1464 hours
-        (61 days, appox 2 months) and then checking if its average bandwidth is
-        above the required threshold (100 kB/s for an exit node, 500 kB/s for a
-        non-exit node).
+        """Determines if the L{subscriber<Subscription.subscriber>} has earned
+        a t-shirt by running its L{router<Subscriber.router>}. Determines this 
+        by checking if the L{router<Subscriber.router>} has been up for 1464 
+        hours (61 days, appox 2 months) and then checking if its average 
+        bandwidth is above the required threshold (100 kB/s for an exit node, 
+        500 kB/s for a non-exit node).
         
         @rtype: C{bool}
         @return: Whether the L{subscriber<Subscription.subscriber>} has earned 
