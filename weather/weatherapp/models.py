@@ -618,8 +618,8 @@ class PrefixedIntegerField(forms.IntegerField):
     @type _PREFIX_DEFAULT: C{str}
     @cvar _PREFIX_DEFAULT: Default prefix.
     @type _DEFAULT_ERRORS: C{dict} {C{str}: C{str}}
-    @cvar _DEFAULT_ERRORS: Dictionary mapping default error names to their error
-        messages.
+    @cvar _DEFAULT_ERRORS: Dictionary mapping default error names to their
+        error messages.
 
     @type prefix: C{str}
     @ivar prefix: Prefix to use for this L{PrefixedIntegerField} instance. 
@@ -1025,22 +1025,33 @@ class GenericForm(forms.Form):
 
             data['node_down_grace_pd'] = grace_pd
 
-    def clean(self):
-        """Performs the basic, form-wide cleaning for L{GenericForm}. This 
-        method is called automatically by Django's form validation. Ensures
-        that at least on subscription type is selected, converts the
-        L{node_down_grace_pd} to hours and ensures it isn't over the maximum
-        allowed value after this conversion, and deletes errors for sections of
-        the form corresponding to subscriptions the user isn't subscribing to.
-                
-        @return: The 'cleaned' data from the POST request.
-        """
-        
-        self.check_if_sub_checked()
-        self.convert_node_down_grace_pd_unit()
-        self.delete_hidden_errors()
+    def replace_blank_values(self, replace):
+        """Check if C{node_down_grace_pd} and C{band_low_threshold} have errors
+        because they are left blank, and then deletes the empty validation 
+        error and inserts a value from the C{replace} dictionary.
 
-        return self.cleaned_data
+        @type replace: dict {str: various}
+        @arg replace: Dictionary mapping names of fields to their
+            values. Meant to either be a dictionary of default values when
+            called in SubscribeForm, and the dictionary of the user's previous
+            preferences when called in PreferencesForm.
+        """
+
+        data = self.cleaned_data
+
+        if 'node_down_grace_pd' in self._errors:
+            if PrefixedIntegerField._DEFAULT_ERRORS['empty'] in \
+                    str(self._errors['node_down_grace_pd']):
+                del self._errors['node_down_grace_pd']
+                data['node_down_grace_pd'] = replace['node_down_grace_pd']
+
+        if 'band_low_threshold' in self._errors:
+            if PrefixedIntegerField._DEFAULT_ERRORS['empty'] in \
+                    str(self._errors['band_low_threshold']):
+                del self._errors['band_low_threshold']
+                data['band_low_threshold'] = replace['band_low_threshold']
+
+        return data
 
 class SubscribeForm(GenericForm):
     """Form for subscribing to Tor Weather. Inherits from L{GenericForm}.
@@ -1126,10 +1137,11 @@ class SubscribeForm(GenericForm):
 
         data = self.cleaned_data
         
-        # Calls the same helper methods used in the GenericForm clean() method.
+        # Calls the generic clean() helper methods.
         GenericForm.check_if_sub_checked(self)
         GenericForm.convert_node_down_grace_pd_unit(self)
         GenericForm.delete_hidden_errors(self)
+        GenericForm.replace_blank_values(self, GenericForm._INIT_MAPPING)
 
         # Makes sure email_1 and email_2 match and creates error messages
         # if they don't as well as deleting the cleaned data so that it isn't
@@ -1145,24 +1157,6 @@ class SubscribeForm(GenericForm):
                 
                 del data['email_1']
                 del data['email_2']
-
-        # If the field is empty, then deletes the empty validation error and 
-        # inserts the default value into the cleaned data.
-        if 'node_down_grace_pd' in self._errors:
-            if PrefixedIntegerField._DEFAULT_ERRORS['empty'] in \
-                    str(self._errors['node_down_grace_pd']):
-               del self._errors['node_down_grace_pd']
-               data['node_down_grace_pd'] = \
-                       GenericForm._NODE_DOWN_GRACE_PD_INIT
-
-        # If the field is empty, then deletes the empty validation error and
-        # inserts the default value into the cleaned data.
-        if 'band_low_threshold' in self._errors:
-            if PrefixedIntegerField._DEFAULT_ERRORS['empty'] in \
-                    str(self._errors['band_low_threshold']):
-                del self._errors['band_low_threshold']
-                data['band_low_threshold'] = \
-                        GenericForm._BAND_LOW_THRESHOLD_INIT
 
         return data
 
@@ -1289,9 +1283,28 @@ class PreferencesForm(GenericForm):
             GenericForm.__init__(self, data)
  
         self.user = user
+        self.preferences = self.user.get_preferences()
 
         self.user_info = PreferencesForm._USER_INFO_STR % (self.user.email, \
                 self.user.router.name, user.router.spaced_fingerprint())
+
+    def clean(self):
+        """Performs the basic, form-wide cleaning for L{PreferencesForm}. This 
+        method is called automatically by Django's form validation. Ensures
+        that at least on subscription type is selected, converts the
+        L{node_down_grace_pd} to hours and ensures it isn't over the maximum
+        allowed value after this conversion, and deletes errors for sections of
+        the form corresponding to subscriptions the user isn't subscribing to.
+                
+        @return: The 'cleaned' data from the POST request.
+        """
+        
+        GenericForm.check_if_sub_checked(self)
+        GenericForm.convert_node_down_grace_pd_unit(self)
+        GenericForm.delete_hidden_errors(self)
+        GenericForm.replace_blank_values(self, self.preferences)
+
+        return self.cleaned_data
 
     def change_subscriptions(self, new_data):
         """Change the subscriptions and options if they are specified.
@@ -1300,7 +1313,7 @@ class PreferencesForm(GenericForm):
         @arg new_data: New preferences.
         """
 
-        old_data = self.user.get_preferences()
+        old_data = self.preferences
 
         # If there already was a subscription, get it and update it or delete
         # it depending on the current value.
@@ -1361,3 +1374,26 @@ class PreferencesForm(GenericForm):
         elif new_data['get_t_shirt']:
             t = TShirtSub(subscriber=self.user)
             t.save()
+
+class DeployedDatetime(models.Model):
+    """Stores the date and time when this instance of Tor Weather was first
+    deployed. This should only ever have one row, and is used by updaters to 
+    populate the router table for 48 hours after deployment without sending
+    welcome emails.
+
+    @type deployed: DateTimeField (datetime)
+    @ivar deployed: The datetime that this instance of Tor Weather was first
+    deployed.
+    """
+
+    deployed = models.DateTimeField()
+
+    def __unicode__(self):
+        """Returns a unicode representation of C{deployed}
+
+        @rtype: unicode
+        @return: A unicode representation of C{deployed}
+        """
+
+        return self.deployed
+
