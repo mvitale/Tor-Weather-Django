@@ -629,11 +629,12 @@ class PrefixedIntegerField(forms.IntegerField):
 
     _DEFAULT_ERRORS = {
         'invalid': 'Enter a whole number.',
-        'max_value': 'Ensure this value is less than or equal to \
-                %(limit_value)s.',
-        'min_value': 'Ensure this value is greater than or equal to \
-                %(limit_value)s.',
-        'empty': 'yo, dawg; I am empty and no user should see this error',
+        'max_value': 'Ensure this value is less than or equal to %s.',
+        'min_value': 'Ensure this value is greater than or equal to %s.',
+
+        # This error message should not ever be displayed; empty fields should
+        # be handled.
+        'empty': 'Please enter a value in this field.',
     }
 
     def __init__(self, max_value=None, min_value=None, *args, **kwargs):
@@ -658,12 +659,20 @@ class PrefixedIntegerField(forms.IntegerField):
         Throws errors if values are above or below max/min values.
         """
 
+        print 'cleaning'
+        print self.max_value
+        print self.error_messages
+
+        value = self.to_python(value)
+
         if self.max_value != None:
             if value > self.max_value:
-                raise ValidationError(self.error_messages['max_value'])
+                raise ValidationError(self.error_messages['max_value' %
+                    self.max_value])
         if self.min_value != None:
             if value < self.min_value:
-                raise ValidationError(self.error_messages['min_value'])
+                raise ValidationError(self.error_messages['min_value' %
+                    self.max_value])
 
         return value
 
@@ -690,10 +699,10 @@ class PrefixedIntegerField(forms.IntegerField):
 
         try:
             if value.startswith(prefix):
-                value = int(forms.IntegerField.to_python(self, 
+                value = int(forms.IntegerField.clean(self, 
                     value[len(prefix):]))
             else:
-                value = int(forms.IntegerField.to_python(self,
+                value = int(forms.IntegerField.clean(self,
                                                 value))
         except (ValueError, TypeError):
             raise ValidationError(self.error_messages['invalid'])
