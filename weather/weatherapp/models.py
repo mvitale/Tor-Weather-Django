@@ -25,7 +25,7 @@ from config import url_helper
 
 from django.db import models
 from django import forms
-from django.core import validators
+#from django.core import validators
 from django.core.exceptions import ValidationError
 
 
@@ -631,9 +631,9 @@ class PrefixedIntegerField(forms.IntegerField):
     _DEFAULT_ERRORS = {
         'invalid': 'Enter a whole number.',
         'max_value': 'Ensure this value is less than or equal to \
-                %(limit_value)s.',
+                %s.',
         'min_value': 'Ensure this value is greater than or equal to \
-                %(limit_value)s.',
+                %s.',
         'empty': 'yo, dawg; I am empty and no user should see this error',
     }
 
@@ -649,13 +649,29 @@ class PrefixedIntegerField(forms.IntegerField):
 
         forms.IntegerField.__init__(self, *args, **kwargs)
 
-        if max_value is not None:
-            self.validators.append(validators.MaxValueValidator(max_value))
-        if min_value is not None:
-            self.validators.append(validators.MinValueValidator(min_value))
-
         self.prefix = PrefixedIntegerField._PREFIX_DEFAULT
         self.error_messages = PrefixedIntegerField._DEFAULT_ERRORS
+        self.max_value = max_value
+        self.min_value = min_value
+
+    def clean(self, value):
+        """Handles the min/max validation provided for fields in Django 1.2
+        Throws errors if values are above or below max/min values.
+        """
+
+        value = self.to_python(value)
+
+        if self.max_value != None:
+            if value > self.max_value:
+                raise ValidationError(self.error_messages['max_value' %
+                    self.max_value])
+        if self.min_value != None:
+            if value < self.min_value:
+                raise ValidationError(self.error_messages['min_value' %
+                    self.max_value])
+
+        return value
+
 
     def to_python(self, value):
         """First step in Django's validation process. Ensures that data in
@@ -679,10 +695,10 @@ class PrefixedIntegerField(forms.IntegerField):
 
         try:
             if value.startswith(prefix):
-                value = int(forms.IntegerField.to_python(self, 
+                value = int(forms.IntegerField.clean(self, 
                     value[len(prefix):]))
             else:
-                value = int(forms.IntegerField.to_python(self,
+                value = int(forms.IntegerField.clean(self,
                                                 value))
         except (ValueError, TypeError):
             raise ValidationError(self.error_messages['invalid'])
