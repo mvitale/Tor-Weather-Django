@@ -860,7 +860,7 @@ class GenericForm(forms.Form):
     _VERSION_TYPE_CHOICE_2_H = 'Required Updates'
     _VERSION_TYPE_CHOICES = [ ('UNRECOMMENDED', 'Recommended Updates'),
                               ('OBSOLETE', 'Required Updates') ]
-    _VERSION_TYPE_INIT = ('RECOMMENDED', 'Recommended Updates')
+    _VERSION_TYPE_INIT = 'UNRECOMMENDED'
     _VERSION_SECTION_INFO = '<p><em>Recommended Updates:</em>  Emails when\
     the router is not running the most up-to-date stable version of Tor.</p> \
     <p><em>Required Updates:</em>  Emails when the router is running \
@@ -1283,7 +1283,7 @@ class PreferencesForm(GenericForm):
         the form corresponding to subscriptions the user isn't subscribing to.
                 
         @return: The 'cleaned' data from the POST request.
-        """
+        """ 
         
         GenericForm.check_if_sub_checked(self)
         GenericForm.convert_node_down_grace_pd_unit(self)
