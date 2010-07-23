@@ -655,7 +655,7 @@ class PrefixedIntegerField(forms.IntegerField):
         self.min_value = min_value
 
     def clean(self, value):
-        """Handles the min/max validation provided for fields in Django 1.2
+        """Handles the min/max validation provided for fields. 
         Throws errors if values are above or below max/min values.
         """
 
