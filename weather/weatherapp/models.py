@@ -265,8 +265,8 @@ class Subscriber(models.Model):
         """Checks if this L{Subscriber} has a L{NodeDownSub}.
 
         @rtype: bool
-        @return: Whether a L{NodeDownSub} exists for this L{Subscriber}; C{True}
-            if it does, C{False} if it doesn't.
+        @return: Whether a L{NodeDownSub} exists for this L{Subscriber}; 
+            C{True} if it does, C{False} if it doesn't.
         """
         
         return self._has_sub_type('NodeDownSub')
