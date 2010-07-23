@@ -23,7 +23,7 @@ from smtplib import SMTPException
 from config import config
 from weatherapp.ctlutil import CtlUtil
 from weatherapp.models import Subscriber, Router, NodeDownSub, BandwidthSub, \
-                              TShirtSub, VersionSub
+                              TShirtSub, VersionSub, DeployedDatetime
 from weatherapp import emails
 
 from django.core.mail import send_mass_mail
@@ -258,42 +258,59 @@ def update_all_routers(ctl_util, email_list):
     @rtype: list
     @return: The updated list of tuples representing emails to send.
     """
-
+    
+    #determine if two days have passed since deployment and set fully_deployed
+    #accordingly
+    deployed_query = DeployedDatetime.objects.all()
+    if len(deployed_query) == 0:
+        #then this is the first time that update_all_routers has run,
+        #so create a DeployedDatetime with deployed set to now.
+        deployed = datetime.now()
+        DeployedDatetime(deployed = deployed).save()
+    else:
+        deployed = deployed_query[0].deployed
+    if (datetime.now() - deployed).days < 2:
+        fully_deployed = False
+    else:
+        fully_deployed = True
     
     router_set = Router.objects.all()
     for router in router_set:
-        #remove routers that we haven't seen for more than a year 
+        #remove routers from the db that we haven't seen for more than a year 
         if (datetime.now() - router.last_seen).days > 365:
             router.delete()
-        #Set the 'up' flag to False. 
+        #Set the 'up' flag to False for every router
         else:
             router.up = False
             router.save()
-
+    
     #Get a list of fingerprint/name tuples in the current descriptor file
     finger_name = ctl_util.get_finger_name_list()
 
     for router in finger_name:
         finger = router[0]
         name = router[1]
-        is_up_hiber = ctl_util.is_up_or_hibernating(finger)
 
-
-        if is_up_hiber:
-            is_exit = ctl_util.is_exit(finger)
+        if ctl_util.is_up_or_hibernating(finger):
 
             router_data = None
             try:
                 router_data = Router.objects.get(fingerprint = finger)
-            except Router.DoesNotExist:
-                #let's add it
-                Router(fingerprint=finger, name=name, exit = is_exit).save()
-                router_data = Router.objects.get(fingerprint = finger)
-
+            except:
+                if fully_deployed:
+                    router_data = Router(name = name, fingerprint = finger,
+                                         welcomed = False)
+                else:
+                    #We don't ever want to welcome relays that were running 
+                    #when  Weather was deployed, so set welcomed to True
+                    router_data = Router(name = name, fingerprint = finger,
+                                         welcomed = True)           
+            
             router_data.last_seen = datetime.now()
             router_data.name = name
             router_data.up = True
-            router_data.exit = is_exit
+            router_data.exit = ctl_util.is_exit(finger)
+
             #send a welcome email if indicated
             if router_data.welcomed == False and ctl_util.is_stable(finger):
                 address = ctl_util.get_email(finger)
@@ -301,6 +318,7 @@ def update_all_routers(ctl_util, email_list):
                     email = emails.welcome_tuple(address, finger, name, is_exit)
                     email_list.append(email)
                 router_data.welcomed = True
+
             router_data.save()
 
     return email_list
