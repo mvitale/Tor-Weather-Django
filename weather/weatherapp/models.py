@@ -265,8 +265,8 @@ class Subscriber(models.Model):
         """Checks if this L{Subscriber} has a L{NodeDownSub}.
 
         @rtype: bool
-        @return: Whether a L{NodeDownSub} exists for this L{Subscriber}; C{True}
-            if it does, C{False} if it doesn't.
+        @return: Whether a L{NodeDownSub} exists for this L{Subscriber}; 
+        C{True} if it does, C{False} if it doesn't.
         """
         
         return self._has_sub_type('NodeDownSub')
@@ -532,17 +532,17 @@ class TShirtSub(Subscription):
     node).
 
     Django uses class variables to specify model fields, but these fields are
-    practically used and thought of as instance variables, so this documentation
-    will refer to them as such. Field types are specified as their Django field
-    classes, with parentheses indicating the pythn type they are validated
-    against and are treated as practically. When constructing a L{TShirtSub}
-    object, instance variables are specified as keyword arguments in
-    L{TShirtSub} constructors.
+    practically used and thought of as instance variables, so this 
+    documentation will refer to them as such. Field types are specified as 
+    their Django field classes, with parentheses indicating the python type 
+    they are validated against and are treated as practically. When 
+    constructing a L{TShirtSub} object, instance variables are specified as 
+    keyword arguments in L{TShirtSub} constructors.
 
     @type _DEFAULTS: C{dict} {C{str}: various}
-    @cvar _DEFAULTS: Dictionary mapping field names to their default parameters.
-        These are the values that fields will be instantiated with if they are
-        not specified in the model's construction.
+    @cvar _DEFAULTS: Dictionary mapping field names to their default 
+    parameters. These are the values that fields will be instantiated with if 
+    they are not specified in the model's construction.
 
     @type triggered: BooleanField (bool)
     @ivar triggered: Whether the C{router} is up. Default is C{False}.
@@ -568,8 +568,8 @@ class TShirtSub(Subscription):
         been up.
 
         @rtype: C{bool}
-        @return: The number of hours that the router has been up, or C{0} if the
-            router is offline.
+        @return: The number of hours that the router has been up, or C{0} if 
+        the router is offline.
         """
 
         if self.triggered == False:
@@ -578,12 +578,12 @@ class TShirtSub(Subscription):
             return hours_since(self.last_changed)
         
     def should_email(self):
-        """Determines if the L{subscriber<Subscription.subscriber>} has earned a
-        t-shirt by running its L{router<Subscriber.router>}. Determines this by
-        checking if the L{router<Subscriber.router>} has been up for 1464 hours
-        (61 days, appox 2 months) and then checking if its average bandwidth is
-        above the required threshold (100 kB/s for an exit node, 500 kB/s for a
-        non-exit node).
+        """Determines if the L{subscriber<Subscription.subscriber>} has earned 
+        a t-shirt by running its L{router<Subscriber.router>}. Determines this 
+        by checking if the L{router<Subscriber.router>} has been up for 1464 
+        hours (61 days, appox 2 months) and then checking if its average  
+        bandwidth is above the required threshold (100 kB/s for an exit node, 
+        500 kB/s for a non-exit node).
         
         @rtype: C{bool}
         @return: Whether the L{subscriber<Subscription.subscriber>} has earned 
@@ -633,7 +633,8 @@ class PrefixedIntegerField(forms.IntegerField):
         'min_value': 'Ensure this value is greater than or equal to %s.',
 
         # This error message should not ever be displayed; empty fields should
-        # be handled.
+        # be handled in the clean() methods of PreferencesForm and
+        # SubscribeForm.
         'empty': 'Please enter a value in this field.',
     }
 
@@ -659,7 +660,6 @@ class PrefixedIntegerField(forms.IntegerField):
         Throws errors if values are above or below max/min values.
         """
 
-        print "passing %s to to_python" % value
         value = self.to_python(value)
 
         if self.max_value != None:
@@ -672,7 +672,6 @@ class PrefixedIntegerField(forms.IntegerField):
                     self.max_value])
 
         return value
-
 
     def to_python(self, value):
         """First step in Django's validation process. Ensures that data in
@@ -689,7 +688,7 @@ class PrefixedIntegerField(forms.IntegerField):
             Passes the empty error message so that this error can be caught and
             handled correctly.
         """
-        prefix = self.prefix
+        prefix = self.prefix 
 
         if value == '':
             raise ValidationError(self.error_messages['empty'])
@@ -1134,13 +1133,16 @@ class SubscribeForm(GenericForm):
         L{node_down_grace_pd} and L{band_low_threshold} fields if they are left
         blank.        
         """
+
         data = self.cleaned_data
         print self.cleaned_data 
         # Calls the generic clean() helper methods.
         GenericForm.check_if_sub_checked(self)
         GenericForm.convert_node_down_grace_pd_unit(self)
         GenericForm.delete_hidden_errors(self)
-        GenericForm.replace_blank_values(self, GenericForm._INIT_MAPPING)
+        GenericForm.replace_blank_values(self, {'node_down_grace_pd':
+            GenericForm._NODE_DOWN_GRACE_PD_INIT, 'band_low_threshold':
+            GenericForm._BAND_LOW_THRESHOLD_INIT})
 
         # Makes sure email_1 and email_2 match and creates error messages
         # if they don't as well as deleting the cleaned data so that it isn't
@@ -1234,6 +1236,7 @@ class SubscribeForm(GenericForm):
         @type subscriber: Subscriber
         @arg subscriber: The subscriber whose subscriptions are being saved.
         """
+        
         # Create the various subscriptions if they are specified.
         if self.cleaned_data['get_node_down']:
             node_down_sub = NodeDownSub(subscriber=subscriber,

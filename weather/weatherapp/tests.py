@@ -30,6 +30,7 @@ class TestWeb(TestCase):
                                           'fingerprint' : '1234',
                                           'get_node_down' : True,
                                           'node_down_grace_pd' : '',
+                                          'node_down_grace_pd_unit': 'H',
                                           'get_version' : False,
                                           'version_type' : 'OBSOLETE',
                                           'get_band_low': False,
