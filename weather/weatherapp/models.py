@@ -268,7 +268,7 @@ class Subscriber(models.Model):
         @return: Whether a L{NodeDownSub} exists for this L{Subscriber}; 
             C{True} if it does, C{False} if it doesn't.
         """
-        
+
         return self._has_sub_type('NodeDownSub')
 
     def has_version_sub(self):
@@ -656,12 +656,11 @@ class PrefixedIntegerField(forms.IntegerField):
         self.min_value = min_value
 
     def clean(self, value):
-        """Handles the min/max validation provided for fields in Django 1.2
+        """Handles the min/max validation provided for fields. 
         Throws errors if values are above or below max/min values.
         """
 
         value = self.to_python(value)
-        print 'clean got ' + str(value)
 
         if self.max_value != None:
             if value > self.max_value:
@@ -873,7 +872,7 @@ class GenericForm(forms.Form):
     _VERSION_TYPE_CHOICE_2_H = 'Required Updates'
     _VERSION_TYPE_CHOICES = [ ('UNRECOMMENDED', 'Recommended Updates'),
                               ('OBSOLETE', 'Required Updates') ]
-    _VERSION_TYPE_INIT = ('RECOMMENDED', 'Recommended Updates')
+    _VERSION_TYPE_INIT = 'UNRECOMMENDED'
     _VERSION_SECTION_INFO = '<p><em>Recommended Updates:</em>  Emails when\
     the router is not running the most up-to-date stable version of Tor.</p> \
     <p><em>Required Updates:</em>  Emails when the router is running \
@@ -960,6 +959,9 @@ class GenericForm(forms.Form):
 
         self.version_section_text = GenericForm._VERSION_SECTION_INFO
         self.t_shirt_section_text = GenericForm._T_SHIRT_SECTION_INFO
+
+    def clean(self):
+        print "doing generic clean"
 
     def check_if_sub_checked(self):
         """Throws a validation error if no subscriptions are checked. 
@@ -1131,9 +1133,9 @@ class SubscribeForm(GenericForm):
         L{node_down_grace_pd} and L{band_low_threshold} fields if they are left
         blank.        
         """
-        
+
         data = self.cleaned_data
-        
+        print self.cleaned_data 
         # Calls the generic clean() helper methods.
         GenericForm.check_if_sub_checked(self)
         GenericForm.convert_node_down_grace_pd_unit(self)
@@ -1157,6 +1159,7 @@ class SubscribeForm(GenericForm):
                 del data['email_1']
                 del data['email_2']
 
+        print data
         return data
 
     def clean_fingerprint(self):
