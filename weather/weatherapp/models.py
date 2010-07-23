@@ -633,7 +633,8 @@ class PrefixedIntegerField(forms.IntegerField):
         'min_value': 'Ensure this value is greater than or equal to %s.',
 
         # This error message should not ever be displayed; empty fields should
-        # be handled.
+        # be handled in the clean() methods of PreferencesForm and
+        # SubscribeForm.
         'empty': 'Please enter a value in this field.',
     }
 
