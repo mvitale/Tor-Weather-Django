@@ -263,6 +263,8 @@ def update_all_routers(ctl_util, email_list):
     #accordingly
     deployed_query = DeployedDatetime.objects.all()
     if len(deployed_query) == 0:
+        #then this is the first time that update_all_routers has run,
+        #so create a DeployedDatetime with deployed set to now.
         deployed = DeployedDatetime(deployed = datetime.now())
         deployed.save()
     else:
