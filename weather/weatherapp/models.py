@@ -689,7 +689,7 @@ class PrefixedIntegerField(forms.IntegerField):
             Passes the empty error message so that this error can be caught and
             handled correctly.
         """
-        prefix = self.prefix
+        prefix = self.prefix 
 
         if value == '':
             raise ValidationError(self.error_messages['empty'])
