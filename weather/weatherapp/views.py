@@ -144,6 +144,14 @@ def confirm(request, confirm_auth):
         # confirm the user's subscription
         user.confirmed = True
         user.save()
+
+    if not router.welcomed:
+        #We assume that people will only subscribe to relays they are running.
+        #We set welcomed to True so that we don't accidentally send welcome
+        #emails to users who are already subscribed.
+        router.welcomed = True
+        router.save()
+
     else:
         # the user is already confirmed, send to an error page
         error_url_ext = url_helper.get_error_ext('already_confirmed',    
