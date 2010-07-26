@@ -1,5 +1,6 @@
 There should only be one running instance of this application. Please do not run it if you are not a Tor developer.
 
+This version of Tor Weather was backported to Django version 1.1.
 --------------------------------------------------------------------------------
 INSTALLATION:
 See /doc/INSTALL for details.
