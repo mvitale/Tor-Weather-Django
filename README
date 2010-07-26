@@ -1,5 +1,8 @@
 There should only be one running instance of this application. Please do not run it if you are not a Tor developer.
 
+This version of Tor Weather runs on Django version 1.2. It is incompatible with
+earlier versions of Django. If you are running Django v1.1, please download the
+v1.1-compatible version of this package.
 --------------------------------------------------------------------------------
 INSTALLATION:
 See /doc/INSTALL for details.
