@@ -4,7 +4,7 @@ Tor Weather Design Documentation
 
 Django
 ------------
-Tor Weather was ported to `Django (v1.2)`_ to take advantage of the framework's object relational mapper for database access. Data can be directly accessed by way of Django's models, each of which maps to a table in the database and can be utilized as an object. Django's adaptation of the model-view-controller schema is a bit confusing: controllers are stored in a module named views.py and views are called templates (but models are still, thankfully, called models). Still, Django greatly simplified design and development of the Tor Weather web application, which is why it was chosen.
+Tor Weather was ported to `Django (v1.1)`_ to take advantage of the framework's object relational mapper for database access. Data can be directly accessed by way of Django's models, each of which maps to a table in the database and can be utilized as an object. Django's adaptation of the model-view-controller schema is a bit confusing: controllers are stored in a module named views.py and views are called templates (but models are still, thankfully, called models). Still, Django greatly simplified design and development of the Tor Weather web application, which is why it was chosen.
 
 Directory Structure
 -------------------------
@@ -186,6 +186,6 @@ Updating the database and sending email notifications is handled by the updaters
 
 Each Subscription in the database is updated, and emails are sent to the Subscriber's email if the conditions indicate a notification should be sent. 
 
-.. _Django (v1.2): http://docs.djangoproject.com/en/1.2/intro/overview/
+.. _Django (v1.1): http://docs.djangoproject.com/en/1.1/intro/overview/
 .. _Tor T-Shirt page: http://www.torproject.org/tshirt.html.en
 .. _directory specifications: https://svn.torproject.org/svn/tor/trunk/doc/spec/dir-spec.txt
