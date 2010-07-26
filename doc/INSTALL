@@ -17,6 +17,7 @@ directory:
 6) Look here for documentation concerning how to deploy the Django web 
 application:
 http://docs.djangoproject.com/en/dev/howto/deployment/
+We recommend deploying Django with Apache and mod_wsgi.
 
 7) Once the application is deployed, the listener application should be run from
 inside the weather directory:
