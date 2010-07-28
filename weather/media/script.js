@@ -72,6 +72,16 @@ $(document).ready(function() {
 		searchContainer.hide();
 	});
 
+	$("#router_search").keypress(function(event) {
+		if (event.keyCode == 13) {
+			event.preventDefault();
+			clearAutoComplete();
+			$("#router-search-submit").click();
+			return true;
+		}
+	});
+
+
 	// Looks up fingerprint based on router name.
 	$("#router-search-submit").click(function() {
 		var searchField = $("#search-container input");
