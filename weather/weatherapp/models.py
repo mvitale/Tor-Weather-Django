@@ -853,7 +853,7 @@ class GenericForm(forms.Form):
     _NODE_DOWN_GRACE_PD_UNIT_INIT = ('H', 'hours')
     
     _GET_VERSION_INIT = False
-    _GET_VERSION_LABEL = 'Email me when the node\'s Tor version is out of date'
+    _GET_VERSION_LABEL = 'Email me when the router\'s Tor version is out of date'
     _VERSION_TYPE_CHOICE_1 = 'UNRECOMMENDED'
     _VERSION_TYPE_CHOICE_1_H = 'Recommended Updates'
     _VERSION_TYPE_CHOICE_2 = 'OBSOLETE'
@@ -878,7 +878,7 @@ class GenericForm(forms.Form):
             str(_BAND_LOW_THRESHOLD_MAX)
    
     _GET_T_SHIRT_INIT = False
-    _GET_T_SHIRT_LABEL = 'Email me when my router has earned me a \
+    _GET_T_SHIRT_LABEL = 'Email me when the router has earned me a \
             <a target=_BLANK href="' + url_helper.get_t_shirt_url() + \
             '">Tor t-shirt</a>'
     _T_SHIRT_SECTION_INFO = '<em>Note:</em> You must be the router\'s \
