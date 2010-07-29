@@ -960,9 +960,6 @@ class GenericForm(forms.Form):
         self.version_section_text = GenericForm._VERSION_SECTION_INFO
         self.t_shirt_section_text = GenericForm._T_SHIRT_SECTION_INFO
 
-    def clean(self):
-        print "doing generic clean"
-
     def check_if_sub_checked(self):
         """Throws a validation error if no subscriptions are checked. 
         Abstracted out of clean() so that there isn't any redundancy in 
@@ -1135,7 +1132,6 @@ class SubscribeForm(GenericForm):
         """
 
         data = self.cleaned_data
-        print self.cleaned_data 
         # Calls the generic clean() helper methods.
         GenericForm.check_if_sub_checked(self)
         GenericForm.convert_node_down_grace_pd_unit(self)
@@ -1159,7 +1155,6 @@ class SubscribeForm(GenericForm):
                 del data['email_1']
                 del data['email_2']
 
-        print data
         return data
 
     def clean_fingerprint(self):
