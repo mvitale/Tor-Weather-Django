@@ -40,7 +40,7 @@ $(document).ready(function() {
 	showOrHideSect("input#id_get_t_shirt", "div#t-shirt-section");
 
 	// Styles text boxes that say 'Default value is --defVal--'.
-	showDefault("div#node-down-section", 1);
+	showDefault("div#node-down-section", 0);
 	showDefault("div#band-low-section", 20);
 
 	// Show description about '(More Info)' link.
