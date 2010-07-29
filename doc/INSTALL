@@ -14,7 +14,7 @@ Tor hashed control password in plain text. The file should otherwise be empty.
 
 6) Create the database by running the following command from within the weather
 directory:
-/weather$ python manage.py syncdb
+	$ python manage.py syncdb
 (You don't need to create a superuser).
 
 7) Look here for documentation concerning how to deploy the Django web 
@@ -24,7 +24,7 @@ We recommend deploying Django with Apache and mod_wsgi.
 
 8) Once the application is deployed, the listener application should be run from
 inside the weather directory:
-/weather$ python manage.py runlistener
+	$ python manage.py runlistener
 The listener waits for consensus events from your local TorCtl process, then 
 updates the database and sends notifications.
 WARNING: There should only be one instance of this application running at any
