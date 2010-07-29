@@ -52,23 +52,23 @@ def check_node_down(email_list):
                    sub.emailed = False
                    sub.last_changed = datetime.now()
             else:
-                if sub.triggered:
-                    if sub.is_grace_passed() and sub.emailed == False:
-                        recipient = sub.subscriber.email
-                        fingerprint = sub.subscriber.router.fingerprint
-                        name = sub.subscriber.router.name
-                        grace_pd = sub.grace_pd
-                        unsubs_auth = sub.subscriber.unsubs_auth
-                        pref_auth = sub.subscriber.pref_auth
-                        
-                        email = emails.node_down_tuple(recipient, fingerprint, 
-                                                       name, grace_pd,          
-                                                       unsubs_auth, pref_auth)
-                        email_list.append(email)
-                        sub.emailed = True 
-                else:
+                if not sub.triggered:
                     sub.triggered = True
                     sub.last_changed = datetime.now()
+
+                if sub.is_grace_passed() and sub.emailed == False:
+                    recipient = sub.subscriber.email
+                    fingerprint = sub.subscriber.router.fingerprint
+                    name = sub.subscriber.router.name
+                    grace_pd = sub.grace_pd
+                    unsubs_auth = sub.subscriber.unsubs_auth
+                    pref_auth = sub.subscriber.pref_auth
+                        
+                    email = emails.node_down_tuple(recipient, fingerprint, 
+                                                   name, grace_pd,          
+                                                   unsubs_auth, pref_auth)
+                    email_list.append(email)
+                    sub.emailed = True 
 
             sub.save()
     return email_list
