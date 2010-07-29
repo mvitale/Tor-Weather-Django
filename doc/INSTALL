@@ -10,7 +10,8 @@ by your local torrc if necessary. The default is 9051. Change the base_url field
 directory.
 
 5) Create a file named auth_token inside the weather.config directory 
-containing your Tor hashed control password in plain text. The file should otherwise be empty.
+and insert your Tor hashed control password in plain text. The file should 
+otherwise be empty.
 
 6) Create the database by running the following command from within the weather
 directory:
