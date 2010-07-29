@@ -113,7 +113,7 @@ div#center {
 						position: absolute;
 						bottom: 0px;
 						left: 400px;
-						overflow: auto;
+						overflow: hidden;
 					}
 
 					div#search-results {
