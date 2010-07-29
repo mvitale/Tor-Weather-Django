@@ -852,9 +852,9 @@ class GenericForm(forms.Form):
       
     _GET_NODE_DOWN_INIT = True
     _GET_NODE_DOWN_LABEL = 'Email me when the node is down'
-    _NODE_DOWN_GRACE_PD_INIT = 1
+    _NODE_DOWN_GRACE_PD_INIT = 0
     _NODE_DOWN_GRACE_PD_MAX = 4500
-    _NODE_DOWN_GRACE_PD_MIN = 1
+    _NODE_DOWN_GRACE_PD_MIN = 0
     _NODE_DOWN_GRACE_PD_LABEL = 'How long before we send a notifcation?'
     _NODE_DOWN_GRACE_PD_HELP_TEXT = 'Enter a value between one hour and six \
             months'
