@@ -23,9 +23,9 @@
 	<span class="form-error" id="general-form-error">{{ error }}</span>
 	{% endfor %}
 
-	<div>
+	<div class="notification-section">
 		{{ form.get_node_down }}
-		{{ form.get_node_down.label_tag }}
+		<span class="after-checkbox">{{ form.get_node_down.label_tag }}</span>
 		<div class="extra-options" id="node-down-section">
 			{{ form.node_down_grace_pd.label_tag }}
 			{% for error in form.node_down_grace_pd.errors %}
@@ -41,9 +41,9 @@
 		</div>
 	</div>
 
-	<div>
+	<div class="notification-section">
 		{{ form.get_version }}
-		{{ form.get_version.label_tag }}
+		<span class="after-checkbox">{{ form.get_version.label_tag }}</span>
 		<div class="extra-options" id="version-section">
 			<div>{{ form.version_section_text|safe }}</div>
 			{% for error in form.version_type.errors %}
@@ -55,9 +55,9 @@
 		</div>
 	</div>
 
-	<div>
+	<div class="notification-section">
 		{{ form.get_band_low }}
-		{{ form.get_band_low.label_tag }}
+		<span class="after-checkbox">{{ form.get_band_low.label_tag }}</span>
 		<div class="extra-options" id="band-low-section">
 			{{ form.band_low_threshold.label_tag }}
 			{% for error in form.band_low_threshold.errors %}
@@ -72,9 +72,9 @@
 		</div>
 	</div>
 
-	<div>
+	<div class="notification-section">
 		{{ form.get_t_shirt }}
-		<label for="id_get_t_shirt">{{ form.get_t_shirt.label|safe}}</label>
+		<span class="after-checkbox"><label for="id_get_t_shirt">{{form.get_t_shirt.label|safe}}</label></span>
 		<div class="extra-options" id="t-shirt-section">
 			<div>{{ form.t_shirt_section_text|safe }}</div>
 		</div>
