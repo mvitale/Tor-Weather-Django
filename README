@@ -14,7 +14,7 @@ See /doc/INSTALL for details.
 API:
 To generate the Tor Weather API, install epydoc (http://epydoc.sourceforge.net/installing.html) and run the following command within weather: 
 
-/weather$ epydoc . --config config/epydoc_config.py
+	$ epydoc . --config config/epydoc_config.py
 
 Ignore the warnings; they should all pertain to Django-related documentation.
 The HTML-formatted API will be in a directory named api/ in weather.
@@ -24,7 +24,7 @@ DESIGN DOCUMENTATION:
 To generate HTML-formatted design documentation, run the following command from 
 within doc/:
 
-/doc$ rst2html --title="Tor Weather Design Documentation" design.txt design.html
+	$ rst2html --title="Tor Weather Design Documentation" design.txt design.html
 
 To view the documentation, open doc/design.html. If you'd like to view the plaintext design doc instead, see doc/design.txt
 
@@ -32,6 +32,6 @@ To view the documentation, open doc/design.html. If you'd like to view the plain
 TESTING: (For developers)
 Run the following command from within weather/:
 
-/weather$ python manage.py test weatherapp
+	$ python manage.py test weatherapp
 
 -------------------------------------------------------------------------------
