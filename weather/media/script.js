@@ -40,7 +40,7 @@ $(document).ready(function() {
 	showOrHideSect("input#id_get_t_shirt", "div#t-shirt-section");
 
 	// Styles text boxes that say 'Default value is --defVal--'.
-	showDefault("div#node-down-section", 1);
+	showDefault("div#node-down-section", 0);
 	showDefault("div#band-low-section", 20);
 
 	// Show description about '(More Info)' link.
@@ -71,6 +71,16 @@ $(document).ready(function() {
 		$(this).html(showLink);
 		searchContainer.hide();
 	});
+
+	$("#router_search").keypress(function(event) {
+		if (event.keyCode == 13) {
+			event.preventDefault();
+			clearAutoComplete();
+			$("#router-search-submit").click();
+			return true;
+		}
+	});
+
 
 	// Looks up fingerprint based on router name.
 	$("#router-search-submit").click(function() {

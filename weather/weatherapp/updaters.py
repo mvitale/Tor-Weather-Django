@@ -52,6 +52,7 @@ def check_node_down(email_list):
                    sub.emailed = False
                    sub.last_changed = datetime.now()
             else:
+<<<<<<< HEAD:weather/weatherapp/updaters.py
                 if sub.triggered:
                     if sub.is_grace_passed() and sub.emailed == False:
                         recipient = sub.subscriber.email
@@ -69,6 +70,25 @@ def check_node_down(email_list):
                 else:
                     sub.triggered = True
                     sub.last_changed = datetime.now()
+=======
+                if not sub.triggered:
+                    sub.triggered = True
+                    sub.last_changed = datetime.now()
+
+                if sub.is_grace_passed() and sub.emailed == False:
+                    recipient = sub.subscriber.email
+                    fingerprint = sub.subscriber.router.fingerprint
+                    name = sub.subscriber.router.name
+                    grace_pd = sub.grace_pd
+                    unsubs_auth = sub.subscriber.unsubs_auth
+                    pref_auth = sub.subscriber.pref_auth
+                        
+                    email = emails.node_down_tuple(recipient, fingerprint, 
+                                                   name, grace_pd,          
+                                                   unsubs_auth, pref_auth)
+                    email_list.append(email)
+                    sub.emailed = True 
+>>>>>>> ab33486b039a4a36dd8a3a3f3ed3bacfd5ce92f3:weather/weatherapp/updaters.py
 
             sub.save()
     return email_list
@@ -216,6 +236,7 @@ def check_version(ctl_util, email_list):
             #to False so that we can email them in the future if we need to
                 else:
                     sub.emailed = False
+<<<<<<< HEAD:weather/weatherapp/updaters.py
 
             else:
                 logging.info("Couldn't parse the version relay %s is running" \
@@ -223,6 +244,15 @@ def check_version(ctl_util, email_list):
 
             sub.save()
 
+=======
+
+            else:
+                logging.info("Couldn't parse the version relay %s is running" \
+                              % fingerprint)
+
+            sub.save()
+
+>>>>>>> ab33486b039a4a36dd8a3a3f3ed3bacfd5ce92f3:weather/weatherapp/updaters.py
     return email_list
         
                 

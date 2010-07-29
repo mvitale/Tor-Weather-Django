@@ -7,20 +7,23 @@ configurations and the email address for sending the Tor Weather notifications.
 by your local torrc if necessary. The default is 9051. Change the base_url field to reflect the base URL for the Tor Weather application.
 
 4) A copy of (or link to) the TorCtl package must be located within the weather 
-directory. 
+directory.
 
-5) Create the database by running the following command from within the weather
+5) In the auth_token file (located inside your config directory), insert your
+Tor hashed control password in plain text. The file should otherwise be empty.
+
+6) Create the database by running the following command from within the weather
 directory:
-/weather$ python manage.py syncdb
+	$ python manage.py syncdb
 
-6) Look here for documentation concerning how to deploy the Django web 
+7) Look here for documentation concerning how to deploy the Django web 
 application:
 http://docs.djangoproject.com/en/dev/howto/deployment/
 We recommend deploying Django with Apache and mod_wsgi. 
 
-7) Once the application is deployed, the listener application should be run from
+8) Once the application is deployed, the listener application should be run from
 inside the weather directory:
-/weather$ python manage.py runlistener
+	$ python manage.py runlistener
 The listener waits for consensus events from your local TorCtl process, then 
 updates the database and sends notifications.
 WARNING: There should only be one instance of this application running at any

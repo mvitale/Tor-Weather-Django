@@ -30,9 +30,6 @@ urlpatterns = patterns('',
     (r'^router_fingerprint_lookup/$',
                         'weatherapp.views.router_fingerprint_lookup'),
     
-    # XXX FOR TESTING ONLY!
-    (r'^jeff/$', 'weatherapp.views.pref_shortcut'),
-
     # This is for serving static files for the development server, mainly for
     # getting the CSS file and jquery file.
     (r'^media/(?P<path>.*)$', 'django.views.static.serve',

@@ -352,6 +352,7 @@ def router_fingerprint_lookup(request):
             else:
                 json = simplejson.dumps(router.spaced_fingerprint())
             return HttpResponse(json, mimetype='application/json')
+<<<<<<< HEAD:weather/weatherapp/views.py
             
 def pref_shortcut(request):
     """FOR TESTING """
@@ -361,3 +362,5 @@ def pref_shortcut(request):
         user.confirmed = True
         user.save()
     return HttpResponseRedirect('/preferences/' + user.pref_auth)
+=======
+>>>>>>> ab33486b039a4a36dd8a3a3f3ed3bacfd5ce92f3:weather/weatherapp/views.py
