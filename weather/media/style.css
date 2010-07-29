@@ -75,6 +75,11 @@ div#center {
 				margin: 0 0 0 0;
 			}
 
+				div.notification-section {
+					margin: 4px 0 4px 0;
+					overflow: hidden;
+				}
+			
 				#user-info {
 					margin-bottom: 10px;
 				}
@@ -124,11 +129,11 @@ div#center {
 			}
 
 			#router_search {
-				width: 300px;
+				width: 250px;
 			}
 
 			.short-input {
-				width: 100px;
+				width: 150px;
 				float: left;
 			}
 
@@ -162,13 +167,22 @@ div#center {
 				}
 
 			.checkbox-input {
-				position: relative;
-				top: 2px;
+				height: 14px;
+				float: left;
+				margin: 0 4px 0 0;
+			}
+
+			.after-checkbox label {
+				line-height: 14px;
+				height: 14px;
+				float: left;
 			}
 
 			.extra-options {
 				overflow: hidden;
-				margin: 4px 0 4px 26px;
+				margin-left: 20px;
+				padding: 4px 0 4px 0;
+				clear: both;
 			}	
 
 				.help-text {
