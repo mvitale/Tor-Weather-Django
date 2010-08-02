@@ -76,6 +76,7 @@ div#center {
 
 				div.notification-section {
 					margin: 4px 0 4px -2px;
+					padding: 2px 0;
 					overflow: hidden;
 				}
 
