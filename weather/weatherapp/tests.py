@@ -87,7 +87,7 @@ class TestWeb(TestCase):
         node_down_sub = NodeDownSub.objects.get(subscriber = subscriber)
         self.assertEqual(node_down_sub.emailed, False)
         self.assertEqual(node_down_sub.triggered, False)
-        self.assertEqual(node_down_sub.grace_pd, 1)
+        self.assertEqual(node_down_sub.grace_pd, 0)
     
     def test_subscribe_version(self):
         """Test a version subscription (all other subscriptions off)"""
@@ -309,7 +309,7 @@ class TestWeb(TestCase):
         node_down_sub = NodeDownSub.objects.get(subscriber = subscriber)
         self.assertEqual(node_down_sub.emailed, False)
         self.assertEqual(node_down_sub.triggered, False)
-        self.assertEqual(node_down_sub.grace_pd, 1)
+        self.assertEqual(node_down_sub.grace_pd, 0)
         
         version = VersionSub.objects.get(subscriber = subscriber)
         self.assertEqual(version.emailed, False)

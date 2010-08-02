@@ -74,6 +74,11 @@ div#center {
 				margin: 0 0 0 0;
 			}
 
+				div.notification-section {
+					margin: 4px 0 4px -2px;
+					overflow: hidden;
+				}
+
 				#user-info {
 					margin-bottom: 10px;
 				}
@@ -106,8 +111,13 @@ div#center {
 						width: 350px;
 						position: absolute;
 						bottom: 0px;
+<<<<<<< HEAD:weather/media/style.css
 						left: 406px;
 						overflow: auto;
+=======
+						left: 400px;
+						overflow: hidden;
+>>>>>>> 2aefcb54c68085e3d9881220859728fa483a1573:weather/media/style.css
 					}
 
 					div#search-results {
@@ -123,11 +133,11 @@ div#center {
 			}
 
 			#router_search {
-				width: 300px;
+				width: 250px;
 			}
 
 			.short-input {
-				width: 100px;
+				width: 150px;
 				float: left;
 			}
 
@@ -161,13 +171,22 @@ div#center {
 				}
 
 			.checkbox-input {
-				position: relative;
-				top: 2px;
+				height: 14px;
+				float: left;
+				margin: 0 4px 0 2px;
 			}
 
-			.extra-options {
+			.after-checkbox label {
+				line-height: 14px;
+				height: 14px;
+				float: left;
+			}
+
+			div.extra-options {
 				overflow: hidden;
-				margin: 4px 0 4px 26px;
+				padding: 4px 0 4px 0;
+				margin-left: 20px;
+				clear: both;
 			}	
 
 				.help-text {

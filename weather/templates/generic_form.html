@@ -23,56 +23,61 @@
 	<span class="form-error" id="general-form-error">{{ error }}</span>
 	{% endfor %}
 
-	{{ form.get_node_down }}
-	{{ form.get_node_down.label_tag }}
-	<div class="extra-options" id="node-down-section">
-		{{ form.node_down_grace_pd.label_tag }}
-		{% for error in form.node_down_grace_pd.errors %}
-		<p class="form-error">
-			{{ error }}
-		</p>
-		{% endfor %}
-		{{ form.node_down_grace_pd }}
-		{{ form.node_down_grace_pd_unit }}
-		<em class="help-text after-short">
-			{{ form.node_down_grace_pd.help_text }}
-		</em>
+	<div class="notification-section">
+		{{ form.get_node_down }}
+		<span class="after-checkbox">{{ form.get_node_down.label_tag }}</span>
+		<div class="extra-options" id="node-down-section">
+			{{ form.node_down_grace_pd.label_tag }}
+			{% for error in form.node_down_grace_pd.errors %}
+			<p class="form-error">
+				{{ error }}
+			</p>
+			{% endfor %}
+			{{ form.node_down_grace_pd }}
+			{{ form.node_down_grace_pd_unit }}
+			<em class="help-text after-short">
+				{{ form.node_down_grace_pd.help_text }}
+			</em>
+		</div>
 	</div>
-	<div></div>
 
-	{{ form.get_version }}
-	{{ form.get_version.label_tag }}
-	<div class="extra-options" id="version-section">
-		<div>{{ form.version_section_text|safe }}</div>
-		{% for error in form.version_type.errors %}
-		<p class="form-error">
-			{{ error }}
-		</p>
-		{% endfor %}
-		{{ form.version_type }}
+	<div class="notification-section">
+		{{ form.get_version }}
+		<span class="after-checkbox">{{ form.get_version.label_tag }}</span>
+		<div class="extra-options" id="version-section">
+			<div>{{ form.version_section_text|safe }}</div>
+			{% for error in form.version_type.errors %}
+			<p class="form-error">
+				{{ error }}
+			</p>
+			{% endfor %}
+			{{ form.version_type }}
+		</div>
 	</div>
-	<div></div>
 
-	{{ form.get_band_low }}
-	{{ form.get_band_low.label_tag }}
-	<div class="extra-options" id="band-low-section">
-		{{ form.band_low_threshold.label_tag }}
-		{% for error in form.band_low_threshold.errors %}
-		<p class="form-error">
-			{{ error }}
-		</p>
-		{% endfor %}
-		{{ form.band_low_threshold }}
-		<em class="help-text after-dropdown">
-			{{ form.band_low_threshold.help_text }}
-		</em>
+	<div class="notification-section">
+		{{ form.get_band_low }}
+		<span class="after-checkbox">{{ form.get_band_low.label_tag }}</span>
+		<div class="extra-options" id="band-low-section">
+			{{ form.band_low_threshold.label_tag }}
+			{% for error in form.band_low_threshold.errors %}
+			<p class="form-error">
+				{{ error }}
+			</p>
+			{% endfor %}
+			{{ form.band_low_threshold }}
+			<em class="help-text after-dropdown">
+				{{ form.band_low_threshold.help_text }}
+			</em>
+		</div>
 	</div>
-	<div></div>
 
-	{{ form.get_t_shirt }}
-	<label for="id_get_t_shirt">{{ form.get_t_shirt.label|safe}}</label>
-	<div class="extra-options" id="t-shirt-section">
-		<div>{{ form.t_shirt_section_text|safe }}</div>
+	<div class="notification-section">
+		{{ form.get_t_shirt }}
+		<span class="after-checkbox"><label for="id_get_t_shirt">{{form.get_t_shirt.label|safe}}</label></span>
+		<div class="extra-options" id="t-shirt-section">
+			<div>{{ form.t_shirt_section_text|safe }}</div>
+		</div>
 	</div>
 
 	{% endblock notification-info %}

@@ -1,5 +1,8 @@
 There should only be one running instance of this application. Please do not run it if you are not a Tor developer.
 
+This version of Tor Weather was backported to Django version 1.1. It is 
+incompatible with Django v1.2. If you are running Django v1.2, please download
+the v1.2-compatible version of this package.
 --------------------------------------------------------------------------------
 INSTALLATION:
 See /doc/INSTALL for details.
@@ -8,7 +11,7 @@ See /doc/INSTALL for details.
 API:
 To generate the Tor Weather API, install epydoc (http://epydoc.sourceforge.net/installing.html) and run the following command within weather: 
 
-/weather$ epydoc . --config config/epydoc_config.py
+	$ epydoc . --config config/epydoc_config.py
 
 Ignore the warnings; they should all pertain to Django-related documentation.
 The HTML-formatted API will be in a directory named api/ in weather.
@@ -18,7 +21,7 @@ DESIGN DOCUMENTATION:
 To generate HTML-formatted design documentation, run the following command from 
 within doc/:
 
-/doc$ rst2html --title="Tor Weather Design Documentation" design.txt design.html
+	$ rst2html --title="Tor Weather Design Documentation" design.txt design.html
 
 To view the documentation, open doc/design.html. If you'd like to view the plaintext design doc instead, see doc/design.txt
 
@@ -26,6 +29,6 @@ To view the documentation, open doc/design.html. If you'd like to view the plain
 TESTING: (For developers)
 Run the following command from within weather/:
 
-/weather$ python manage.py test weatherapp
+	$ python manage.py test weatherapp
 
 -------------------------------------------------------------------------------

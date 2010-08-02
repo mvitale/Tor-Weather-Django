@@ -13,7 +13,7 @@ Configuration settings.
 authenticator = open("config/auth_token", "r").read().strip()
 
 #The Tor control port to use
-control_port = 9055
+control_port = 9051
 
 #The base URL for the Tor Weather web application:
 base_url = 'http://www.weather.torproject.org'

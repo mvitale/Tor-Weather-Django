@@ -4,7 +4,7 @@ Tor Weather Design Documentation
 
 Django
 ------------
-Tor Weather was ported to `Django (v1.2)`_ to take advantage of the framework's object relational mapper for database access. Data can be directly accessed by way of Django's models, each of which maps to a table in the database and can be utilized as an object. Django's adaptation of the model-view-controller schema is a bit confusing: controllers are stored in a module named views.py and views are called templates (but models are still, thankfully, called models). Still, Django greatly simplified design and development of the Tor Weather web application, which is why it was chosen.
+Tor Weather was ported to `Django (v1.1)`_ to take advantage of the framework's object relational mapper for database access. Data can be directly accessed by way of Django's models, each of which maps to a table in the database and can be utilized as an object. Django's adaptation of the model-view-controller schema is a bit confusing: controllers are stored in a module named views.py and views are called templates (but models are still, thankfully, called models). Still, Django greatly simplified design and development of the Tor Weather web application, which is why it was chosen.
 
 Directory Structure
 -------------------------
@@ -81,13 +81,19 @@ Version Notifications
 
 Welcome Email
 ...................
+    The purpose of the welcome email is twofold: first, it advertises Tor 
+    Weather as a useful application to new relay operators. Second, it welcomes 
+    the relay operator to the Tor community and expresses that their 
+    contribution is both significant and appreciated. 
+
     The database backing Tor Weather stores information about every router seen
     in consensus within the past year (or for as long as Tor Weather has been
     running, whichever is shorter). If a router in the database is flagged as 
-    stable and has not yet been sent a welcome email, the router operator's 
-    email is parsed from the contact field in the descriptor file for that 
-    node. A welcome email containing information about Tor Weather is sent to 
-    these node operators if an email address was successfully parsed. 
+    stable, its operator has not been sent a welcome email, and its operator 
+    is *not* subscribed to Tor Weather, the router operator's email is parsed 
+    from the contact field in the descriptor file for that node. A welcome 
+    email containing information about Tor Weather is sent to these node 
+    operators if an email address was successfully parsed. 
 
     The welcome email thanks the operator for his/her contribution and 
     encourages the operator to subscribe to Tor Weather. If the router allows
@@ -95,10 +101,17 @@ Welcome Email
     to legal help for exit relay operators. 
 
     The welcome emails are *not* a subscribable notification type and are sent
-    to *all* stable relay operators who provide a parsable (by our standards) 
-    email address in the contact field of their configuration file. The email 
-    is sent regardless of whether the operator has subscribed to Tor Weather. 
-
+    to *all* new, stable relay operators who a) haven't subscribed to Tor 
+    Weather and b) provide a parsable (by our standards) email address in the 
+    contact field of their configuration file. 
+    
+    The welcome email is intended for *new* stable relay operators. To avoid 
+    sending the welcome email to long-term relay operators at startup, a 
+    48-hour delay period has been implemented immediately following deployment. 
+    Any relays added to the database within the first 48-hours following 
+    deployment are exempt from the welcome email. That way, the operators who 
+    are emailed should largely be new to the network, and relay operators who 
+    have been running for a while shouldn't get the welcome email. 
 ------------------------------------------------------------------------
 
 Modules in weatherapp
@@ -186,6 +199,6 @@ Updating the database and sending email notifications is handled by the updaters
 
 Each Subscription in the database is updated, and emails are sent to the Subscriber's email if the conditions indicate a notification should be sent. 
 
-.. _Django (v1.2): http://docs.djangoproject.com/en/1.2/intro/overview/
+.. _Django (v1.1): http://docs.djangoproject.com/en/1.1/intro/overview/
 .. _Tor T-Shirt page: http://www.torproject.org/tshirt.html.en
 .. _directory specifications: https://svn.torproject.org/svn/tor/trunk/doc/spec/dir-spec.txt

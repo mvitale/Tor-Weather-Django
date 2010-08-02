@@ -852,9 +852,9 @@ class GenericForm(forms.Form):
       
     _GET_NODE_DOWN_INIT = True
     _GET_NODE_DOWN_LABEL = 'Email me when the node is down'
-    _NODE_DOWN_GRACE_PD_INIT = 1
+    _NODE_DOWN_GRACE_PD_INIT = 0
     _NODE_DOWN_GRACE_PD_MAX = 4500
-    _NODE_DOWN_GRACE_PD_MIN = 1
+    _NODE_DOWN_GRACE_PD_MIN = 0
     _NODE_DOWN_GRACE_PD_LABEL = 'How long before we send a notifcation?'
     _NODE_DOWN_GRACE_PD_HELP_TEXT = 'Enter a value between one hour and six \
             months'
@@ -865,7 +865,7 @@ class GenericForm(forms.Form):
     _NODE_DOWN_GRACE_PD_UNIT_INIT = ('H', 'hours')
     
     _GET_VERSION_INIT = False
-    _GET_VERSION_LABEL = 'Email me when the node\'s Tor version is out of date'
+    _GET_VERSION_LABEL = 'Email me when the router\'s Tor version is out of date'
     _VERSION_TYPE_CHOICE_1 = 'UNRECOMMENDED'
     _VERSION_TYPE_CHOICE_1_H = 'Recommended Updates'
     _VERSION_TYPE_CHOICE_2 = 'OBSOLETE'
@@ -890,7 +890,7 @@ class GenericForm(forms.Form):
             str(_BAND_LOW_THRESHOLD_MAX)
    
     _GET_T_SHIRT_INIT = False
-    _GET_T_SHIRT_LABEL = 'Email me when my router has earned me a \
+    _GET_T_SHIRT_LABEL = 'Email me when the router has earned me a \
             <a target=_BLANK href="' + url_helper.get_t_shirt_url() + \
             '">Tor t-shirt</a>'
     _T_SHIRT_SECTION_INFO = '<em>Note:</em> You must be the router\'s \
@@ -959,9 +959,6 @@ class GenericForm(forms.Form):
 
         self.version_section_text = GenericForm._VERSION_SECTION_INFO
         self.t_shirt_section_text = GenericForm._T_SHIRT_SECTION_INFO
-
-    def clean(self):
-        print "doing generic clean"
 
     def check_if_sub_checked(self):
         """Throws a validation error if no subscriptions are checked. 
@@ -1135,7 +1132,6 @@ class SubscribeForm(GenericForm):
         """
 
         data = self.cleaned_data
-        print self.cleaned_data 
         # Calls the generic clean() helper methods.
         GenericForm.check_if_sub_checked(self)
         GenericForm.convert_node_down_grace_pd_unit(self)
@@ -1159,7 +1155,6 @@ class SubscribeForm(GenericForm):
                 del data['email_1']
                 del data['email_2']
 
-        print data
         return data
 
     def clean_fingerprint(self):
