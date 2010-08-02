@@ -112,13 +112,8 @@ div#center {
 						width: 350px;
 						position: absolute;
 						bottom: 0px;
-<<<<<<< HEAD:weather/media/style.css
 						left: 406px;
 						overflow: auto;
-=======
-						left: 400px;
-						overflow: hidden;
->>>>>>> 2aefcb54c68085e3d9881220859728fa483a1573:weather/media/style.css
 					}
 
 					div#search-results {
