@@ -125,7 +125,7 @@ class Router(models.Model):
                   'exit': False }
 
     fingerprint = models.CharField(max_length=_FINGERPRINT_MAX_LEN,
-            default=None, blank=False)
+            default=None, blank=False, unique=True)
     name = models.CharField(max_length=_NAME_MAX_LEN,
             default=_DEFAULTS['name'])
     welcomed = models.BooleanField(default=_DEFAULTS['welcomed'])
