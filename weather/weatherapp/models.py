@@ -317,8 +317,9 @@ class Subscriber(models.Model):
             number of days and months (as it necessarily has to be to be an
             even number of months), then C{M} will be returned, not C{D}.
         """
-        
-        if hours % (24 * 30) == 0:
+        if hours == 0:
+            return 'H'
+        elif hours % (24 * 30) == 0:
             return 'M'
         elif hours % (24 * 7) == 0:
             return 'W'
