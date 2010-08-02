@@ -22,7 +22,7 @@ div#center {
 	}
 
 	div#main-column {
-		padding: 15px 0 10px 10px;
+		padding: 15px 0 10px 5px;
 		text-align: left;
 		clear: both;
 	}
@@ -34,7 +34,6 @@ div#center {
 		}
 
 		#sign-up-link {
-			font-size: 20px;
 			font-weight: bold;
 			margin-bottom: 10px;
 			display: block;
@@ -107,7 +106,7 @@ div#center {
 						width: 350px;
 						position: absolute;
 						bottom: 0px;
-						left: 400px;
+						left: 406px;
 						overflow: auto;
 					}
 
@@ -141,7 +140,7 @@ div#center {
 				}
 			
 			.long-input {
-				width: 390px;
+				width: 396px;
 			}
 
 			select {
