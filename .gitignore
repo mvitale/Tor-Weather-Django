@@ -1,3 +1,4 @@
 *.pyc
 *.swp
 weather/config/auth_token
+weather/settings.py

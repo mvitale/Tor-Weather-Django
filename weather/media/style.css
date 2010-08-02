@@ -105,6 +105,7 @@ div#center {
 						overflow: hidden;
 						clear: both;
 						position: relative;
+						padding-top: 2px;
 					}
 
 					div#search-container {
