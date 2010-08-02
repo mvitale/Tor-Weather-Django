@@ -2,7 +2,7 @@
 import os
 
 PROJECT_PATH = os.path.realpath(os.path.dirname(__file__))
-DEBUG = False
+DEBUG = False #set to true to see stack traces instead of standard html errors
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
