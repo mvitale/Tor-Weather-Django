@@ -162,28 +162,6 @@ def _get_router_name(fingerprint, name):
     else:
         return "%s (id: %s)" % (name, spaced_fingerprint)
 
-def send_confirmation(recipient, fingerprint, name, confirm_auth):
-    """This method sends a confirmation email to the user. The email 
-    contains a complete link to the confirmation page, which the user 
-    must follow in order to subscribe. The Django method send_mail is
-    called with fail_silently=True so that an error is not thrown if the
-    mail isn't successfully delivered.
-    
-    @type recipient: str
-    @param recipient: The user's email address
-    @type fingerprint: str
-    @param fingerprint: The fingerprint of the node this user wishes to
-        monitor.
-    @type confirm_auth: str
-    @param confirm_auth: The user's unique confirmation authorization key.
-    """
-    router = _get_router_name(fingerprint, name)
-    confirm_url = url_helper.get_confirm_url(confirm_auth)
-    msg = _CONFIRMATION_MAIL % (router, confirm_url)
-    sender = _SENDER
-    subj = _SUBJECT_HEADER + _CONFIRMATION_SUBJ
-    send_mail(subj, msg, sender, [recipient], fail_silently=True)
-
 def send_confirmed(recipient, fingerprint, name, unsubs_auth, pref_auth):
     """Sends an email to the user after their subscription is successfully
     confirmed. The email contains links to change preferences and 

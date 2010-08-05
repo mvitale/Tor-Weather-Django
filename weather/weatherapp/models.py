@@ -26,6 +26,7 @@ import emails
 
 from django.db import models
 from django import forms
+from django.core.mail import send_mail
 from django.forms import ValidationError
 
 
@@ -228,12 +229,18 @@ class Subscriber(models.Model):
         """
         return self.email
 
-    def email_footer(self):
-        """Inserts a subscriber's URLs for unsubscribing and changing
-        preferences into the template for email footers."""
-        return _GENERIC_FOOTER %
-            ( url_helper.get_unsubscribe_url(self.unsubs_auth),
-              url_helper.get_preferences_url(self.pref_auth) )
+    def send_confirmation(self):
+        """This method sends a confirmation email to this L{Subscriber}.
+        The email contains a complete link to the confirmation page, which
+        the user must follow in order to subscribe. The Django method 
+        send_mail is called with fail_silently=True so that an error is not
+        thrown if the mail isn't successfully delivered."""
+
+        subject = emails.SUBJECT_HEADER + emails.CONFIRMATION_SUBJ
+        message = emails.CONFIRMATION_MAIL % (self.router.format_name(),
+                url_helper.get_confirm_url(confirm_auth))
+        sender = emails.SENDER
+        send_mail(subject, message, sender, [self.email], fail_silently=True)
  
     def _has_sub_type(self, sub_type):
         """Checks if this L{Subscriber} has a L{Subscription} of class

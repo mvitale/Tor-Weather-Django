@@ -56,8 +56,8 @@ def subscribe(request):
                 addr = subscriber.email
                 fingerprint = subscriber.router.fingerprint
                 name = subscriber.router.name
-                email_thread = threading.Thread(target=emails.send_confirmation,
-                               args=[addr, fingerprint, name, confirm_auth])
+                email_thread = threading.Thread(
+                        target=subscriber.send_confirmation)
                 email_thread.setDaemon(True)
                 email_thread.start()
         
