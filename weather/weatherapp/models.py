@@ -22,6 +22,7 @@ import re
 from copy import copy
 
 from config import url_helper
+import emails
 
 from django.db import models
 from django import forms
@@ -29,7 +30,7 @@ from django.forms import ValidationError
 
 
 # HELPER FUNCTIONS ------------------------------------------------------------
-# ----------------------------------------------------------------------------- 
+# ---------------------------------------------------------------------------- 
 
 def insert_fingerprint_spaces(fingerprint):
     """Insert a space into C{fingerprint} every four characters.
@@ -239,34 +240,30 @@ class Subscriber(models.Model):
         @return: Simple description of L{Subscriber}.
         """
         return self.email
+
+    def email_footer(self):
+        """Inserts a subscriber's URLs for unsubscribing and changing
+        preferences into the template for email footers."""
+        return _GENERIC_FOOTER %
+            ( url_helper.get_unsubscribe_url(self.unsubs_auth),
+              url_helper.get_preferences_url(self.pref_auth) )
  
     def _has_sub_type(self, sub_type):
-        """Checks if this L{Subscriber} has a L{Subscription} of type
+        """Checks if this L{Subscriber} has a L{Subscription} of class
         C{sub_type}.
 
-        @type sub_type: str
-        @arg sub_type: The type of L{Subscription} to check. This must be the 
-            exact name of a subclass of L{Subscription} (L{NodeDownSub},
-            L{VersionSub}, L{BandwidthSub}, or L{TShirtSub}).
+        @type sub_type: class (subclass of L{Subscription})
+        @arg sub_type: The type of L{Subscription} to check. This must be
+            either L{NodeDownSub}, L{VersionSub}, L{BandwidthSub}, or
+            L{TShirtSub}.
         @rtype: bool
         @return: Whether this L{Subscriber} has a L{Subscription} of type
             C{sub_type}; C{True} if it does, C{False} if it doesn't. Also 
             returns C{False} if C{sub_type} is not a valid name of a 
         """
 
-        if sub_type == 'NodeDownSub':
-            sub = NodeDownSub
-        elif sub_type == 'VersionSub':
-            sub = VersionSub
-        elif sub_type == 'BandwidthSub':
-            sub = BandwidthSub
-        elif sub_type == 'TShirtSub':
-            sub = TShirtSub
-        else:
-            return False
-   
         try:
-            sub.objects.get(subscriber = self)
+            sub_type.objects.get(subscriber = self)
         except sub.DoesNotExist:
             return False
         except Exception, e:
@@ -282,7 +279,7 @@ class Subscriber(models.Model):
             C{True} if it does, C{False} if it doesn't.
         """
 
-        return self._has_sub_type('NodeDownSub')
+        return self._has_sub_type(NodeDownSub)
 
     def has_version_sub(self):
         """Checks if this L{Subscriber} has a L{VersionSub}.
@@ -292,7 +289,7 @@ class Subscriber(models.Model):
             if it does, C{False} if it doesn't.
         """
 
-        return self._has_sub_type('VersionSub')
+        return self._has_sub_type(VersionSub)
 
     def has_bandwidth_sub(self):
         """Checks if this L{Subscriber} has a L{BandwidthSub}.
@@ -303,7 +300,7 @@ class Subscriber(models.Model):
 
         """
 
-        return self._has_sub_type('BandwidthSub')
+        return self._has_sub_type(BandwidthSub)
 
     def has_t_shirt_sub(self):
         """Checks if this L{Subscriber} has a L{TShirtSub}.
@@ -313,7 +310,7 @@ class Subscriber(models.Model):
             if it does, C{False} if it doesn't.
         """
 
-        return self._has_sub_type('TShirtSub')
+        return self._has_sub_type(TShirtSub)
 
     def determine_unit(self, hours):
         """Determines the time unit entered for the node_down_grace_pd.
