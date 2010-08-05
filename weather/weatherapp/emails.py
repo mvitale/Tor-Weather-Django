@@ -162,30 +162,6 @@ def _get_router_name(fingerprint, name):
     else:
         return "%s (id: %s)" % (name, spaced_fingerprint)
 
-def send_confirmed(recipient, fingerprint, name, unsubs_auth, pref_auth):
-    """Sends an email to the user after their subscription is successfully
-    confirmed. The email contains links to change preferences and 
-    unsubscribe.
-    
-    @type recipient: str
-    @param recipient: The user's email address
-    @type fingerprint: str
-    @param fingerprint: The fingerprint of the node this user wishes to
-        monitor.
-    @type unsubs_auth: str
-    @param unsubs_auth: The user's unique unsubscribe auth key
-    @type pref_auth: str
-    @param pref_auth: The user's unique preferences auth key
-    """
-    router = _get_router_name(fingerprint, name)
-    subj = _SUBJECT_HEADER + _CONFIRMED_SUBJ
-    sender = _SENDER
-    unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
-    prefURL = url_helper.get_preferences_url(pref_auth)
-    msg = _CONFIRMED_MAIL % router
-    msg = _add_generic_footer(msg, unsubURL, prefURL)
-    send_mail(subj, msg, sender, [recipient], fail_silently=False)
-
 def bandwidth_tuple(recipient, fingerprint, name,  observed, threshold,
                     unsubs_auth, pref_auth):
     """Returns the tuple for a low bandwidth email.

@@ -52,12 +52,8 @@ def subscribe(request):
                 form.create_subscriptions(subscriber)
 
                 # Spawn a daemon to send the confirmation email.
-                confirm_auth = subscriber.confirm_auth
-                addr = subscriber.email
-                fingerprint = subscriber.router.fingerprint
-                name = subscriber.router.name
                 email_thread = threading.Thread(
-                        target=subscriber.send_confirmation)
+                        target=subscriber.send_confirmation_email)
                 email_thread.setDaemon(True)
                 email_thread.start()
         
@@ -159,15 +155,8 @@ def confirm(request, confirm_auth):
                                                  confirm_auth)
         return HttpResponseRedirect(error_url_ext)
 
-    # get the urls for the user's unsubscribe and prefs pages to add links
-    unsubURL = url_helper.get_unsubscribe_url(user.unsubs_auth)
-    prefURL = url_helper.get_preferences_url(user.pref_auth)
-
     # spawn a daemon to send an email confirming subscription and 
-    #providing the links
-    email_thread=threading.Thread(target=emails.send_confirmed,
-                            args=[user.email, router.fingerprint, router.name,
-                                  user.unsubs_auth, user.pref_auth])
+    email_thread=threading.Thread(target=user.send_confirmed_email)
     email_thread.setDaemon(True)
     email_thread.start()
 
