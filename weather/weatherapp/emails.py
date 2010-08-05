@@ -162,28 +162,6 @@ def _get_router_name(fingerprint, name):
     else:
         return "%s (id: %s)" % (name, spaced_fingerprint)
 
-def _add_generic_footer(msg, unsubs_auth, pref_auth):
-    """
-    Appends C{_GENERIC_FOOTER} to C{msg} with unsubscribe and preferences
-    links created from C{unsubs_auth} and C{pref_auth}.
-
-    @type msg: str
-    @param msg: The message to append the footer to.
-    @type unsubs_auth: str
-    @param msg: The user's unique unsubscribe auth key.
-    @type pref_auth: str
-    @param pref_auth: The user's unique unsubscribe auth key.
-
-    @rtype: str
-    @return: C{msg} with the footer appended.
-    """
-
-    unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
-    prefURL = url_helper.get_preferences_url(pref_auth)
-    footer = _GENERIC_FOOTER % (unsubURL, prefURL)
-    
-    return msg + footer
-
 def send_confirmation(recipient, fingerprint, name, confirm_auth):
     """This method sends a confirmation email to the user. The email 
     contains a complete link to the confirmation page, which the user 

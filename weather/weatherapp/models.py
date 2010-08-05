@@ -22,6 +22,7 @@ import re
 from copy import copy
 
 from config import url_helper
+import emails
 
 from django.db import models
 from django import forms
@@ -226,6 +227,13 @@ class Subscriber(models.Model):
         @return: Simple description of L{Subscriber}.
         """
         return self.email
+
+    def email_footer(self):
+        """Inserts a subscriber's URLs for unsubscribing and changing
+        preferences into the template for email footers."""
+        return _GENERIC_FOOTER %
+            ( url_helper.get_unsubscribe_url(self.unsubs_auth),
+              url_helper.get_preferences_url(self.pref_auth) )
  
     def _has_sub_type(self, sub_type):
         """Checks if this L{Subscriber} has a L{Subscription} of class
