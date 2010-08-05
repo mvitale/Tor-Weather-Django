@@ -162,28 +162,6 @@ def _get_router_name(fingerprint, name):
     else:
         return "%s (id: %s)" % (name, spaced_fingerprint)
 
-def _add_generic_footer(msg, unsubs_auth, pref_auth):
-    """
-    Appends C{_GENERIC_FOOTER} to C{msg} with unsubscribe and preferences
-    links created from C{unsubs_auth} and C{pref_auth}.
-
-    @type msg: str
-    @param msg: The message to append the footer to.
-    @type unsubs_auth: str
-    @param msg: The user's unique unsubscribe auth key.
-    @type pref_auth: str
-    @param pref_auth: The user's unique unsubscribe auth key.
-
-    @rtype: str
-    @return: C{msg} with the footer appended.
-    """
-
-    unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
-    prefURL = url_helper.get_preferences_url(pref_auth)
-    footer = _GENERIC_FOOTER % (unsubURL, prefURL)
-    
-    return msg + footer
-
 def send_confirmation(recipient, fingerprint, name, confirm_auth):
     """This method sends a confirmation email to the user. The email 
     contains a complete link to the confirmation page, which the user 
@@ -288,44 +266,6 @@ def node_down_tuple(recipient, fingerprint, name, grace_pd, unsubs_auth,
     msg = _add_generic_footer(msg, unsubURL, prefURL)
     return (subj, msg, sender, [recipient])
 
-def t_shirt_tuple(recipient, fingerprint, name, avg_bandwidth, 
-                  hours_since_triggered, is_exit, unsubs_auth, pref_auth):
-    """Returns a tuple for a t-shirt earned email.  
-    @type recipient: str
-    @param recipient: The user's email address
-    @type fingerprint: str
-    @param fingerprint: The router's fingerprint
-    @type avg_bandwidth: int
-    @param avg_bandwidth: The user's average bandwidth over the
-        observed period in kB/s.
-    @type hours_since_triggered: int
-    @param hours_since_triggered: The hours since the user's router
-        was first viewed as running.
-    @type is_exit: bool
-    @param is_exit: True if the router is an exit node, False if not.
-    @type unsubs_auth: str
-    @param unsubs_auth: The user's unique unsubscribe auth key
-    @type pref_auth: str
-    @param pref_auth: The user's unique preferences auth key
-    @rtype: tuple
-    @return: A tuple listing information about the email to be sent, which is
-        used by the send_mass_mail method in updaters.
-    """
-    router = _get_router_name(fingerprint, name)
-    stable_message = 'running'
-    if is_exit:
-        node_type += ' as an exit node'
-    days_running = hours_since_triggered / 24
-    avg_bandwidth = avg_bandwidth
-    subj = _SUBJECT_HEADER + _T_SHIRT_SUBJ
-    sender = _SENDER
-    unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
-    prefURL = url_helper.get_preferences_url(pref_auth)
-    msg = _T_SHIRT_MAIL % (router, stable_message, days_running, 
-                           avg_bandwidth)
-    msg = _add_generic_footer(msg, unsubURL, prefURL)
-    return (subj, msg, sender, [recipient])
-
 def welcome_tuple(recipient, fingerprint, name, exit):
     """Returns a tuple for the welcome email. If the operator runs an exit
     node, legal information is appended to the welcome mail.
@@ -350,34 +290,4 @@ def welcome_tuple(recipient, fingerprint, name, exit):
         append = _LEGAL_INFO
     url = url_helper.get_home_url()
     msg = _WELCOME_MAIL % (router, url, append)
-    return (subj, msg, sender, [recipient])
-
-def version_tuple(recipient, fingerprint, name, version_type, unsubs_auth, 
-                  pref_auth):
-    """Returns a tuple for a version notification email.
-
-    @type recipient: str
-    @param recipient: The user's email address.
-    @type fingerprint: str
-    @param fingerprint: The fingerprint for the router this user is subscribed
-                        to.
-    @type version_type: str
-    @param version_type: Either 'UNRECOMMENDED' or 'OBSOLETE', depending on the
-        user's preferences for this notification type.
-
-    @rtype: tuple
-    @return: A tuple containing information about the email to be sent in
-             an appropriate format for the C{send_mass_mail()} function in
-             C{updaters}.
-    """
-    router = _get_router_name(fingerprint, name)
-    subj = _SUBJECT_HEADER + _VERSION_SUBJ
-    sender = _SENDER
-    version_type = version_type.lower()
-    unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
-    prefURL = url_helper.get_preferences_url(pref_auth)
-    downloadURL = url_helper.get_download_url()
-    msg = _VERSION_MAIL % (router, version_type, downloadURL)
-    msg = _add_generic_footer(msg, unsubURL, prefURL)
-                           
     return (subj, msg, sender, [recipient])

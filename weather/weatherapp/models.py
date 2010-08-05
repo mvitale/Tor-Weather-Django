@@ -73,7 +73,6 @@ def hours_since(time):
     hours = (delta.days * 24) + (delta.seconds / 3600)
     return hours
 
-
 # MODELS ----------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 
@@ -152,6 +151,20 @@ class Router(models.Model):
         """
 
         return insert_fingerprint_spaces(self.fingerprint)
+
+    def format_name(self):
+        """Returns the router name and fingerprint formatted correctly for 
+        email notifications. If the name is 'Unnamed', the name is ommitted from
+        the string.
+        
+        @rtype: str
+        @return: The L{Router}'s L{name} and L{fingerprint} formatted for email.
+        """
+        if self.name == 'Unnamed':
+            return "(id: %s)" % self.spaced_fingerprint()
+        else:
+            return "%s (id: %s)" % (self.name, self.spaced_fingerprint())
+
 
 class Subscriber(models.Model):
     """Model for Tor Weather subscribers. 
@@ -495,6 +508,61 @@ class VersionSub(Subscription):
 
     notify_type = models.CharField(max_length=_NOTIFY_TYPE_MAX_LEN,
             default=None, blank=False)
+    actual_version = models.CharField(max_length=_NOTIFY_TYPE_MAX_LEN,
+            default=None, blank=True)
+
+    def update(self):
+        """"""
+        ctl_util = ctlutil.get_ctl_util()
+        fingerprint = self.subscriber.router.fingerprint
+
+        version_type = ctl_util.get_version_type(str(fingerprint))
+        if version_type != 'ERROR':
+            if not (version_type == 'OBSOLETE' or self.notify_type == \
+                    version_type):
+                self.emailed = False
+
+        else:
+            logging.info("Couldn't parse the version relay %s is running" \
+                         % fingerprint)
+        
+        self.actual_version = version_type
+        self.save()
+
+    def should_email(self):
+        """"""
+        # don't email if subscriber hasn't confirmed or has already been emailed
+        if not self.subscriber.confirmed or self.emailed == True:
+            return False
+        
+        elif (self.actual_version == 'OBSOLETE' or self.notify_type == \
+                    self.actual_version): 
+            return True
+        
+        return False
+
+    def get_email(self):
+        """"""
+        subscriber = self.subscriber
+        router = subscriber.router
+        fingerprint = router.fingerprint
+        name = router.format_name()
+
+        version_type = self.actual_version.lower()
+
+        recipient = subscriber.email
+        unsubURL = url_helper.get_unsubscribe_url(subscriber.unsubs_auth)
+        prefURL = url_helper.get_preferences_url(subscriber.pref_auth)
+        downloadURL = url_helper.get_download_url()
+                    
+        subj = emails.SUBJECT_HEADER + emails.VERSION_SUBJ
+        sender = emails.SENDER
+    
+        msg = emails.VERSION_MAIL % (name, version_type, downloadURL) +\
+              self.subscriber.get_email_footer()
+                        
+        return (subj, msg, sender, [recipient])             
+
 
 class BandwidthSub(Subscription):   
     """Model for low bandwidth notification subscriptions, which send
@@ -564,6 +632,89 @@ class TShirtSub(Subscription):
     triggered = models.BooleanField(default=_DEFAULTS['triggered'])
     avg_bandwidth = models.IntegerField(default=_DEFAULTS['avg_bandwidth'])
     last_changed = models.DateTimeField(default=_DEFAULTS['last_changed'])
+    
+    def update(self):
+        """"""
+        ctl_util = ctlutil.get_ctl_util()
+        
+        router = self.subscriber.router
+        is_up = router.up
+        fingerprint = str(router.fingerprint)
+        if not is_up and self.triggered:
+            # reset the data if the node goes down
+            self.triggered = False
+            self.avg_bandwidth = 0
+            self.last_changed = datetime.now()
+        elif is_up:
+            descriptor = ctl_util.get_single_descriptor(fingerprint)
+            current_bandwidth = ctl_util.get_bandwidth(fingerprint)
+            if self.triggered == False:
+                # router just came back, reset values
+                self.triggered = True
+                self.avg_bandwidth = current_bandwidth
+                self.last_changed = datetime.now()
+            else:
+                # update the avg bandwidth (arithmetic)
+                hours_up = self.get_hours_since_triggered()
+                self.avg_bandwidth = ctl_util.get_new_avg_bandwidth(
+                                                self.avg_bandwidth,
+                                                hours_up,
+                                                current_bandwidth)
+
+        self.save()
+
+
+    def should_email(self):
+        """Determines if the L{subscriber<Subscription.subscriber>} has earned
+        a t-shirt by running its L{router<Subscriber.router>}. Determines this 
+        by checking if the L{router<Subscriber.router>} has been up for 1464 
+        hours (61 days, appox 2 months) and then checking if its average 
+        bandwidth is above the required threshold (100 kB/s for an exit node, 
+        500 kB/s for a non-exit node).
+        
+        @rtype: C{bool}
+        @return: Whether the L{subscriber<Subscription.subscriber>} has earned 
+            a t-shirt; C{True} if they have, C{False} if they haven't.
+        """
+        if not self.subscriber.confirmed or self.emailed == True:
+            return False
+        
+        hours_up = self.get_hours_since_triggered()
+        
+        if not self.emailed and self.triggered and hours_up >= 1464:
+            if self.subscriber.router.exit:
+                if self.avg_bandwidth >= 100:
+                    return True
+            else:
+                if self.avg_bandwidth >= 500:
+                    return True
+        return False
+
+
+    def get_email(self):
+        """"""
+        recipient = self.subscriber.email
+        fingerprint = self.subscriber.router.fingerprint
+        name = self.subscriber.router.format_name()
+        avg_band = self.avg_bandwidth
+        hours_up = self.get_hours_since_triggered()
+        exit = self.subscriber.router.exit
+        
+        stable_message = 'running'
+        if is_exit:
+            node_type += ' as an exit node'
+        days_running = hours_up / 24
+    
+        subj = emails.SUBJECT_HEADER + emails.T_SHIRT_SUBJ
+        sender = emails.SENDER
+    
+        unsubURL = url_helper.get_unsubscribe_url(self.subscriber.unsubs_auth)
+        prefURL = url_helper.get_preferences_url(self.subscriber.pref_auth)
+    
+        msg = emails.T_SHIRT_MAIL % (router, stable_message, days_running,
+                    avg_bandwidth) + self.subscriber.get_email_footer()
+    
+        return (subj, msg, sender, [recipient])
 
     def get_hours_since_triggered(self):
         """Get the number of hours that the L{router<Subscriber.router>} has
@@ -578,30 +729,6 @@ class TShirtSub(Subscription):
             return 0
         else:
             return hours_since(self.last_changed)
-        
-    def should_email(self):
-        """Determines if the L{subscriber<Subscription.subscriber>} has earned
-        a t-shirt by running its L{router<Subscriber.router>}. Determines this 
-        by checking if the L{router<Subscriber.router>} has been up for 1464 
-        hours (61 days, appox 2 months) and then checking if its average 
-        bandwidth is above the required threshold (100 kB/s for an exit node, 
-        500 kB/s for a non-exit node).
-        
-        @rtype: C{bool}
-        @return: Whether the L{subscriber<Subscription.subscriber>} has earned 
-            a t-shirt; C{True} if they have, C{False} if they haven't.
-        """ 
-        
-        hours_up = self.get_hours_since_triggered()
-        
-        if not self.emailed and self.triggered and hours_up >= 1464:
-            if self.subscriber.router.exit:
-                if self.avg_bandwidth >= 100:
-                    return True
-            else:
-                if self.avg_bandwidth >= 500:
-                    return True
-        return False
 
 
 # CUSTOM FIELDS ---------------------------------------------------------------
