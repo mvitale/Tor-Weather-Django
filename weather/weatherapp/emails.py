@@ -49,18 +49,16 @@ send_mass_mail() method. Emails are sent after all database checks/updates.
 @var _GENERIC_FOOTER: A footer containing unsubscribe and preferences page
     links.
 """
-import re
-
 from config import url_helper
 from weatherapp.models import insert_fingerprint_spaces
 
 from django.core.mail import send_mail
 
-_SENDER = 'tor-ops@torproject.org'
-_SUBJECT_HEADER = '[Tor Weather] '
+SENDER = 'tor-ops@torproject.org'
+SUBJECT_HEADER = '[Tor Weather] '
 
-_CONFIRMATION_SUBJ = 'Confirmation Needed'
-_CONFIRMATION_MAIL = "Dear human,\n\n" +\
+CONFIRMATION_SUBJ = 'Confirmation Needed'
+CONFIRMATION_MAIL = "Dear human,\n\n" +\
     "This is the Tor Weather Report system.\n\n" +\
     "Someone (possibly you) has requested that status monitoring "+\
     "information about a Tor node %s be sent to this email "+\
@@ -69,120 +67,76 @@ _CONFIRMATION_MAIL = "Dear human,\n\n" +\
     "Reports, you don't need to do anything. You shouldn't hear from us "+\
     "again."
 
-_CONFIRMED_SUBJ = 'Confirmation Successful'
-_CONFIRMED_MAIL="Dear human,\n\nThis is the Tor Weather Report "+\
+CONFIRMED_SUBJ = 'Confirmation Successful'
+CONFIRMED_MAIL="Dear human,\n\nThis is the Tor Weather Report "+\
     "system.You successfully subscribed for Weather Reports about a Tor "+\
     "node %s."
 
-_NODE_DOWN_SUBJ = 'Node Down!'
-_NODE_DOWN_MAIL = "This is a Tor Weather Report.\n\n" +\
+NODE_DOWN_SUBJ = 'Node Down!'
+NODE_DOWN_MAIL = "This is a Tor Weather Report.\n\n" +\
     "It appears that the node %s you've been observing" +\
     "has been uncontactable through the Tor network for at least %s. "+\
     "You may wish to look at it to see why."
 
-_VERSION_SUBJ = 'Node Out of Date!'
-_VERSION_MAIL = "This is a Tor Weather Report.\n\n"+\
-    "It appears that the Tor node %s you've been observing "+\
-    "is running an %s version of Tor. You can download the "+\
-    "latest version of Tor at %s."
+VERSION_SUBJ = 'Node Out of Date!'
+VERSION_MAIL = "This is a Tor Weather Report.\n\n"+\
+   "It appears that the Tor node %s you've been observing "+\
+   "is running an %s version of Tor. You can download the "+\
+   "latest version of Tor at %s."
 
-_LOW_BANDWIDTH_SUBJ = 'Low bandwidth!'
-_LOW_BANDWIDTH_MAIL = "The is a Tor Weather Report.\n\n"+\
-    "It appears that the tor node %s you've been observing "+\
-    "has an observed bandwidth capacity of %s kB/s. You elected to receive "+\
-    "notifications if this node's bandwidth capacity passed a threshold of "+\
-    "%s kB/s. You may wish to look at your router to see why."
+LOW_BANDWIDTH_SUBJ = 'Low bandwidth!'
+LOW_BANDWIDTH_MAIL = "The is a Tor Weather Report.\n\n"+\
+   "It appears that the tor node %s you've been observing "+\
+   "has an observed bandwidth capacity of %s kB/s. You elected to receive "+\
+   "notifications if this node's bandwidth capacity passed a threshold of "+\
+   "%s kB/s. You may wish to look at your router to see why."
 
-_T_SHIRT_SUBJ = 'Congratulations! Have a T-shirt!'
-_T_SHIRT_MAIL = "This is a Tor Weather Report.\n\n"+\
-    "Congratulations! The node %s you've been observing has been %s for %s "+\
-    "days with an average bandwidth of %s KB/s," +\
-    "which makes the operator eligible to receive an official Tor "+\
-    "T-shirt! If you're interested in claiming your shirt, please visit "+\
-    "the following link for more information.\n\n"+\
-    "http://www.torproject.org/tshirt.html"+\
-    "\n\nYou might want to include this message in your email. "+\
-    "Thank you for your contribution to the Tor network!"
-    
-_WELCOME_SUBJ = 'Welcome to Tor!'
-_WELCOME_MAIL = "Hello and welcome to Tor!\n\n" +\
-    "We've noticed that your Tor node %s has been running long "+\
-    "enough to be "+\
-    "flagged as \"stable\". First, we would like to thank you for your "+\
-    "contribution to the Tor network! As Tor grows, we require ever more "+\
-    "nodes to optomize browsing speed and reliability for our users. "+\
-    "Your node is helping to serve the millions of Tor clients out there."+\
-    "\n\nAs a node operator, you may be interested in the Tor Weather "+\
-    "service, which sends important email notifications when a node is "\
-    "down or your version is out of date. We here at Tor consider this "+\
-    "service to be vitally important and greatly useful to all node "+\
-    "operators. If you're interested in Tor Weather, please visit the "+\
-    "following link to register:\n\n"+\
-    "%s\n\n"+\
-    "You might also be interested in the or-announce mailing list, "+\
-    "which is a low volume list for announcements of new releases and "+\
-    "critical security updates. To join, send an e-mail message to "+\
-    "majordomo@seul.org "+\
-    "with no subject and a body of \"subscribe or-announce\". \n\n"+\
-    "%sThank you again for your contribution to the Tor network! "+\
-    "We won't send you any further emails unless you subscribe.\n\n"+\
-    "Disclaimer: If you have no idea why you're receiving this email, we "+\
-    "sincerely apologize! You shouldn't hear from us again."
+T_SHIRT_SUBJ = 'Congratulations! Have a T-shirt!'
+T_SHIRT_MAIL = "This is a Tor Weather Report.\n\n"+\
+   "Congratulations! The node %s you've been observing has been %s for %s "+\
+   "days with an average bandwidth of %s KB/s," +\
+   "which makes the operator eligible to receive an official Tor "+\
+   "T-shirt! If you're interested in claiming your shirt, please visit "+\
+   "the following link for more information.\n\n"+\
+   "http://www.torproject.org/tshirt.html"+\
+   "\n\nYou might want to include this message in your email. "+\
+   "Thank you for your contribution to the Tor network!"
+   
+WELCOME_SUBJ = 'Welcome to Tor!'
+WELCOME_MAIL = "Hello and welcome to Tor!\n\n" +\
+   "We've noticed that your Tor node %s has been running long "+\
+   "enough to be "+\
+   "flagged as \"stable\". First, we would like to thank you for your "+\
+   "contribution to the Tor network! As Tor grows, we require ever more "+\
+   "nodes to optomize browsing speed and reliability for our users. "+\
+   "Your node is helping to serve the millions of Tor clients out there."+\
+   "\n\nAs a node operator, you may be interested in the Tor Weather "+\
+   "service, which sends important email notifications when a node is "\
+   "down or your version is out of date. We here at Tor consider this "+\
+   "service to be vitally important and greatly useful to all node "+\
+   "operators. If you're interested in Tor Weather, please visit the "+\
+   "following link to register:\n\n"+\
+   "%s\n\n"+\
+   "You might also be interested in the or-announce mailing list, "+\
+   "which is a low volume list for announcements of new releases and "+\
+   "critical security updates. To join, send an e-mail message to "+\
+   "majordomo@seul.org "+\
+   "with no subject and a body of \"subscribe or-announce\". \n\n"+\
+   "%sThank you again for your contribution to the Tor network! "+\
+   "We won't send you any further emails unless you subscribe.\n\n"+\
+   "Disclaimer: If you have no idea why you're receiving this email, we "+\
+   "sincerely apologize! You shouldn't hear from us again."
 
-_LEGAL_INFO = "Additionally, since you are running as an exit node, you " +\
-    "might be interested in Tor's Legal FAQ for Relay Operators "+\
-    "(http://www.torproject.org/eff/tor-legal-faq.html.en) " +\
-    "and Mike Perry's blog post on running an exit node " +\
-    "(http://blog.torproject.org/blog/tips-running-exit-node-minimal-"+\
-    "harassment).\n\n"
+LEGAL_INFO = "Additionally, since you are running as an exit node, you " +\
+   "might be interested in Tor's Legal FAQ for Relay Operators "+\
+   "(http://www.torproject.org/eff/tor-legal-faq.html.en) " +\
+   "and Mike Perry's blog post on running an exit node " +\
+   "(http://blog.torproject.org/blog/tips-running-exit-node-minimal-"+\
+   "harassment).\n\n"
 
-_GENERIC_FOOTER = "\n\nYou can unsubscribe from these reports at any time "+\
-    "by visiting the following url:\n\n%s\n\nor change your Tor Weather "+\
+GENERIC_FOOTER = "\n\nYou can unsubscribe from these reports at any time "+\
+   "by visiting the following url:\n\n%s\n\nor change your Tor Weather "+\
     "notification preferences here: \n\n%s"
-
-
-def _get_router_name(fingerprint, name):
-    """Returns a string representation of the name and fingerprint of
-    this router. Ex: 'WesCSTor (id: 4094 8034 ...)'
-    
-    @type fingerprint: str
-    @param fingerprint: A router fingerprint
-    @type name: str
-    @param name: A router name
-
-    @rtype: str
-    @return: An email-friendly string representation of the name and
-    fingerprint. Only returns a representation of the fingerprint 
-    C{if name == 'Unnamed'}.
-    """
-
-    spaced_fingerprint = insert_fingerprint_spaces(fingerprint) 
-    if name == 'Unnamed':
-        return "(id: %s)" % spaced_fingerprint
-    else:
-        return "%s (id: %s)" % (name, spaced_fingerprint)
-
-def _add_generic_footer(msg, unsubs_auth, pref_auth):
-    """
-    Appends C{_GENERIC_FOOTER} to C{msg} with unsubscribe and preferences
-    links created from C{unsubs_auth} and C{pref_auth}.
-
-    @type msg: str
-    @param msg: The message to append the footer to.
-    @type unsubs_auth: str
-    @param msg: The user's unique unsubscribe auth key.
-    @type pref_auth: str
-    @param pref_auth: The user's unique unsubscribe auth key.
-
-    @rtype: str
-    @return: C{msg} with the footer appended.
-    """
-
-    unsubURL = url_helper.get_unsubscribe_url(unsubs_auth)
-    prefURL = url_helper.get_preferences_url(pref_auth)
-    footer = _GENERIC_FOOTER % (unsubURL, prefURL)
-    
-    return msg + footer
 
 def send_confirmation(recipient, fingerprint, name, confirm_auth):
     """This method sends a confirmation email to the user. The email 

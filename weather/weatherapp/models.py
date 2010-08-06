@@ -153,6 +153,18 @@ class Router(models.Model):
 
         return insert_fingerprint_spaces(self.fingerprint)
 
+    def should_welcome(self):
+        if not self.welcomed:
+            ctl_util = ctlutil.get_ctl_util()
+            if ctl_util.is_stable(str(self.fingerprint)) and not \
+               ctl_util.get_email(str(self.fingerprint)) == "":
+                return True
+        return False
+
+    def send_welcome_email(self):
+        #WORK ON ME
+        pass
+
 class Subscriber(models.Model):
     """Model for Tor Weather subscribers. 
 
@@ -384,6 +396,18 @@ class Subscriber(models.Model):
 
         return data
 
+    def get_email_footer(self):
+        """Get a generic footer with this Subscriber's unsubscribe and
+        preferences urls
+
+        @rtype: str
+        @return: A generic footer with this Subscriber's unsubscribe and
+        preferences urls.
+        """
+        unsubURL = url_helper.get_unsubscribe_url(self.unsubs_auth)
+        prefURL = url_helper.get_preferences_url(self.pref_auth)
+        return emails.GENERIC_FOOTER % (unsubURL, prefURL)
+
 class Subscription(models.Model):
     """Generic (abstract) model for Tor Weather subscriptions. Only contains
     fields which are used by all types of Tor Weathe Dictionary subscriptions.
@@ -454,7 +478,7 @@ class NodeDownSub(Subscription):
     grace_pd = models.IntegerField(default=None, blank=False)
     last_changed = models.DateTimeField(default=_DEFAULTS['last_changed'])
     
-    def is_grace_passed(self):
+    def _is_grace_passed(self):
         """Check if the C{subscriber}'s C{router} has been offline for 
         C{grace_pd} hours.
         
@@ -468,6 +492,51 @@ class NodeDownSub(Subscription):
             return True
         else:
             return False
+
+    def update(self):
+        """Update this subscription"""
+        if self.subscriber.router.up:
+            if self.triggered:
+               self.triggered = False
+               self.emailed = False
+               self.last_changed = datetime.now()
+        else:
+            if not self.triggered:
+                self.triggered = True
+                self.last_changed = datetime.now()
+        self.save()
+            
+
+    def should_email(self):
+        """Returns C{True} if a notification should be sent; otherwise,
+        returns C{False}.
+
+        @rtype: bool
+        @return: C{True} if a notification should be send to this
+        subscription's subscriber, otherwise C{False}
+        """
+        if self.subscriber.confirmed and self.triggered and \
+           self.is_grace_passed() and self.emailed == False:
+            return True
+        else:
+            return False
+
+    def get_email(self):
+        fingerprint = self.subscriber.router.fingerprint
+        name = self.subscriber.router.name
+        grace_pd = self.grace_pd
+        unselfs_auth = self.subscriber.unselfs_auth
+        pref_auth = self.subscriber.pref_auth
+        router = self.subscriber.router.format_name()
+        subj = emails.SUBJECT_HEADER + emails.NODE_DOWN_SUBJ
+        recipient = self.subscriber.email
+        sender = emails.SENDER
+        num_hours = self.grace_pd + " hour"
+        if grace_pd >1:
+            num_hours += "s"
+        msg = emails.NODE_DOWN_MAIL % (router, num_hours)
+        msg = msg + self.subscriber.get_email_footer()
+        return (subj, msg, sender, [recipient]) 
 
 class VersionSub(Subscription):
     """Model for version update notification subscriptions, which send 
@@ -524,7 +593,32 @@ class BandwidthSub(Subscription):
     _DEFAULTS = { 'threshold': 20 }
 
     threshold = models.IntegerField(_DEFAULTS['threshold'])
-    
+
+    def update(self):
+        pass
+   
+    def should_email(self):
+        ctl_util = ctlutil.get_ctl_util()
+        bandwidth = ctl_util.get_bandwidth(str(self.fingerprint))
+
+        bandwidth = ctl_util.get_bandwidth(fingerprint)
+
+        if bandwidth < self.threshold and not self.emailed:
+            return True
+        else:
+            return False
+
+    def get_email(self):
+        ctl_util = ctlutil.get_ctl_util()
+        bandwidth = ctl_util.get_bandwidth(str(self.fingerprint))
+        router = self.subscriber.router.format_name()
+        subj = emails.SUBJECT_HEADER + LOW_BANDWIDTH_SUBJ
+        recipient = self.subscriber.email
+        sender = SENDER
+        msg = emails.LOW_BANDWIDTH_MAIL % (router, bandwidth, self.threshold)
+        msg = msg + self.subscriber.get_email_footer()
+        return (subj, msg, sender, [recipient])
+        
 class TShirtSub(Subscription):
     """Model for t-shirt notification subscriptions, which send notifications 
     to their C{susbcriber} if running their C{router} has earned the 

@@ -1,10 +1,15 @@
 """This module contains the CtlUtil class. CtlUtil objects set up a connection
 to TorCtl and handle communication concerning consensus documents and 
-descriptor files.
+descriptor files. The module also implements the singleton pattern for the
+CtlUtil class, containing an instance of CtlUtil as a module attribute 
+and a factory method for accessing it.
 
 @var debugfile: The debug file used by TorCtl .
 @var unparsable_email_file: A log file for contacts with unparsable emails.
+@var __the_util: The single CtlUtil instance. This is instantiated the first
+time the C{get_ctl_util} factory method is called.
 """
+
 
 import socket
 from TorCtl import TorCtl
@@ -18,6 +23,19 @@ debugfile = open('log/debug', 'w')
 
 #for unparsable emails
 unparsable_email_file = 'log/unparsable_emails.txt'
+
+__the_util = None
+
+def get_ctl_util():
+    """Get a pointer to C{__the_util}. The first time this method is called,
+    it creates C{__the_util}.
+    
+    @rtype: CtlUtil
+    @return: C{__the_util}
+    """
+    if not __the_util:
+        __the_util = CtlUtil()
+    return __the_util
 
 class CtlUtil:
     """A class that handles communication with the local Tor process via
@@ -44,20 +62,15 @@ class CtlUtil:
     _CONTROL_HOST = '127.0.0.1'
     _CONTROL_PORT = config.control_port 
     _AUTHENTICATOR = config.authenticator
-    
-    def __init__(self, control_host = _CONTROL_HOST, 
-                control_port = _CONTROL_PORT, sock = None, 
-                authenticator = _AUTHENTICATOR):
+
+    def __init__(self):
         """Initialize the CtlUtil object, connect to TorCtl."""
 
-        self.sock = sock
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        if not sock:
-            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        self.control_host = control_host
-        self.control_port = control_port
-        self.authenticator = authenticator
+        self.control_host = _CONTROL_HOST
+        self.control_port = _CONTROL_PORT
+        self.authenticator = _AUTHENTICATOR
 
         # Try to connect 
         try:
