@@ -239,11 +239,11 @@ def check_all_subs(ctl_util, email_list):
     logging.debug('Checking node down subscriptions.')
     email_list = check_node_down(email_list)
     logging.debug('Checking version subscriptions.')
-    check_version(email_list)
+    check_version(ctl_util, email_list)
     logging.debug('Checking bandwidth subscriptions.')
-    check_low_bandwidth(email_list)
+    check_low_bandwidth(ctl_util, email_list)
     logging.debug('Checking shirt subscriptions.')
-    email_list = check_earn_tshirt(email_list)
+    email_list = check_earn_tshirt(ctl_util, email_list)
     return email_list
 
 def update_all_routers(ctl_util, email_list):
