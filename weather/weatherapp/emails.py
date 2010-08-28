@@ -100,7 +100,7 @@ _T_SHIRT_MAIL = "This is a Tor Weather Report.\n\n"+\
     "which makes the operator eligible to receive an official Tor "+\
     "T-shirt! If you're interested in claiming your shirt, please visit "+\
     "the following link for more information.\n\n"+\
-    "http://www.torproject.org/tshirt.html"+\
+    "https://www.torproject.org/tshirt.html"+\
     "\n\nYou might want to include this message in your email. "+\
     "Thank you for your contribution to the Tor network!"
     
@@ -131,9 +131,9 @@ _WELCOME_MAIL = "Hello and welcome to Tor!\n\n" +\
 
 _LEGAL_INFO = "Additionally, since you are running as an exit node, you " +\
     "might be interested in Tor's Legal FAQ for Relay Operators "+\
-    "(http://www.torproject.org/eff/tor-legal-faq.html.en) " +\
+    "(https://www.torproject.org/eff/tor-legal-faq.html.en) " +\
     "and Mike Perry's blog post on running an exit node " +\
-    "(http://blog.torproject.org/blog/tips-running-exit-node-minimal-"+\
+    "(https://blog.torproject.org/blog/tips-running-exit-node-minimal-"+\
     "harassment).\n\n"
 
 _GENERIC_FOOTER = "\n\nYou can unsubscribe from these reports at any time "+\

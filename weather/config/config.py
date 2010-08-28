@@ -10,7 +10,7 @@ Configuration settings.
 """
 
 # XXX: Make bulletproof
-authenticator = open("config/auth_token", "r").read().strip()
+authenticator = open("/usr/local/django/Tor-Weather-Django/weather/config/auth_token", "r").read().strip()
 
 #The Tor control port to use
 control_port = 9051
